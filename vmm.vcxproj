@@ -151,8 +151,8 @@
     <ClInclude Include="datatypes.h" />
     <ClInclude Include="EFER.h" />
     <ClInclude Include="fn_identifiers.h" />
+    <ClInclude Include="fn_svm_revision.h" />
     <ClInclude Include="fn_vendor.h" />
-    <ClInclude Include="test.h" />
     <ClInclude Include="SVM_STATUS.h" />
     <ClInclude Include="VM_CR.h" />
   </ItemGroup>

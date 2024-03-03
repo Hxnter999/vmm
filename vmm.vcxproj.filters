@@ -45,9 +45,6 @@
     <ClInclude Include="datatypes.h">
       <Filter>Header</Filter>
     </ClInclude>
-    <ClInclude Include="test.h">
-      <Filter>Header\ARCH\CPUID</Filter>
-    </ClInclude>
     <ClInclude Include="fn_vendor.h">
       <Filter>Header\ARCH\CPUID\Standard Features</Filter>
     </ClInclude>
@@ -59,6 +56,9 @@
     </ClInclude>
     <ClInclude Include="VM_CR.h">
       <Filter>Header\ARCH\MSRs</Filter>
+    </ClInclude>
+    <ClInclude Include="fn_svm_revision.h">
+      <Filter>Header\ARCH\CPUID\Extended Features</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -15,10 +15,12 @@ struct fn_identifiers {
 				uint32_t reserve28 : 4;
 			} model_identifiers;
 
-			struct {
-				uint32_t brand_id : 16;
-				uint32_t reserved16 : 12;
-				uint32_t pkg_type : 4;
+			struct
+			{
+				uint32_t brand_index : 8;
+				uint32_t clflush_line_size : 8;
+				uint32_t max_addressable_ids : 8;
+				uint32_t initial_apic_id : 8;
 			} brand_id_identifiers;
 
 			struct {
