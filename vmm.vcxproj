@@ -150,6 +150,7 @@
     <ClInclude Include="cpuid_t.h" />
     <ClInclude Include="datatypes.h" />
     <ClInclude Include="EFER.h" />
+    <ClInclude Include="fn_processor_capacity.h" />
     <ClInclude Include="fn_identifiers.h" />
     <ClInclude Include="fn_svm_revision.h" />
     <ClInclude Include="fn_vendor.h" />
