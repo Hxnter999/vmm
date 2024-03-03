@@ -1,6 +1,8 @@
 #pragma once
 #include "cpuid_t.h"
 // 0x0
+
+
 struct fn_vendor {
 	union
 	{
@@ -28,4 +30,12 @@ struct fn_vendor {
 
 		cpuid_t cpuid;
 	};
+
+	bool is_amd_vendor() const 
+	{
+		if (cpuid.cpu_info == 0) return false;
+
+		return (vendor1 == 'htuA') && (vendor2 == 'DMAc') && (vendor3 == 'itne');
+	}
+
 };
