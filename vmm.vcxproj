@@ -147,6 +147,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="commons.h" />
+    <ClInclude Include="cpuid_t.h" />
+    <ClInclude Include="datatypes.h" />
+    <ClInclude Include="fn_vendor.h" />
+    <ClInclude Include="SVM_STATUS.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

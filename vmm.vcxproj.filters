@@ -1,22 +1,52 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Driver Files">
+    <Filter Include="Header">
+      <UniqueIdentifier>{f5cc95d1-fbef-4713-8a10-7c46abaf72bb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source">
       <UniqueIdentifier>{8E41214B-6785-4CFE-B992-037D68949A14}</UniqueIdentifier>
       <Extensions>inf;inv;inx;mof;mc;</Extensions>
+    </Filter>
+    <Filter Include="Header\ARCH">
+      <UniqueIdentifier>{0b39962d-d10a-4a97-8d57-f500cfbd7575}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header\ARCH\MSRs">
+      <UniqueIdentifier>{25642eee-b80d-4f40-8415-75b1b1f321af}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header\ARCH\CPUID">
+      <UniqueIdentifier>{4d1009e2-b736-4186-8f2a-757b4960f65a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header\ARCH\CPUID\Standard Features">
+      <UniqueIdentifier>{badbdb5c-f1f2-4669-9b40-96f365e18008}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header\ARCH\CPUID\Extended Features">
+      <UniqueIdentifier>{2f2d0fb1-e1b1-40a7-9520-aed24fa92114}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
-      <Filter>Driver Files</Filter>
+      <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="commons.cpp">
-      <Filter>Driver Files</Filter>
+      <Filter>Source</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="commons.h">
-      <Filter>Driver Files</Filter>
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="SVM_STATUS.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="cpuid_t.h">
+      <Filter>Header\ARCH\CPUID</Filter>
+    </ClInclude>
+    <ClInclude Include="datatypes.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="fn_vendor.h">
+      <Filter>Header\ARCH\CPUID\Standard Features</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
