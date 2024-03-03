@@ -1,30 +1,36 @@
 #pragma once
-#pragma warning(disable : 4996)
+#include "MSRs.h"
 
 struct EFER
 {
-	static constexpr const __int64 MSR_EFER = 0xC0000080;
+	static constexpr uint64_t MSR_EFER = 0xC0000080;
 
 	union {
 		struct {
-			unsigned __int64 SCE : 1; // System Call Extensions
-			unsigned __int64 reserved1 : 7;
-			unsigned __int64 LME : 1; // Long Mode Enable
-			unsigned __int64 reserved2 : 1;
-			unsigned __int64 LMA : 1; // Long Mode Active
-			unsigned __int64 NXE : 1; // No-Execute Enable
-			unsigned __int64 SVME : 1; // Secure Virtual Machine Enable
-			unsigned __int64 LMSLE : 1; // Long Mode Segment Limit Enable
-			unsigned __int64 FFXSR : 1; // Fast FXSAVE/FXRSTOR
-			unsigned __int64 TCE : 1; // Translation Cache Extension
-			unsigned __int64 reserved3 : 1;
-			unsigned __int64 MCOMMIT : 1; // Enable MCOMMIT instruction
-			unsigned __int64 INTWB : 1; // Interruptible WBINVD/WBNOINVD enable
-			unsigned __int64 reserved4 : 1;
-			unsigned __int64 UAIE : 1; // Upper Address Ignore Enable
-			unsigned __int64 AIBRSE : 1; // Automatic IBRS Enable
-			unsigned __int64 reserved5 : 42;
+			uint64_t SCE : 1; // System Call Extensions
+			uint64_t reserved1 : 7;
+			uint64_t LME : 1; // Long Mode Enable
+			uint64_t reserved2 : 1;
+			uint64_t LMA : 1; // Long Mode Active
+			uint64_t NXE : 1; // No-Execute Enable
+			uint64_t SVME : 1; // Secure Virtual Machine Enable
+			uint64_t LMSLE : 1; // Long Mode Segment Limit Enable
+			uint64_t FFXSR : 1; // Fast FXSAVE/FXRSTOR
+			uint64_t TCE : 1; // Translation Cache Extension
+			uint64_t reserved3 : 1;
+			uint64_t MCOMMIT : 1; // Enable MCOMMIT instruction
+			uint64_t INTWB : 1; // Interruptible WBINVD/WBNOINVD enable
+			uint64_t reserved4 : 1;
+			uint64_t UAIE : 1; // Upper Address Ignore Enable
+			uint64_t AIBRSE : 1; // Automatic IBRS Enable
+			uint64_t reserved5 : 42;
 		};
-		unsigned __int64 bits;
+		uint64_t bits;
 	};
 };
+
+template<>
+void loadMSR(EFER& fn)
+{
+	fn.bits = __readmsr(EFER::MSR_EFER);
+}
