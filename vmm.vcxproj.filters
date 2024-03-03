@@ -45,8 +45,14 @@
     <ClInclude Include="datatypes.h">
       <Filter>Header</Filter>
     </ClInclude>
+    <ClInclude Include="test.h">
+      <Filter>Header\ARCH\CPUID</Filter>
+    </ClInclude>
     <ClInclude Include="fn_vendor.h">
       <Filter>Header\ARCH\CPUID\Standard Features</Filter>
+    </ClInclude>
+    <ClInclude Include="fn_identifiers.h">
+      <Filter>Header\ARCH\CPUID\Extended Features</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
