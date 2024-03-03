@@ -54,5 +54,11 @@
     <ClInclude Include="fn_identifiers.h">
       <Filter>Header\ARCH\CPUID\Extended Features</Filter>
     </ClInclude>
+    <ClInclude Include="EFER.h">
+      <Filter>Header\ARCH\MSRs</Filter>
+    </ClInclude>
+    <ClInclude Include="VM_CR.h">
+      <Filter>Header\ARCH\MSRs</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
