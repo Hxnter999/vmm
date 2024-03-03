@@ -38,3 +38,9 @@ struct fn_svm_revision {
 		cpuid_t cpuid;
 	};
 };
+
+template<>
+void loadFn(fn_svm_revision& fn)
+{
+	__cpuid(reinterpret_cast<int*>(&fn.cpuid), 0x80000008);
+}

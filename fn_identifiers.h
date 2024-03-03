@@ -87,3 +87,9 @@ struct fn_identifiers {
 		cpuid_t cpuid;
 	};
 };
+
+template<>
+void loadFn(fn_identifiers& fn)
+{
+	__cpuid(reinterpret_cast<int*>(&fn.cpuid), 0x80000001);
+}

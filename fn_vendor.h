@@ -37,5 +37,10 @@ struct fn_vendor {
 
 		return (vendor1 == 'htuA') && (vendor2 == 'DMAc') && (vendor3 == 'itne');
 	}
-
 };
+
+template<>
+void loadFn(fn_vendor& fn)
+{
+	__cpuid(reinterpret_cast<int*>(&fn.cpuid), 0);
+}

@@ -1,5 +1,6 @@
 #pragma once
 #include "datatypes.h"
+#include <intrin.h>
 
 // Standard Features: 0x0000_0000 - 0x0000_FFFF
 // Software Reserved: 0x4000_0000 - 0x4000_00FF 255
@@ -21,3 +22,6 @@ union cpuid_t
 		uint32_t edx;
 	} registers;
 };
+
+template<typename T>
+void loadFn(T&);
