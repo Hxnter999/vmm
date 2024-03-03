@@ -6,7 +6,7 @@
 
 struct VM_CR
 {
-	static constexpr __int64 MSR_VM_CR = 0xC0010114;
+	static constexpr uint64_t MSR_VM_CR = 0xC0010114;
 
 	union {
 		struct {

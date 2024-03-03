@@ -31,3 +31,9 @@ struct fn_processor_capacity {
 		cpuid_t cpuid;
 	};
 };
+
+template<>
+void loadFn(fn_processor_capacity& fn)
+{
+	__cpuid(reinterpret_cast<int*>(&fn.cpuid), 0x80000008);
+}
