@@ -152,11 +152,10 @@
     <ClInclude Include="cpuid_t.h" />
     <ClInclude Include="datatypes.h" />
     <ClInclude Include="efer.h" />
-    <ClInclude Include="fn_vendor.h" />
     <ClInclude Include="fn_identifiers.h" />
     <ClInclude Include="fn_processor_capacity.h" />
     <ClInclude Include="fn_svm_features.h" />
-    <ClInclude Include="fn_processorinfo_featurebits.h" />
+    <ClInclude Include="fn_vendor.h" />
     <ClInclude Include="msrs.h" />
     <ClInclude Include="segment.h" />
     <ClInclude Include="SVM_STATUS.h" />

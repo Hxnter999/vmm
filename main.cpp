@@ -5,7 +5,6 @@
 #include "fn_processor_capacity.h"
 #include "fn_svm_features.h"
 #include "fn_vendor.h"
-#include "fn_processorinfo_featurebits.h"
 #include "VM_CR.h"
 
 SVM_STATUS inittest() 
@@ -13,7 +12,7 @@ SVM_STATUS inittest()
 	cpuid::fn_vendor vendor_check{};
 	loadFn(vendor_check);
 
-	if (vendor_check.VMXEnabled()) 
+	if (vendor_check.is_amd_vendor()) 
 	{
 		print("Vendor check failed\n");
 		return SVM_STATUS::SVM_WRONG_VENDOR;
