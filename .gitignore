@@ -33,11 +33,9 @@
 *.sys
 
 #vs files
-*.vc
-*.ipch
 .vs/
 
-*.vsidx
+
 *.lock
 *.recipe 
 *.ilk
