@@ -1,1 +1,1 @@
-https://tenor.com/view/skibidi-toilet-gif-2096158443957078234
+![](https://tenor.com/cE0AG3y116c.gif)
