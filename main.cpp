@@ -3,7 +3,7 @@
 #include "EFER.h"
 #include "fn_identifiers.h"
 #include "fn_processor_capacity.h"
-#include "fn_svm_revision.h"
+#include "fn_svm_features.h"
 #include "fn_vendor.h"
 #include "fn_processorinfo_featurebits.h"
 #include "VM_CR.h"
@@ -30,7 +30,7 @@ SVM_STATUS inittest()
 		return SVM_STATUS::SVM_IS_NOT_SUPPORTED_BY_CPU;
 	}
 
-	cpuid::fn_svm_revision svm_rev{};
+	cpuid::fn_svm_features svm_rev{};
 	loadFn(svm_rev);
 
 	if (!svm_rev.svm_feature_identification.nested_paging)

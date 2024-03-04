@@ -3,7 +3,7 @@
 
 namespace cpuid {
 	// 8000_000A
-	struct fn_svm_revision {
+	struct fn_svm_features {
 		union
 		{
 			struct {
@@ -42,7 +42,7 @@ namespace cpuid {
 	};
 
 	template<>
-	void loadFn(fn_svm_revision& fn)
+	void loadFn(fn_svm_features& fn)
 	{
 		__cpuid(reinterpret_cast<int*>(&fn.cpuid), 0x8000000A);
 	}

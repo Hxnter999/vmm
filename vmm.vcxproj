@@ -155,7 +155,7 @@
     <ClInclude Include="fn_vendor.h" />
     <ClInclude Include="fn_identifiers.h" />
     <ClInclude Include="fn_processor_capacity.h" />
-    <ClInclude Include="fn_svm_revision.h" />
+    <ClInclude Include="fn_svm_features.h" />
     <ClInclude Include="fn_processorinfo_featurebits.h" />
     <ClInclude Include="msrs.h" />
     <ClInclude Include="segment.h" />

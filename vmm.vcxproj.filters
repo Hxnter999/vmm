@@ -60,7 +60,7 @@
     <ClInclude Include="vm_cr.h">
       <Filter>Header\ARCH\MSRs</Filter>
     </ClInclude>
-    <ClInclude Include="fn_svm_revision.h">
+    <ClInclude Include="fn_svm_features.h">
       <Filter>Header\ARCH\CPUID\Extended Features</Filter>
     </ClInclude>
     <ClInclude Include="msrs.h">
