@@ -12,7 +12,7 @@ SVM_STATUS inittest()
 	cpuid::fn_vendor vendor_check{};
 	loadFn(vendor_check);
 
-	if (vendor_check.is_amd_vendor()) 
+	if (!vendor_check.is_amd_vendor()) 
 	{
 		print("Vendor check failed\n");
 		return SVM_STATUS::SVM_WRONG_VENDOR;
@@ -23,7 +23,7 @@ SVM_STATUS inittest()
 	cpuid::fn_identifiers id{};
 	loadFn(id);
 
-	if (id.feature_identifiers.svm) 
+	if (!id.feature_identifiers.svm) 
 	{
 		print("SVM not supported\n");
 		return SVM_STATUS::SVM_IS_NOT_SUPPORTED_BY_CPU;
