@@ -1,1 +1,1 @@
-![](https://tenor.com/cE0AG3y116c.gif)
+![](https://github.com/Hxnter999/vmm/skibidi-toilet.gif)
