@@ -67,6 +67,7 @@ extern "C" NTSTATUS DriverEntry(PDRIVER_OBJECT pDriverObject, PUNICODE_STRING pR
 
 	pDriverObject->DriverUnload = Unload;
 
+	inittest();
 
 	return STATUS_SUCCESS;
 }

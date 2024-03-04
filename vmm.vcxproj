@@ -113,7 +113,7 @@
       <FileDigestAlgorithm>sha256</FileDigestAlgorithm>
     </DriverSign>
     <Link>
-      <EntryPointSymbol>main</EntryPointSymbol>
+      <EntryPointSymbol>DriverEntry</EntryPointSymbol>
     </Link>
     <Inf>
       <SpecifyArchitecture>false</SpecifyArchitecture>
