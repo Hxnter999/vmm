@@ -44,6 +44,6 @@ namespace cpuid {
 	template<>
 	void loadFn(fn_svm_revision& fn)
 	{
-		__cpuid(reinterpret_cast<int*>(&fn.cpuid), 0x80000008);
+		__cpuid(reinterpret_cast<int*>(&fn.cpuid), 0x8000000A);
 	}
 };
