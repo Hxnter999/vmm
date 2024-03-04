@@ -33,6 +33,6 @@ namespace MSR {
 	template<>
 	void loadMSR(EFER& fn)
 	{
-		fn.bits = __readmsr(EFER::MSR_EFER);
+		fn.bits = { __readmsr(EFER::MSR_EFER) };
 	}
 };

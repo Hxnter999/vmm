@@ -25,6 +25,6 @@ namespace MSR {
 	template<>
 	void loadMSR(VM_CR& fn)
 	{
-		fn.bits = __readmsr(VM_CR::MSR_VM_CR);
+		fn.bits = { __readmsr(VM_CR::MSR_VM_CR) };
 	}
 };
