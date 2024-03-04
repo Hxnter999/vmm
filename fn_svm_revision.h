@@ -13,7 +13,7 @@ namespace cpuid {
 				} svm_revision;
 
 				struct {
-					uint32_t number_of_asid : 32; // Number of ASIDs
+					uint32_t number_of_asid : 32;
 				} svm_revision_ext;
 
 				struct {

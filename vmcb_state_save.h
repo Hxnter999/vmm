@@ -185,4 +185,7 @@ struct vmcb_state_save {
 
 	// 7c8h
 	uint64_t ic_ibs_extd_ctl;
+
+	// 7d0h
+	uint8_t reservedbc7[0x430];
 };

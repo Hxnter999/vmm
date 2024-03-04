@@ -23,6 +23,12 @@
     <Filter Include="Header\ARCH\CPUID\Extended Features">
       <UniqueIdentifier>{2f2d0fb1-e1b1-40a7-9520-aed24fa92114}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header\ARCH\VMCB">
+      <UniqueIdentifier>{e85b1ddb-3860-4e23-96ef-f706c304a95a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header\ARCH\SEGMENT">
+      <UniqueIdentifier>{4c0f7e37-831b-4152-af62-46c4b74d9428}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -45,23 +51,37 @@
     <ClInclude Include="datatypes.h">
       <Filter>Header</Filter>
     </ClInclude>
-    <ClInclude Include="fn_vendor.h">
-      <Filter>Header\ARCH\CPUID\Standard Features</Filter>
-    </ClInclude>
     <ClInclude Include="fn_identifiers.h">
       <Filter>Header\ARCH\CPUID\Extended Features</Filter>
     </ClInclude>
-    <ClInclude Include="EFER.h">
+    <ClInclude Include="efer.h">
       <Filter>Header\ARCH\MSRs</Filter>
     </ClInclude>
-    <ClInclude Include="VM_CR.h">
+    <ClInclude Include="vm_cr.h">
       <Filter>Header\ARCH\MSRs</Filter>
     </ClInclude>
     <ClInclude Include="fn_svm_revision.h">
       <Filter>Header\ARCH\CPUID\Extended Features</Filter>
     </ClInclude>
-    <ClInclude Include="MSRs.h">
+    <ClInclude Include="msrs.h">
       <Filter>Header\ARCH\MSRs</Filter>
     </ClInclude>
+    <ClInclude Include="vmcb.h">
+      <Filter>Header\ARCH\VMCB</Filter>
+    </ClInclude>
+    <ClInclude Include="vmcb_control.h">
+      <Filter>Header\ARCH\VMCB</Filter>
+    </ClInclude>
+    <ClInclude Include="vmcb_state_save.h">
+      <Filter>Header\ARCH\VMCB</Filter>
+    </ClInclude>
+    <ClInclude Include="segment.h">
+      <Filter>Header\ARCH\SEGMENT</Filter>
+    </ClInclude>
+    <ClInclude Include="fn_processor_capacity.h">
+      <Filter>Header\ARCH\CPUID\Extended Features</Filter>
+    </ClInclude>
+    <ClInclude Include="fn_vendor.h" />
+    <ClInclude Include="fn_processorinfo_featurebits.h" />
   </ItemGroup>
 </Project>
