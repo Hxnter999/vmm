@@ -6,22 +6,25 @@
 // Software Reserved: 0x4000_0000 - 0x4000_00FF 255
 // Extended Features: 0x8000_0000 - 0x8000_FFFF
 
+namespace cpuid {
 
-union cpuid_t
-{
-	struct
+	union cpuid_t
 	{
-		uint32_t cpu_info[4];
+		struct
+		{
+			uint32_t cpu_info[4];
+		};
+
+		struct
+		{
+			uint32_t eax;
+			uint32_t ebx;
+			uint32_t ecx;
+			uint32_t edx;
+		} registers;
 	};
 
-	struct
-	{
-		uint32_t eax;
-		uint32_t ebx;
-		uint32_t ecx;
-		uint32_t edx;
-	} registers;
+	template<typename T>
+	void loadFn(T&);
+	
 };
-
-template<typename T>
-void loadFn(T&);

@@ -1,6 +1,6 @@
 #pragma once
 
-enum class SVM_STATUS : unsigned char
+enum class SVM_STATUS
 {
 	SVM_IS_CAPABLE_OF_BEING_ENABLE = 0,
 	SVM_IS_NOT_SUPPORTED_BY_CPU,
@@ -8,7 +8,6 @@ enum class SVM_STATUS : unsigned char
 	SVM_DISABLED_AT_BIOS_NOT_UNLOCKABLE,
 	SVM_DISABLED_WITH_KEY,
 	SVM_WRONG_VENDOR
-
 };
 
 bool operator!(SVM_STATUS status)
