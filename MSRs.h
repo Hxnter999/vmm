@@ -6,4 +6,7 @@
 namespace MSR {
 	template<typename T>
 	void loadMSR(T& fn);
+
+	template<typename T>
+	void storeMSR(T& fn);
 };

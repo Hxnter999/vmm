@@ -35,4 +35,10 @@ namespace MSR {
 	{
 		fn.bits = { __readmsr(EFER::MSR_EFER) };
 	}
+
+	template<>
+	void storeMSR(EFER& fn)
+	{
+		__writemsr(EFER::MSR_EFER, fn.bits);
+	}
 };

@@ -27,4 +27,10 @@ namespace MSR {
 	{
 		fn.bits = { __readmsr(VM_CR::MSR_VM_CR) };
 	}
+
+	template<>
+	void storeMSR(VM_CR& fn)
+	{
+		__writemsr(VM_CR::MSR_VM_CR, fn.bits);
+	}
 };
