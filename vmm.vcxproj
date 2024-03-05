@@ -158,8 +158,6 @@
     <ClInclude Include="fn_vendor.h" />
     <ClInclude Include="msrs.h" />
     <ClInclude Include="segment.h" />
-    <ClInclude Include="smart_pool.h" />
-    <ClInclude Include="unique_ptr.h" />
     <ClInclude Include="SVM_STATUS.h" />
     <ClInclude Include="vmcb.h" />
     <ClInclude Include="vmcb_control.h" />

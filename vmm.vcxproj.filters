@@ -87,11 +87,5 @@
     <ClInclude Include="fn_vendor.h">
       <Filter>Header\ARCH\CPUID\Standard Features</Filter>
     </ClInclude>
-    <ClInclude Include="unique_ptr.h">
-      <Filter>Source\Utils</Filter>
-    </ClInclude>
-    <ClInclude Include="smart_pool.h">
-      <Filter>Source\Utils</Filter>
-    </ClInclude>
   </ItemGroup>
 </Project>
