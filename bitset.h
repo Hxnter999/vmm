@@ -1,10 +1,11 @@
 #pragma once
-namespace Util 
+
+namespace util 
 {
 	template<size_t bytes>
 	class bitset
 	{
-		char[bytes] m_bits;
+		char m_bits[bytes];
 
 	public:
 		bitset() : m_bits{} { }
@@ -13,5 +14,4 @@ namespace Util
 
 		constexpr void set(size_t index, bool value);
 	};
-
 };
