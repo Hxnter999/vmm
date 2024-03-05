@@ -96,5 +96,8 @@
     <ClInclude Include="hsave_pa.h">
       <Filter>Header\ARCH\MSRs</Filter>
     </ClInclude>
+    <ClInclude Include="pat.h">
+      <Filter>Header\ARCH\MSRs</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
