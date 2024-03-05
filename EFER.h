@@ -1,5 +1,5 @@
 #pragma once
-#include "MSRs.h"
+#include "msrs.h"
 
 namespace MSR {
 	struct EFER

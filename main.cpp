@@ -1,11 +1,11 @@
 #include "commons.h"
 #include "SVM_STATUS.h"
-#include "EFER.h"
+#include "efer.h"
 #include "fn_identifiers.h"
 #include "fn_processor_capacity.h"
 #include "fn_svm_features.h"
 #include "fn_vendor.h"
-#include "VM_CR.h"
+#include "vm_cr.h"
 
 SVM_STATUS inittest() 
 {

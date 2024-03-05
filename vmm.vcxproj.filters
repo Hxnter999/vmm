@@ -93,5 +93,8 @@
     <ClInclude Include="bitset.h">
       <Filter>Source\Utils</Filter>
     </ClInclude>
+    <ClInclude Include="hsave_pa.h">
+      <Filter>Header\ARCH\MSRs</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -30,14 +30,14 @@ namespace MSR {
 		};
 
 	private:
-		constexpr bool at(uint64_t MSR) const 
+		constexpr bool at(uint64_t msr) const
 		{
-			return vector.at(MSR - base);
+			return vector.at(msr - base);
 		}
 
-		constexpr void set(size_t index, bool value)
+		constexpr void set(uint64_t msr, bool value)
 		{
-			vector.set(index, value);
+			vector.set(msr - base, value);
 		}
 
 		static constexpr uint64_t base = 0xC0000000;

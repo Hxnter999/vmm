@@ -158,6 +158,7 @@
     <ClInclude Include="fn_processor_capacity.h" />
     <ClInclude Include="fn_svm_features.h" />
     <ClInclude Include="fn_vendor.h" />
+    <ClInclude Include="hsave_pa.h" />
     <ClInclude Include="msrs.h" />
     <ClInclude Include="segment.h" />
     <ClInclude Include="SVM_STATUS.h" />
