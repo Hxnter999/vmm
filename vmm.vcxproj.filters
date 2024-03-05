@@ -29,6 +29,9 @@
     <Filter Include="Header\ARCH\SEGMENT">
       <UniqueIdentifier>{4c0f7e37-831b-4152-af62-46c4b74d9428}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Utils">
+      <UniqueIdentifier>{7e1a3dfc-3f3a-46d5-b748-a9dafa8a8d41}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -83,6 +86,12 @@
     </ClInclude>
     <ClInclude Include="fn_vendor.h">
       <Filter>Header\ARCH\CPUID\Standard Features</Filter>
+    </ClInclude>
+    <ClInclude Include="unique_ptr.h">
+      <Filter>Source\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="smart_pool.h">
+      <Filter>Source\Utils</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
