@@ -40,6 +40,9 @@
     <ClCompile Include="commons.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="bitset.cpp">
+      <Filter>Source\Utils</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="commons.h">
@@ -86,6 +89,9 @@
     </ClInclude>
     <ClInclude Include="fn_vendor.h">
       <Filter>Header\ARCH\CPUID\Standard Features</Filter>
+    </ClInclude>
+    <ClInclude Include="bitset.h">
+      <Filter>Source\Utils</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

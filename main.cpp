@@ -67,7 +67,11 @@ extern "C" NTSTATUS DriverEntry(PDRIVER_OBJECT pDriverObject, PUNICODE_STRING pR
 
 	pDriverObject->DriverUnload = Unload;
 
-	inittest();
+	if (!inittest()) 
+	{
+		print("SVM not supported\n");
+		return STATUS_UNSUCCESSFUL;
+	}
 
 	return STATUS_SUCCESS;
 }
