@@ -9,7 +9,7 @@
 
 SVM_STATUS inittest() 
 {
-	cpuid::fn_vendor vendor_check{};
+	CPUID::fn_vendor vendor_check{};
 	loadFn(vendor_check);
 
 	if (!vendor_check.is_amd_vendor()) 
@@ -20,7 +20,7 @@ SVM_STATUS inittest()
 
 	print("Vendor check passed\n");
 
-	cpuid::fn_identifiers id{};
+	CPUID::fn_identifiers id{};
 	loadFn(id);
 
 	if (!id.feature_identifiers.svm) 
@@ -29,7 +29,7 @@ SVM_STATUS inittest()
 		return SVM_STATUS::SVM_IS_NOT_SUPPORTED_BY_CPU;
 	}
 
-	cpuid::fn_svm_features svm_rev{};
+	CPUID::fn_svm_features svm_rev{};
 	loadFn(svm_rev);
 
 	if (!svm_rev.svm_feature_identification.nested_paging)

@@ -1,7 +1,7 @@
 #pragma once
 #include "cpuid_t.h"
 
-namespace cpuid {
+namespace CPUID {
 
 	// 8000_0001
 	struct fn_identifiers {

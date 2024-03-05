@@ -2,7 +2,7 @@
 #include "cpuid_t.h"
 // 8000_0008
 
-namespace cpuid {
+namespace CPUID {
 
 	struct fn_processor_capacity {
 		union

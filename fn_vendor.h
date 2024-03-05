@@ -2,7 +2,7 @@
 #include "cpuid_t.h"
 // 0x8000_0000
 
-namespace cpuid {
+namespace CPUID {
 
 	struct fn_vendor {
 		union

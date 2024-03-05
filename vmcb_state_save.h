@@ -4,34 +4,34 @@
 
 struct vmcb_state_save {
 	// 000h
-	segment es;
+	SEGMENT::segment_descriptor es;
 
 	// 010h
-	segment cs;
+	SEGMENT::segment_descriptor cs;
 
 	// 020h
-	segment ss;
+	SEGMENT::segment_descriptor ss;
 
 	// 030h
-	segment ds;
+	SEGMENT::segment_descriptor ds;
 
 	// 040h
-	segment fs;
+	SEGMENT::segment_descriptor fs;
 
 	// 050h
-	segment gs;
+	SEGMENT::segment_descriptor gs;
 
 	// 060h
-	segment gdtr;
+	SEGMENT::segment_descriptor gdtr;
 
 	// 070h
-	segment ldtr;
+	SEGMENT::segment_descriptor ldtr;
 
 	// 080h
-	segment idtr;
+	SEGMENT::segment_descriptor idtr;
 
 	// 090h
-	segment tr;
+	SEGMENT::segment_descriptor tr;
 
 	// 0a0h - 0cah
 	uint8_t reserveda0[0x2a];

@@ -6,7 +6,7 @@
 // Software Reserved: 0x4000_0000 - 0x4000_00FF 255
 // Extended Features: 0x8000_0000 - 0x8000_FFFF
 
-namespace cpuid {
+namespace CPUID {
 
 	union cpuid_t
 	{

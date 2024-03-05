@@ -1,7 +1,7 @@
 #pragma once
 #include "cpuid_t.h"
 
-namespace cpuid {
+namespace CPUID {
 	// 8000_000A
 	struct fn_svm_features {
 		union
