@@ -12,5 +12,5 @@ enum class SVM_STATUS
 
 bool operator!(SVM_STATUS status)
 {
-	return status == SVM_STATUS::SVM_IS_CAPABLE_OF_BEING_ENABLE;
+	return status != SVM_STATUS::SVM_IS_CAPABLE_OF_BEING_ENABLE;
 }

@@ -353,7 +353,7 @@ struct vmcb_control {
 			uint64_t lbr : 1; // dbgctlmsr, br_from/to, lastint_from/to
 			uint64_t avic : 1; // avic apic_bar; avic apic_backing_page, avic physical_table and avic logical_table pointers
 			uint64_t cet : 1; //  s_cet, ssp, isst_addr
-			uint64_t reserved13 : 19;
+			uint64_t reserved13 : 19; // reserved for future compatibility
 			// **************
 			uint64_t reserved32 : 32;
 		};
