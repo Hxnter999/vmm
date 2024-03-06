@@ -35,6 +35,9 @@
     <Filter Include="Header\ARCH\VMCB\control">
       <UniqueIdentifier>{fb4b902d-55b9-4719-b13a-8662f8dc8e81}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header\ARCH\VMEXIT">
+      <UniqueIdentifier>{6db64755-65ef-4286-9e65-0a76db58fbc2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -100,13 +103,13 @@
       <Filter>Header\ARCH\MSRs</Filter>
     </ClInclude>
     <ClInclude Include="vmcb_control.h">
-      <Filter>Header\ARCH\VMCB\control</Filter>
-    </ClInclude>
-    <ClInclude Include="svm_intercept_code.h">
-      <Filter>Header\ARCH\VMCB\control</Filter>
+      <Filter>Header\ARCH\VMCB</Filter>
     </ClInclude>
     <ClInclude Include="exit_int_info.h">
-      <Filter>Header\ARCH\VMCB\control</Filter>
+      <Filter>Header\ARCH\VMEXIT</Filter>
+    </ClInclude>
+    <ClInclude Include="svm_intercept_code.h">
+      <Filter>Header\ARCH\VMEXIT</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
