@@ -1,18 +1,114 @@
 #pragma once
 #include "datatypes.h"
 
+//This is for SEV-ES
 //This should be all... but i used chatgippity sooo
 enum svm_intercept_code : uint64_t {
     // CR read/write operations
-    VMEXIT_CR_READ = 0x0, // Read of CR 0 through 15, respectively.
+    VMEXIT_CR0_READ = 0x0, // Read of CR 0 through 15, respectively.
+    VMEXIT_CR1_READ = 0x1,
+    VMEXIT_CR2_READ = 0x2,
+    VMEXIT_CR3_READ = 0x3,
+    VMEXIT_CR4_READ = 0x4,
+    VMEXIT_CR5_READ = 0x5,
+    VMEXIT_CR6_READ = 0x6,
+    VMEXIT_CR7_READ = 0x7,
+    VMEXIT_CR8_READ = 0x8,
+    VMEXIT_CR9_READ = 0x9,
+    VMEXIT_CR10_READ = 0xA,
+    VMEXIT_CR11_READ = 0xB,
+    VMEXIT_CR12_READ = 0xC,
+    VMEXIT_CR13_READ = 0xD,
+    VMEXIT_CR14_READ = 0xE,
+    VMEXIT_CR15_READ = 0xF,
+
     VMEXIT_CR_WRITE = 0x10, // Write of CR 0 through 15, respectively.
+    VMEXIT_CR0_WRITE = 0x10,
+    VMEXIT_CR1_WRITE = 0x11,
+    VMEXIT_CR2_WRITE = 0x12,
+    VMEXIT_CR3_WRITE = 0x13,
+    VMEXIT_CR4_WRITE = 0x14,
+    VMEXIT_CR5_WRITE = 0x15,
+    VMEXIT_CR6_WRITE = 0x16,
+    VMEXIT_CR7_WRITE = 0x17,
+    VMEXIT_CR8_WRITE = 0x18,
+    VMEXIT_CR9_WRITE = 0x19,
+    VMEXIT_CR10_WRITE = 0x1A,
+    VMEXIT_CR11_WRITE = 0x1B,
+    VMEXIT_CR12_WRITE = 0x1C,
+    VMEXIT_CR13_WRITE = 0x1D,
+    VMEXIT_CR14_WRITE = 0x1E,
+    VMEXIT_CR15_WRITE = 0x1F,
 
     // DR read/write operations
-    VMEXIT_DR_READ = 0x20, // Read of DR 0 through 15, respectively.
-    VMEXIT_DR_WRITE = 0x30, // Write of DR 0 through 15, respectively.
+    VMEXIT_DR0_READ = 0x20, // Read of DR 0 through 15, respectively.
+    VMEXIT_DR1_READ = 0x21,
+    VMEXIT_DR2_READ = 0x22,
+    VMEXIT_DR3_READ = 0x23,
+    VMEXIT_DR4_READ = 0x24,
+    VMEXIT_DR5_READ = 0x25,
+    VMEXIT_DR6_READ = 0x26,
+    VMEXIT_DR7_READ = 0x27,
+    VMEXIT_DR8_READ = 0x28,
+    VMEXIT_DR9_READ = 0x29,
+    VMEXIT_DR10_READ = 0x2A,
+    VMEXIT_DR11_READ = 0x2B,
+    VMEXIT_DR12_READ = 0x2C,
+    VMEXIT_DR13_READ = 0x2D,
+    VMEXIT_DR14_READ = 0x2E,
+    VMEXIT_DR15_READ = 0x2F,
+
+    VMEXIT_DR0_WRITE = 0x30, // Write of DR 0 through 15, respectively.
+    VMEXIT_DR1_WRITE = 0x31,
+    VMEXIT_DR2_WRITE = 0x32,
+    VMEXIT_DR3_WRITE = 0x33,
+    VMEXIT_DR4_WRITE = 0x34,
+    VMEXIT_DR5_WRITE = 0x35,
+    VMEXIT_DR6_WRITE = 0x36,
+    VMEXIT_DR7_WRITE = 0x37,
+    VMEXIT_DR8_WRITE = 0x38,
+    VMEXIT_DR9_WRITE = 0x39,
+    VMEXIT_DR10_WRITE = 0x3A,
+    VMEXIT_DR11_WRITE = 0x3B,
+    VMEXIT_DR12_WRITE = 0x3C,
+    VMEXIT_DR13_WRITE = 0x3D,
+    VMEXIT_DR14_WRITE = 0x3E,
+    VMEXIT_DR15_WRITE = 0x3F,
 
     // Exception handling
-    VMEXIT_EXCEPTION = 0x40, // Exception vector 0–31, respectively.
+    VMEXIT_EXCEPTION_0 = 0x40, // Exception vector 0–31, respectively.
+    VMEXIT_EXCEPTION_1 = 0x41,
+    VMEXIT_EXCEPTION_2 = 0x42,
+    VMEXIT_EXCEPTION_3 = 0x43,
+    VMEXIT_EXCEPTION_4 = 0x44,
+    VMEXIT_EXCEPTION_5 = 0x45,
+    VMEXIT_EXCEPTION_6 = 0x46,
+    VMEXIT_EXCEPTION_7 = 0x47,
+    VMEXIT_EXCEPTION_8 = 0x48,
+    VMEXIT_EXCEPTION_9 = 0x49,
+    VMEXIT_EXCEPTION_10 = 0x4A,
+    VMEXIT_EXCEPTION_11 = 0x4B,
+    VMEXIT_EXCEPTION_12 = 0x4C,
+    VMEXIT_EXCEPTION_13 = 0x4D,
+    VMEXIT_EXCEPTION_14 = 0x4E,
+    VMEXIT_EXCEPTION_15 = 0x4F,
+    VMEXIT_EXCEPTION_16 = 0x50,
+    VMEXIT_EXCEPTION_17 = 0x51,
+    VMEXIT_EXCEPTION_18 = 0x52,
+    VMEXIT_EXCEPTION_19 = 0x53,
+    VMEXIT_EXCEPTION_20 = 0x54,
+    VMEXIT_EXCEPTION_21 = 0x55,
+    VMEXIT_EXCEPTION_22 = 0x56,
+    VMEXIT_EXCEPTION_23 = 0x57,
+    VMEXIT_EXCEPTION_24 = 0x58,
+    VMEXIT_EXCEPTION_25 = 0x59,
+    VMEXIT_EXCEPTION_26 = 0x5A,
+    VMEXIT_EXCEPTION_27 = 0x5B,
+    VMEXIT_EXCEPTION_28 = 0x5C,
+    VMEXIT_EXCEPTION_29 = 0x5D,
+    VMEXIT_EXCEPTION_30 = 0x5E,
+    VMEXIT_EXCEPTION_31 = 0x5F,
+
 
     // Physical interrupts
     VMEXIT_INTR = 0x60, // Physical INTR (maskable interrupt).
