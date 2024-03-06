@@ -1,5 +1,6 @@
 #pragma once
 #include "datatypes.h"
+#include "exit_int_info.h"
 
 struct vmcb_control {
 	union {
@@ -285,7 +286,7 @@ struct vmcb_control {
 	uint64_t exit_info_2;
 
 	// 088h
-	uint64_t exit_int_info;
+	exit_int_info exit_int_info;
 
 	// 090h
 	union {
