@@ -90,9 +90,6 @@
     <ClInclude Include="fn_processor_capacity.h">
       <Filter>Header\ARCH\CPUID\Extended Features</Filter>
     </ClInclude>
-    <ClInclude Include="fn_vendor.h">
-      <Filter>Header\ARCH\CPUID\Standard Features</Filter>
-    </ClInclude>
     <ClInclude Include="bitset.h">
       <Filter>Source\Utils</Filter>
     </ClInclude>
@@ -113,6 +110,9 @@
     </ClInclude>
     <ClInclude Include="exitinfo1.h">
       <Filter>Header\ARCH\VMEXIT\EXITINFO</Filter>
+    </ClInclude>
+    <ClInclude Include="fn_vendor.h">
+      <Filter>Header\ARCH\CPUID\Extended Features</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
