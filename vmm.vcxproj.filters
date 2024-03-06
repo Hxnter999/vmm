@@ -32,11 +32,11 @@
     <Filter Include="Source\Utils">
       <UniqueIdentifier>{7e1a3dfc-3f3a-46d5-b748-a9dafa8a8d41}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header\ARCH\VMCB\control">
-      <UniqueIdentifier>{fb4b902d-55b9-4719-b13a-8662f8dc8e81}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header\ARCH\VMEXIT">
       <UniqueIdentifier>{6db64755-65ef-4286-9e65-0a76db58fbc2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header\ARCH\VMEXIT\EXITINFO">
+      <UniqueIdentifier>{6401ec87-0ad4-4fc4-a437-b7fe8d7e144c}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -110,6 +110,9 @@
     </ClInclude>
     <ClInclude Include="svm_intercept_code.h">
       <Filter>Header\ARCH\VMEXIT</Filter>
+    </ClInclude>
+    <ClInclude Include="exitinfo1.h">
+      <Filter>Header\ARCH\VMEXIT\EXITINFO</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

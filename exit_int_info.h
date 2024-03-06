@@ -4,7 +4,7 @@
 //"Only events raised by the INTn instruction (opcode CDh) are
 // considered software interrupts."
 // everthing else is handled by this struct
-enum class interrupt_type
+enum class interrupt_type : uint64_t
 {
 	EXTERNAL_INTERRUPT = 0, //INTR
 	NMI = 2, //NMI

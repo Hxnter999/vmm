@@ -160,6 +160,7 @@
     <ClInclude Include="fn_svm_features.h" />
     <ClInclude Include="fn_vendor.h" />
     <ClInclude Include="hsave_pa.h" />
+    <ClInclude Include="exitinfo1.h" />
     <ClInclude Include="msrs.h" />
     <ClInclude Include="pat.h" />
     <ClInclude Include="segment.h" />
