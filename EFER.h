@@ -2,7 +2,7 @@
 #include "msrs.h"
 
 namespace MSR {
-	struct EFER
+	struct EFER //Extended Feature Enable Register
 	{
 		static constexpr uint64_t MSR_EFER = 0xC0000080;
 

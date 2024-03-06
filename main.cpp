@@ -14,7 +14,7 @@ SVM_STATUS inittest()
 
 	if (!vendor_check.is_amd_vendor()) 
 	{
-		print("Vendor check failed\n");
+		print("Vendor check failed... get off intel nerd\n");
 		return SVM_STATUS::SVM_WRONG_VENDOR;
 	}
 
@@ -25,7 +25,7 @@ SVM_STATUS inittest()
 
 	if (!id.feature_identifiers.svm) 
 	{
-		print("SVM not supported\n");
+		print("SVM not supported, womp womp\n");
 		return SVM_STATUS::SVM_IS_NOT_SUPPORTED_BY_CPU;
 	}
 
@@ -34,7 +34,7 @@ SVM_STATUS inittest()
 
 	if (!svm_rev.svm_feature_identification.nested_paging)
 	{
-		print("Nested paging not supported\n");
+		print("Nested paging not supported, womp womp\n");
 		return SVM_STATUS::SVM_NESTED_PAGING_NOT_SUPPORTED;
 	}
 
@@ -43,20 +43,18 @@ SVM_STATUS inittest()
 
 	if (!vm_cr.svmdis)
 	{
-		print("SVM not enabled\n");
-		return SVM_STATUS::SVM_IS_CAPABLE_OF_BEING_ENABLE;
+		print("SVM not enabled but can be (;\n");
+		return SVM_STATUS::SVM_IS_CAPABLE_OF_BEING_ENABLE; // Yippe!
 	}
 
 	if (!svm_rev.svm_feature_identification.svm_lock) 
 	{
-		print("SVM lock bit not set\n");
+		print("SVM lock bit not set, disabled by BIOS...\n");
 		return SVM_STATUS::SVM_DISABLED_AT_BIOS_NOT_UNLOCKABLE;
 	}
-	else 
-	{
-		print("SVM lock bit set\n");
-		return SVM_STATUS::SVM_DISABLED_WITH_KEY;
-	}
+	
+	print("SVM lock bit set, disabled\n");
+	return SVM_STATUS::SVM_DISABLED_WITH_KEY;
 }
 
 void Unload(PDRIVER_OBJECT pDriverObject);

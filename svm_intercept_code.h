@@ -1,0 +1,84 @@
+#pragma once
+#include "datatypes.h"
+
+//This should be all... but i used chatgippity sooo
+enum svm_intercept_code : uint64_t {
+    // CR read/write operations
+    VMEXIT_CR_READ = 0x0, // Read of CR 0 through 15, respectively.
+    VMEXIT_CR_WRITE = 0x10, // Write of CR 0 through 15, respectively.
+
+    // DR read/write operations
+    VMEXIT_DR_READ = 0x20, // Read of DR 0 through 15, respectively.
+    VMEXIT_DR_WRITE = 0x30, // Write of DR 0 through 15, respectively.
+
+    // Exception handling
+    VMEXIT_EXCEPTION = 0x40, // Exception vector 0–31, respectively.
+
+    // Physical interrupts
+    VMEXIT_INTR = 0x60, // Physical INTR (maskable interrupt).
+    VMEXIT_NMI = 0x61, // Physical NMI.
+    VMEXIT_SMI = 0x62, // Physical SMI (additional info in EXITINFO1).
+    VMEXIT_INIT = 0x63, // Physical INIT.
+    VMEXIT_VINTR = 0x64, // Virtual INTR.
+
+    // Control register operations
+    VMEXIT_CR0_SEL_WRITE = 0x65, // Write of CR0 that changed any bits other than CR0.TS or CR0.MP.
+
+    // Register reads
+    VMEXIT_IDTR_READ = 0x66, // Read of IDTR.
+    VMEXIT_GDTR_READ = 0x67, // Read of GDTR.
+    VMEXIT_LDTR_READ = 0x68, // Read of LDTR.
+    VMEXIT_TR_READ = 0x69, // Read of TR.
+
+    // Register writes
+    VMEXIT_IDTR_WRITE = 0x6A, // Write of IDTR.
+    VMEXIT_GDTR_WRITE = 0x6B, // Write of GDTR.
+    VMEXIT_LDTR_WRITE = 0x6C, // Write of LDTR.
+    VMEXIT_TR_WRITE = 0x6D, // Write of TR.
+
+    // Other instructions
+    VMEXIT_RDTSC = 0x6E, // RDTSC instruction.
+    VMEXIT_RDPMC = 0x6F, // RDPMC instruction.
+    VMEXIT_PUSHF = 0x70, // PUSHF instruction.
+    VMEXIT_POPF = 0x71, // POPF instruction.
+    VMEXIT_CPUID = 0x72, // CPUID instruction.
+    VMEXIT_RSM = 0x73, // RSM instruction.
+    VMEXIT_IRET = 0x74, // IRET instruction.
+    VMEXIT_SWINT = 0x75, // Software interrupt (INTn instructions).
+    VMEXIT_INVD = 0x76, // INVD instruction.
+    VMEXIT_PAUSE = 0x77, // PAUSE instruction.
+    VMEXIT_HLT = 0x78, // HLT instruction.
+    VMEXIT_INVLPG = 0x79, // INVLPG instruction.
+    VMEXIT_INVLPGA = 0x7A, // INVLPGA instruction.
+    VMEXIT_IOIO = 0x7B, // IN or OUT accessing protected port.
+    VMEXIT_MSR = 0x7C, // RDMSR or WRMSR access to protected MSR.
+    VMEXIT_TASK_SWITCH = 0x7D, // Task switch.
+    VMEXIT_FERR_FREEZE = 0x7E, // FP legacy handling enabled, and processor is frozen in an x87/mmx instruction waiting for an interrupt.
+    VMEXIT_SHUTDOWN = 0x7F, // Shutdown
+    VMEXIT_STGI = 0x80, // STGI instruction.
+    VMEXIT_CLGI = 0x81, // CLGI instruction.
+    VMEXIT_SKINIT = 0x82, // SKINIT instruction.
+    VMEXIT_RDTSCP = 0x83, // RDTSCP instruction.
+    VMEXIT_ICEBP = 0x84, // ICEBP instruction.
+    VMEXIT_WBINVD = 0x85, // WBINVD or WBNOINVD instruction.
+    VMEXIT_MONITOR = 0x86, // MONITOR or MONITORX instruction.
+    VMEXIT_MWAIT = 0x87, // MWAIT or MWAITX instruction.
+    VMEXIT_MWAIT_CONDITIONAL = 0x88, // MWAIT or MWAITX instruction, if monitor hardware is armed.
+    VMEXIT_RDPRU = 0x89, // RDPRU instruction.
+    VMEXIT_XSETBV = 0x8A, // XSETBV instruction.
+    VMEXIT_EFER_WRITE_TRAP = 0x8B, // Write of EFER MSR (occurs after guest instruction finishes).
+    VMEXIT_CR_WRITE_TRAP = 0x90, // Write of CR0-15, respectively (occurs after guest instruction finishes).
+    VMEXIT_INVLPGB = 0xA0, // INVLPGB instruction.
+    VMEXIT_INVLPGB_ILLEGAL = 0xA1, // Illegal INVLPGB instruction.
+    VMEXIT_INVPCID = 0xA2, // INVPCID instruction.
+    VMEXIT_MCOMMIT = 0xA3, // MCOMMIT instruction.
+    VMEXIT_TLBSYNC = 0xA4, // TLBSYNC instruction.
+    VMEXIT_BUSLOCK = 0xA5, // Bus lock while Bus Lock Threshold Counter value is 0.
+    VMEXIT_NPF = 0x400, // Nested paging: host-level page fault occurred.
+    AVIC_INCOMPLETE_IPI = 0x401, // Virtual IPI delivery not completed.
+    AVIC_NOACCEL = 0x402, // Attempted access by guest to vAPIC register not handled by AVIC hardware.
+    VMEXIT_VMGEXIT = 0xA3, // VMGEXIT instruction.
+    VMEXIT_INVALID = -1, // Invalid guest state in VMCB.
+    VMEXIT_BUSY = -2, // BUSY bit was set in the encrypted VMSA.
+    VMEXIT_IDLE_REQUIRED = -3 // The sibling thread is not in an idle state.
+};

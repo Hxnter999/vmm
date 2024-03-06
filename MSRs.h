@@ -43,3 +43,5 @@ namespace MSR {
 		static constexpr uint64_t base = 0xC0000000;
 	};
 };
+
+//load MSR and store MSR for msrpm (physAddress)

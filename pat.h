@@ -2,7 +2,7 @@
 #include "msrs.h"
 
 namespace MSR {
-	struct PAT
+	struct PAT // Page-Attribute Table Mechanism (7.8)
 	{
 		static constexpr uint64_t MSR_PAT = 0x00000277;
 
