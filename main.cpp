@@ -6,6 +6,13 @@
 #include "fn_svm_features.h"
 #include "fn_vendor.h"
 #include "vm_cr.h"
+#include "vmcb.h"
+#include "pat.h"
+#include "drt.h"
+
+extern "C" {
+	extern void __sgdt(void* gdtr); // here for now
+}
 
 SVM_STATUS inittest() 
 {
@@ -55,6 +62,26 @@ SVM_STATUS inittest()
 	
 	print("SVM lock bit set, disabled\n");
 	return SVM_STATUS::SVM_DISABLED_WITH_KEY;
+}
+
+void setupvmcb() //dis just a test
+{
+	vcpu Vcpu{};
+
+	// Set up the guest state
+	Vcpu.guest_vmcb.save_state.cr0 = __readcr0();
+	Vcpu.guest_vmcb.save_state.cr2 = __readcr2();
+	Vcpu.guest_vmcb.save_state.cr3 = __readcr3();
+	Vcpu.guest_vmcb.save_state.cr4 = __readcr4();
+	Vcpu.guest_vmcb.save_state.efer = __readmsr(MSR::EFER::MSR_EFER);
+	Vcpu.guest_vmcb.save_state.g_pat = __readmsr(MSR::PAT::MSR_PAT); // very sigma (kinda like MTRRs but for page tables)
+	
+	dtr idtr{}; __sidt(&idtr);
+	Vcpu.guest_vmcb.save_state.idtr = idtr;
+	dtr gdtr{}; __sgdt(&gdtr);
+	Vcpu.guest_vmcb.save_state.gdtr = gdtr;
+
+	// Setup all the segment registers
 }
 
 void Unload(PDRIVER_OBJECT pDriverObject);

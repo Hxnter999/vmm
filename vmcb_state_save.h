@@ -1,6 +1,7 @@
 #pragma once
 #include "datatypes.h"
 #include "segment.h"
+#include "drt.h"
 
 struct vmcb_state_save {
 	// 000h
@@ -22,13 +23,13 @@ struct vmcb_state_save {
 	SEGMENT::segment_descriptor gs;
 
 	// 060h
-	SEGMENT::segment_descriptor gdtr;
+	dtr gdtr;
 
 	// 070h
 	SEGMENT::segment_descriptor ldtr;
 
 	// 080h
-	SEGMENT::segment_descriptor idtr;
+	dtr idtr;
 
 	// 090h
 	SEGMENT::segment_descriptor tr;

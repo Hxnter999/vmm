@@ -26,7 +26,7 @@ namespace CPUID {
 					uint32_t svm_lock : 1;
 					uint32_t n_rip : 1;
 					uint32_t tsc_rate_msr : 1;
-					uint32_t vmcb_clean : 1;
+					uint32_t vmcb_clean : 1; // VMCB clean bits
 					uint32_t flush_by_asid : 1;
 					uint32_t decode_assists : 1;
 					uint32_t reserved8 : 2;

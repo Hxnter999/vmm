@@ -147,6 +147,9 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">commons.h</PrecompiledHeaderFile>
     </ClCompile>
     <ClCompile Include="main.cpp" />
+    <MASM Include="svmintrin.asm">
+      <FileType>Document</FileType>
+    </MASM>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bitset.h" />
@@ -161,6 +164,7 @@
     <ClInclude Include="fn_vendor.h" />
     <ClInclude Include="hsave_pa.h" />
     <ClInclude Include="exitinfo1.h" />
+    <ClInclude Include="drt.h" />
     <ClInclude Include="msrs.h" />
     <ClInclude Include="pat.h" />
     <ClInclude Include="segment.h" />
