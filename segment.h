@@ -22,7 +22,7 @@ namespace SEGMENT {
 	struct segment_descriptor
 	{
 		uint16_t selector;
-		segment_attribute attributes;
+		segment_attribute attributes; // 16 bits
 		uint32_t limit;
 		uint64_t base; // only lower 32 bits are implemented
 	};

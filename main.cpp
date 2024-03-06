@@ -68,6 +68,12 @@ void setupvmcb() //dis just a test
 {
 	vcpu Vcpu{};
 
+	//Set up control area
+	//set interupts blah blah
+	Vcpu.guest_vmcb.control.vmrun = 1; // VMRUN intercepts muse be enabled 15.5.1
+
+	Vcpu.guest_vmcb.control.asid = 1; // Address space identifier "ASID [cannot be] equal to zero" 15.5.1
+
 	// Set up the guest state
 	Vcpu.guest_vmcb.save_state.cr0 = __readcr0();
 	Vcpu.guest_vmcb.save_state.cr2 = __readcr2();
@@ -82,6 +88,9 @@ void setupvmcb() //dis just a test
 	Vcpu.guest_vmcb.save_state.gdtr = gdtr;
 
 	// Setup all the segment registers
+	//shitt
+
+
 }
 
 void Unload(PDRIVER_OBJECT pDriverObject);
