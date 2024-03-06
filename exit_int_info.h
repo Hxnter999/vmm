@@ -16,7 +16,7 @@ struct exit_int_info
 		struct 
 		{
 			uint64_t vector : 8;
-			uint64_t type : 3;
+			interrupt_type type : 3;
 			uint64_t reserved : 19;
 			uint64_t valid : 1;
 			uint64_t error_code : 32;
