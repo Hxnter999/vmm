@@ -4,7 +4,7 @@
 
 namespace CPUID {
 
-	struct fn_vendor {
+	struct fn_vendor : commonFn {
 		union
 		{
 			struct {
@@ -38,11 +38,10 @@ namespace CPUID {
 
 			return (vendor1 == 'htuA') && (vendor2 == 'DMAc') && (vendor3 == 'itne');
 		}
-	};
 
-	template<>
-	void loadFn(fn_vendor& fn)
-	{
-		__cpuid(reinterpret_cast<int*>(&fn.cpuid), 0x80000000);
-	}
+		void loadFn()
+		{
+			__cpuid(reinterpret_cast<int*>(&this->cpuid), 0x80000000);
+		}
+	};
 };

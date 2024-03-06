@@ -27,17 +27,15 @@ namespace MSR {
 			};
 			uint64_t bits;
 		};
+
+		void loadMSR()
+		{
+			bits = { __readmsr(PAT::MSR_PAT) };
+		}
+
+		void storeMSR()
+		{
+			__writemsr(PAT::MSR_PAT, bits);
+		}
 	};
-
-	template<>
-	void loadMSR(PAT& fn)
-	{
-		fn.bits = { __readmsr(PAT::MSR_PAT) };
-	}
-
-	template<>
-	void storeMSR(PAT& fn)
-	{
-		__writemsr(PAT::MSR_PAT, fn.bits);
-	}
 };

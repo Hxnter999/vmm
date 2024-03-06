@@ -3,7 +3,7 @@
 
 namespace CPUID {
 	// 8000_000A
-	struct fn_svm_features {
+	struct fn_svm_features : commonFn {
 		union
 		{
 			struct {
@@ -39,11 +39,10 @@ namespace CPUID {
 
 			cpuid_t cpuid;
 		};
+		
+		void loadFn()
+		{
+			__cpuid(reinterpret_cast<int*>(&this->cpuid), 0x8000000A);
+		}
 	};
-
-	template<>
-	void loadFn(fn_svm_features& fn)
-	{
-		__cpuid(reinterpret_cast<int*>(&fn.cpuid), 0x8000000A);
-	}
 };

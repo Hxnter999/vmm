@@ -4,7 +4,7 @@
 namespace CPUID {
 
 	// 8000_0001
-	struct fn_identifiers {
+	struct fn_identifiers : commonFn {
 		union
 		{
 			struct {
@@ -88,12 +88,11 @@ namespace CPUID {
 
 			cpuid_t cpuid;
 		};
-	};
 
-	template<>
-	void loadFn(fn_identifiers& fn)
-	{
-		__cpuid(reinterpret_cast<int*>(&fn.cpuid), 0x80000001);
-	}
+		void loadFn()
+		{
+			__cpuid(reinterpret_cast<int*>(&this->cpuid), 0x80000001);
+		}
+	};
 
 }

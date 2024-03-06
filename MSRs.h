@@ -5,11 +5,22 @@
 #pragma warning(disable : 4996)
 
 namespace MSR {
-	template<typename T>
-	void loadMSR(T& fn);
 
-	template<typename T>
-	void storeMSR(T& fn);
+	//needs better name lowk
+	struct commonMSR // all MSRs *MUST* inherit from this (mostly to assure these functions are defined)
+	{
+		template<class Self>
+		void loadMSR(this Self&& tis)
+		{
+			tis.loadMSR();
+		}
+
+		template<class Self>
+		void storeMSR(this Self&& tis)
+		{
+			tis.storeMSR();
+		}
+	};
 
 	struct alignas(0x1000) msrpm {
 		union {

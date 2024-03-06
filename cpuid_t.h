@@ -8,6 +8,15 @@
 
 namespace CPUID {
 
+	struct commonFn
+	{
+		template<class Self>
+		void loadFn(this Self&& self)
+		{
+			self.loadFn();
+		}
+	};
+
 	union cpuid_t
 	{
 		struct
@@ -23,8 +32,5 @@ namespace CPUID {
 			uint32_t edx;
 		} registers;
 	};
-
-	template<typename T>
-	void loadFn(T&);
 	
 };

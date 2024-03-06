@@ -17,7 +17,7 @@ extern "C" {
 SVM_STATUS inittest() 
 {
 	CPUID::fn_vendor vendor_check{};
-	loadFn(vendor_check);
+	vendor_check.loadFn();
 
 	if (!vendor_check.is_amd_vendor()) 
 	{
@@ -28,7 +28,7 @@ SVM_STATUS inittest()
 	print("Vendor check passed\n");
 
 	CPUID::fn_identifiers id{};
-	loadFn(id);
+	id.loadFn();
 
 	if (!id.feature_identifiers.svm) 
 	{
@@ -37,7 +37,7 @@ SVM_STATUS inittest()
 	}
 
 	CPUID::fn_svm_features svm_rev{};
-	loadFn(svm_rev);
+	svm_rev.loadFn();
 
 	if (!svm_rev.svm_feature_identification.nested_paging)
 	{
@@ -46,7 +46,7 @@ SVM_STATUS inittest()
 	}
 
 	MSR::VM_CR vm_cr{};
-	loadMSR(vm_cr);
+	vm_cr.loadMSR();
 
 	if (!vm_cr.svmdis)
 	{
