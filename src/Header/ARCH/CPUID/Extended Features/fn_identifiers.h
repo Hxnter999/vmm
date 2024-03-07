@@ -4,7 +4,7 @@
 namespace CPUID {
 
 	// 8000_0001
-	struct fn_identifiers : commonFn {
+	struct fn_identifiers : BASE_CPUID {
 		union
 		{
 			struct {
@@ -89,7 +89,7 @@ namespace CPUID {
 			cpuid_t cpuid;
 		};
 
-		void loadFn()
+		void load()
 		{
 			__cpuid(reinterpret_cast<int*>(&this->cpuid), 0x80000001);
 		}

@@ -6,19 +6,18 @@
 
 namespace MSR {
 
-	//needs better name lowk
-	struct commonMSR // all MSRs *MUST* inherit from this (mostly to assure these functions are defined)
+	struct BASE_MSR // all MSRs *MUST* inherit from this (mostly to assure these functions are defined)
 	{
 		template<class Self>
-		void loadMSR(this Self&& tis)
+		void load(this Self&& tis)
 		{
-			tis.loadMSR();
+			tis.load();
 		}
 
 		template<class Self>
-		void storeMSR(this Self&& tis)
+		void store(this Self&& tis)
 		{
-			tis.storeMSR();
+			tis.store();
 		}
 	};
 
@@ -42,18 +41,31 @@ namespace MSR {
 		};
 
 	private:
-		constexpr bool at(uint64_t msr) const
-		{
-			return vector.at(msr - base);
+
+		//bool at(uint64_t msr, bool read)
+		
+		void set(uint64_t msr, bool read, bool value) {
+			uint64_t index;
+
+			if (msr >= vector1_start && msr <= vector1_end) {
+				index = msr - vector1_start;
+			}
+			else if (msr >= vector2_start && msr <= vector2_end) {
+				index = msr - vector2_start + sizeof(vector1);
+			}
+			else if (msr >= vector3_start && msr <= vector3_end) {
+				index = msr - vector3_start + sizeof(vector1) + sizeof(vector2);
+			}
+			else {
+				return; 
+			}
+
+			index = index * 2 + (read ? 0 : 1);
+			vector.set(index, value);
 		}
 
-		constexpr void set(uint64_t msr, bool value)
-		{
-			vector.set(msr - base, value);
-		}
-
-		static constexpr uint64_t base = 0xC0000000;
+		static constexpr uint64_t vector1_start = 0x0000'0000, vector1_end = 0x0000'1FFF;
+		static constexpr uint64_t vector2_start = 0xC000'0000, vector2_end = 0xC000'1FFF;
+		static constexpr uint64_t vector3_start = 0xC001'0000, vector3_end = 0xC001'1FFF;
 	};
 };
-
-//load MSR and store MSR for msrpm (physAddress)

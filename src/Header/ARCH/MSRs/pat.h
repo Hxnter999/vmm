@@ -2,7 +2,7 @@
 #include "msrs.h"
 
 namespace MSR {
-	struct PAT // Page-Attribute Table Mechanism (7.8)
+	struct PAT : BASE_MSR // Page-Attribute Table Mechanism (7.8)
 	{
 		static constexpr uint64_t MSR_PAT = 0x00000277;
 
@@ -28,12 +28,12 @@ namespace MSR {
 			uint64_t bits;
 		};
 
-		void loadMSR()
+		void load()
 		{
 			bits = { __readmsr(PAT::MSR_PAT) };
 		}
 
-		void storeMSR()
+		void store()
 		{
 			__writemsr(PAT::MSR_PAT, bits);
 		}

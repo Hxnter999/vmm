@@ -2,7 +2,7 @@
 #include "msrs.h"
 
 namespace MSR {
-	struct EFER : commonMSR //Extended Feature Enable Register
+	struct EFER : BASE_MSR //Extended Feature Enable Register
 	{
 		static constexpr uint64_t MSR_EFER = 0xC0000080;
 
@@ -28,12 +28,13 @@ namespace MSR {
 			};
 			uint64_t bits;
 		};
-		void loadMSR()
+
+		void load()
 		{
 			bits = { __readmsr(EFER::MSR_EFER) };
 		}
 
-		void storeMSR()
+		void store()
 		{
 			__writemsr(EFER::MSR_EFER, bits);
 		}

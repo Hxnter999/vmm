@@ -4,7 +4,7 @@
 //The VM_CR MSR controls certain global aspects of SVM
 //The following bits are defined in the AMD64 Architecture Programmer's Manual Volume 2: System Programming
 namespace MSR {
-	struct VM_CR : commonMSR
+	struct VM_CR : BASE_MSR
 	{
 		static constexpr uint64_t MSR_VM_CR = 0xC0010114;
 
@@ -22,12 +22,12 @@ namespace MSR {
 
 		};
 
-		void loadMSR()
+		void load()
 		{
 			bits = { __readmsr(VM_CR::MSR_VM_CR) };
 		}
 
-		void storeMSR()
+		void store()
 		{
 			__writemsr(VM_CR::MSR_VM_CR, bits);
 		}
