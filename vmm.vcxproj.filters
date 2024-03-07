@@ -40,86 +40,86 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp">
+    <ClCompile Include="src\Source\main.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="commons.cpp">
+    <ClCompile Include="src\Source\commons.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="bitset.cpp">
+    <ClCompile Include="src\Header\Util\bitset.cpp">
       <Filter>Source\Utils</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="commons.h">
+    <ClInclude Include="src\Header\commons.h">
       <Filter>Header</Filter>
     </ClInclude>
-    <ClInclude Include="SVM_STATUS.h">
+    <ClInclude Include="src\Header\SVM_STATUS.h">
       <Filter>Header</Filter>
     </ClInclude>
-    <ClInclude Include="cpuid_t.h">
+    <ClInclude Include="src\Header\ARCH\CPUID\cpuid_t.h">
       <Filter>Header\ARCH\CPUID</Filter>
     </ClInclude>
-    <ClInclude Include="datatypes.h">
+    <ClInclude Include="src\Header\datatypes.h">
       <Filter>Header</Filter>
     </ClInclude>
-    <ClInclude Include="fn_identifiers.h">
+    <ClInclude Include="src\Header\ARCH\CPUID\Extended Features\fn_identifiers.h">
       <Filter>Header\ARCH\CPUID\Extended Features</Filter>
     </ClInclude>
-    <ClInclude Include="efer.h">
+    <ClInclude Include="src\Header\ARCH\MSRs\efer.h">
       <Filter>Header\ARCH\MSRs</Filter>
     </ClInclude>
-    <ClInclude Include="vm_cr.h">
+    <ClInclude Include="src\Header\ARCH\MSRs\vm_cr.h">
       <Filter>Header\ARCH\MSRs</Filter>
     </ClInclude>
-    <ClInclude Include="fn_svm_features.h">
+    <ClInclude Include="src\Header\ARCH\CPUID\Extended Features\fn_svm_features.h">
       <Filter>Header\ARCH\CPUID\Extended Features</Filter>
     </ClInclude>
-    <ClInclude Include="msrs.h">
+    <ClInclude Include="src\Header\ARCH\MSRs\msrs.h">
       <Filter>Header\ARCH\MSRs</Filter>
     </ClInclude>
-    <ClInclude Include="vmcb.h">
+    <ClInclude Include="src\Header\ARCH\VMCB\vmcb.h">
       <Filter>Header\ARCH\VMCB</Filter>
     </ClInclude>
-    <ClInclude Include="vmcb_state_save.h">
+    <ClInclude Include="src\Header\ARCH\VMCB\vmcb_state_save.h">
       <Filter>Header\ARCH\VMCB</Filter>
     </ClInclude>
-    <ClInclude Include="segment.h">
+    <ClInclude Include="src\Header\ARCH\SEGMENT\segment.h">
       <Filter>Header\ARCH\SEGMENT</Filter>
     </ClInclude>
-    <ClInclude Include="fn_processor_capacity.h">
+    <ClInclude Include="src\Header\ARCH\CPUID\Extended Features\fn_processor_capacity.h">
       <Filter>Header\ARCH\CPUID\Extended Features</Filter>
     </ClInclude>
-    <ClInclude Include="bitset.h">
+    <ClInclude Include="src\Header\Util\bitset.h">
       <Filter>Source\Utils</Filter>
     </ClInclude>
-    <ClInclude Include="hsave_pa.h">
+    <ClInclude Include="src\Header\ARCH\MSRs\hsave_pa.h">
       <Filter>Header\ARCH\MSRs</Filter>
     </ClInclude>
-    <ClInclude Include="pat.h">
+    <ClInclude Include="src\Header\ARCH\MSRs\pat.h">
       <Filter>Header\ARCH\MSRs</Filter>
     </ClInclude>
-    <ClInclude Include="vmcb_control.h">
+    <ClInclude Include="src\Header\ARCH\VMCB\vmcb_control.h">
       <Filter>Header\ARCH\VMCB</Filter>
     </ClInclude>
-    <ClInclude Include="exit_int_info.h">
+    <ClInclude Include="src\Header\ARCH\VMEXIT\exit_int_info.h">
       <Filter>Header\ARCH\VMEXIT</Filter>
     </ClInclude>
-    <ClInclude Include="svm_intercept_code.h">
+    <ClInclude Include="src\Header\ARCH\VMEXIT\svm_intercept_code.h">
       <Filter>Header\ARCH\VMEXIT</Filter>
     </ClInclude>
-    <ClInclude Include="exitinfo1.h">
+    <ClInclude Include="src\Header\ARCH\VMEXIT\EXITINFO\exitinfo1.h">
       <Filter>Header\ARCH\VMEXIT\EXITINFO</Filter>
     </ClInclude>
-    <ClInclude Include="fn_vendor.h">
+    <ClInclude Include="src\Header\ARCH\CPUID\Standard Features\fn_vendor.h">
       <Filter>Header\ARCH\CPUID\Extended Features</Filter>
     </ClInclude>
-    <ClInclude Include="drt.h">
+    <ClInclude Include="src\Header\ARCH\drt.h">
       <Filter>Header\ARCH</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <MASM Include="svmintrin.asm">
+    <MASM Include="src\Source\svmintrin.asm">
       <Filter>Source</Filter>
     </MASM>
   </ItemGroup>
