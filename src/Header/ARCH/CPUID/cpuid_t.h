@@ -15,7 +15,7 @@ namespace CPUID {
 		template<class Self> 
 		void load(this Self&& self)
 		{
-			self.loadFn();
+			self.load();
 		}
 	};
 

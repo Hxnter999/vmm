@@ -44,17 +44,22 @@ namespace MSR {
 
 		//bool at(uint64_t msr, bool read)
 		
-		void set(uint64_t msr, bool read, bool value) {
-			uint64_t index;
 
-			if (msr >= vector1_start && msr <= vector1_end) {
-				index = msr - vector1_start;
-			}
-			else if (msr >= vector2_start && msr <= vector2_end) {
+		void set(uint64_t msr, bool read, bool value) {
+			constexpr uint64_t vector1_start = 0x0000'0000, vector1_end = 0x0000'1FFF;
+			constexpr uint64_t vector2_start = 0xC000'0000, vector2_end = 0xC000'1FFF;
+			constexpr uint64_t vector3_start = 0xC001'0000, vector3_end = 0xC001'1FFF;
+			uint64_t index{};
+
+			if (msr >= vector3_start && msr <= vector3_end) {
+				index = msr - vector3_start + sizeof(vector1) + sizeof(vector2);
+			} else
+			if (msr >= vector2_start && msr <= vector2_end) {
 				index = msr - vector2_start + sizeof(vector1);
 			}
-			else if (msr >= vector3_start && msr <= vector3_end) {
-				index = msr - vector3_start + sizeof(vector1) + sizeof(vector2);
+			else 
+			if (msr <= vector1_end) {
+					index = msr - vector1_start;
 			}
 			else {
 				return; 
@@ -63,9 +68,5 @@ namespace MSR {
 			index = index * 2 + (read ? 0 : 1);
 			vector.set(index, value);
 		}
-
-		static constexpr uint64_t vector1_start = 0x0000'0000, vector1_end = 0x0000'1FFF;
-		static constexpr uint64_t vector2_start = 0xC000'0000, vector2_end = 0xC000'1FFF;
-		static constexpr uint64_t vector3_start = 0xC001'0000, vector3_end = 0xC001'1FFF;
 	};
 };

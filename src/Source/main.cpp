@@ -64,12 +64,13 @@ SVM_STATUS inittest()
 	return SVM_STATUS::SVM_DISABLED_WITH_KEY;
 }
 
-MSR::msrpm vcpu::shared_msrpm{};
+
 void setupvmcb() //dis just a test
 {
+	static sharedvcpu sharedVcpu{};
 	vcpu Vcpu{};
 
-	Vcpu.guest_vmcb.control.msrpm_base_pa = MmGetPhysicalAddress(&vcpu::shared_msrpm);
+	Vcpu.guest_vmcb.control.msrpm_base_pa = MmGetPhysicalAddress(&sharedVcpu.shared_msrpm);
 
 	//Set up control area
 
