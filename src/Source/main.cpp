@@ -65,39 +65,45 @@ SVM_STATUS inittest()
 }
 
 
-void setupvmcb() //dis just a test
-{
-	static sharedvcpu sharedVcpu{};
-	vcpu Vcpu{};
 
-	Vcpu.guest_vmcb.control.msrpm_base_pa = MmGetPhysicalAddress(&sharedVcpu.shared_msrpm);
-
-	//Set up control area
-
-	//TODO: set interupts blah blah
-
-	Vcpu.guest_vmcb.control.vmrun = 1; // VMRUN intercepts muse be enabled 15.5.1
-
-	Vcpu.guest_vmcb.control.asid = 1; // Address space identifier "ASID [cannot be] equal to zero" 15.5.1
-
-	// Set up the guest state
-	Vcpu.guest_vmcb.save_state.cr0 = __readcr0();
-	Vcpu.guest_vmcb.save_state.cr2 = __readcr2();
-	Vcpu.guest_vmcb.save_state.cr3 = __readcr3();
-	Vcpu.guest_vmcb.save_state.cr4 = __readcr4();
-	Vcpu.guest_vmcb.save_state.efer = __readmsr(MSR::EFER::MSR_EFER);
-	Vcpu.guest_vmcb.save_state.g_pat = __readmsr(MSR::PAT::MSR_PAT); // very sigma (kinda like MTRRs but for page tables)
-
-	dtr idtr{}; __sidt(&idtr);
-	Vcpu.guest_vmcb.save_state.idtr = idtr;
-	dtr gdtr{}; __sgdt(&gdtr);
-	Vcpu.guest_vmcb.save_state.gdtr = gdtr;
-
-	//TODO: need to set RSP, RIP, and RFLAGS (This is where the guest will start executing)
-
-	//TODO: Setup all the segment registers
-
-}
+//void setupvmcb(vcpu* vcpu) //dis just a test
+//{
+//	MSR::EFER efer{};
+//	efer.load();
+//
+//	efer.svme = 1;
+//	efer.store();
+//
+//
+//
+//	vcpu->guest_vmcb.control.msrpm_base_pa = MmGetPhysicalAddress(&sharedVcpu.shared_msrpm);
+//
+//	//Set up control area
+//
+//	//TODO: set interupts blah blah
+//
+//	vcpu->guest_vmcb.control.vmrun = 1; // VMRUN intercepts muse be enabled 15.5.1
+//
+//	vcpu->guest_vmcb.control.asid = 1; // Address space identifier "ASID [cannot be] equal to zero" 15.5.1
+//
+//	// Set up the guest state
+//	vcpu->guest_vmcb.save_state.cr0 = __readcr0();
+//	vcpu->guest_vmcb.save_state.cr2 = __readcr2();
+//	vcpu->guest_vmcb.save_state.cr3 = __readcr3();
+//	vcpu->guest_vmcb.save_state.cr4 = __readcr4();
+//	vcpu->guest_vmcb.save_state.efer = __readmsr(MSR::EFER::MSR_EFER);
+//	vcpu->guest_vmcb.save_state.g_pat = __readmsr(MSR::PAT::MSR_PAT); // very sigma (kinda like MTRRs but for page tables)
+//
+//	dtr idtr{}; __sidt(&idtr);
+//	vcpu->guest_vmcb.save_state.idtr = idtr;
+//	dtr gdtr{}; __sgdt(&gdtr);
+//	vcpu->guest_vmcb.save_state.gdtr = gdtr;
+//
+//	//TODO: need to set RSP, RIP, and RFLAGS (This is where the guest will start executing)
+//
+//	//TODO: Setup all the segment registers
+//
+//}
 
 void Unload(PDRIVER_OBJECT pDriverObject);
 
@@ -112,6 +118,22 @@ extern "C" NTSTATUS DriverEntry(PDRIVER_OBJECT pDriverObject, PUNICODE_STRING pR
 		print("SVM not supported\n");
 		return STATUS_UNSUCCESSFUL;
 	}
+
+	print("SVM supported\n");
+
+	auto vcpu_count = KeQueryActiveProcessorCount(nullptr);
+	//auto vcpus = reinterpret_cast<vcpu*>(ExAllocatePoolWithTag(NonPagedPool, vcpu_count * sizeof(vcpu), 'sgma'));
+
+	for (uint32_t i = 0; i < vcpu_count; i++) 
+	{
+		auto original_affinity = KeSetSystemAffinityThreadEx(1ll << i);
+		print("attempting to set up vcpu %d\n", KeGetCurrentProcessorIndex());
+		//setupvmcb(vcpus + i);
+
+		KeRevertToUserAffinityThreadEx(original_affinity);
+	}
+
+
 
 
 	return STATUS_SUCCESS;
