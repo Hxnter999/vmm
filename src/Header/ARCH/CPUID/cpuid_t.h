@@ -10,7 +10,9 @@ namespace CPUID {
 
 	struct commonFn
 	{
-		template<class Self>
+		//This will only throw if its intantated (and loadFn doesnt exist)
+		//Which is not the behavior we want (we want it to throw at compile time)
+		template<class Self> 
 		void loadFn(this Self&& self)
 		{
 			self.loadFn();
