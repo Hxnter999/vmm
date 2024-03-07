@@ -2,6 +2,7 @@
 #include "datatypes.h"
 #include "exit_int_info.h"
 #include "exitinfo1.h"
+#include "MSRs.h"
 
 struct vmcb_control {
 	union {
@@ -220,13 +221,14 @@ struct vmcb_control {
 	};
 
 	// 048h 
-	union {
-		uint64_t value48;
-		struct {
-			uint64_t ignored : 12; // ignored
-			uint64_t msrpm_base_pa : 52; // msrpm_base_pa: msr permission bit map base physical address
-		};
-	};
+	PHYSICAL_ADDRESS msrpm_base_pa; //Should always be aligned 
+	//union {
+	//	uint64_t value48;
+	//	struct {
+	//		uint64_t ignored : 12; // ignored
+	//		uint64_t msrpm_base_pa : 52; // msrpm_base_pa: msr permission bit map base physical address (aligned to 4k boundary)
+	//	};
+	//};
 
 	// 050h 
 	uint64_t tsc_offset;

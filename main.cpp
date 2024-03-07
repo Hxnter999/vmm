@@ -67,9 +67,14 @@ SVM_STATUS inittest()
 void setupvmcb() //dis just a test
 {
 	vcpu Vcpu{};
+	vcpu::shared_msrpm = MSR::msrpm{}; // shared msrpm
+
+	Vcpu.guest_vmcb.control.msrpm_base_pa = MmGetPhysicalAddress(&vcpu::shared_msrpm);
 
 	//Set up control area
-	//set interupts blah blah
+
+	//TODO: set interupts blah blah
+
 	Vcpu.guest_vmcb.control.vmrun = 1; // VMRUN intercepts muse be enabled 15.5.1
 
 	Vcpu.guest_vmcb.control.asid = 1; // Address space identifier "ASID [cannot be] equal to zero" 15.5.1
@@ -81,15 +86,15 @@ void setupvmcb() //dis just a test
 	Vcpu.guest_vmcb.save_state.cr4 = __readcr4();
 	Vcpu.guest_vmcb.save_state.efer = __readmsr(MSR::EFER::MSR_EFER);
 	Vcpu.guest_vmcb.save_state.g_pat = __readmsr(MSR::PAT::MSR_PAT); // very sigma (kinda like MTRRs but for page tables)
-	
+
 	dtr idtr{}; __sidt(&idtr);
 	Vcpu.guest_vmcb.save_state.idtr = idtr;
 	dtr gdtr{}; __sgdt(&gdtr);
 	Vcpu.guest_vmcb.save_state.gdtr = gdtr;
 
-	// Setup all the segment registers
-	//shitt
+	//TODO: need to set RSP, RIP, and RFLAGS (This is where the guest will start executing)
 
+	//TODO: Setup all the segment registers
 
 }
 
@@ -106,6 +111,10 @@ extern "C" NTSTATUS DriverEntry(PDRIVER_OBJECT pDriverObject, PUNICODE_STRING pR
 		print("SVM not supported\n");
 		return STATUS_UNSUCCESSFUL;
 	}
+	
+	MSR::EFER efer{};
+	efer.svme = 0;
+	efer.storeMSR();
 
 	return STATUS_SUCCESS;
 }

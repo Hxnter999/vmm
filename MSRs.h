@@ -22,6 +22,7 @@ namespace MSR {
 		}
 	};
 
+	// The MSRPM (MSR Permission Map) is a bitmap (2 bits per MSR [R,W], 1 == operation is intercepted) that determines the access permissions for each MSR.
 	struct alignas(0x1000) msrpm {
 		union {
 			struct {
