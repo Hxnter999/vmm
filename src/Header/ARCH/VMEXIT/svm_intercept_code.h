@@ -1,10 +1,7 @@
 #pragma once
-#include "datatypes.h"
+#include "../../datatypes.h"
 
-//This is for SEV-ES
-//This should be all... but i used chatgippity sooo
-enum svm_intercept_code : long long {
-    // CR read/write operations
+enum svm_intercept_code : int64_t {
     VMEXIT_CR0_READ = 0x0, // Read of CR 0 through 15, respectively.
     VMEXIT_CR1_READ = 0x1,
     VMEXIT_CR2_READ = 0x2,
@@ -109,7 +106,6 @@ enum svm_intercept_code : long long {
     VMEXIT_EXCEPTION_30 = 0x5E,
     VMEXIT_EXCEPTION_31 = 0x5F,
 
-
     // Physical interrupts
     VMEXIT_INTR = 0x60, // Physical INTR (maskable interrupt).
     VMEXIT_NMI = 0x61, // Physical NMI.
@@ -151,30 +147,55 @@ enum svm_intercept_code : long long {
     VMEXIT_TASK_SWITCH = 0x7D, // Task switch.
     VMEXIT_FERR_FREEZE = 0x7E, // FP legacy handling enabled, and processor is frozen in an x87/mmx instruction waiting for an interrupt.
     VMEXIT_SHUTDOWN = 0x7F, // Shutdown
-    VMEXIT_STGI = 0x80, // STGI instruction.
-    VMEXIT_CLGI = 0x81, // CLGI instruction.
-    VMEXIT_SKINIT = 0x82, // SKINIT instruction.
-    VMEXIT_RDTSCP = 0x83, // RDTSCP instruction.
-    VMEXIT_ICEBP = 0x84, // ICEBP instruction.
-    VMEXIT_WBINVD = 0x85, // WBINVD or WBNOINVD instruction.
-    VMEXIT_MONITOR = 0x86, // MONITOR or MONITORX instruction.
-    VMEXIT_MWAIT = 0x87, // MWAIT or MWAITX instruction.
-    VMEXIT_MWAIT_CONDITIONAL = 0x88, // MWAIT or MWAITX instruction, if monitor hardware is armed.
-    VMEXIT_RDPRU = 0x89, // RDPRU instruction.
-    VMEXIT_XSETBV = 0x8A, // XSETBV instruction.
-    VMEXIT_EFER_WRITE_TRAP = 0x8B, // Write of EFER MSR (occurs after guest instruction finishes).
-    VMEXIT_CR_WRITE_TRAP = 0x90, // Write of CR0-15, respectively (occurs after guest instruction finishes).
-    VMEXIT_INVLPGB = 0xA0, // INVLPGB instruction.
-    VMEXIT_INVLPGB_ILLEGAL = 0xA1, // Illegal INVLPGB instruction.
+
+    VMEXIT_VMRUN = 0x80, // VMRUN instruction.
+    VMEXIT_VMMCALL = 0x81, // VMMCALL instruction.
+    VMEXIT_VMLOAD = 0x82, // VMLOAD instruction.
+    VMEXIT_VMSAVE = 0x83, // VMSAVE instruction.
+
+    VMEXIT_STGI = 0x84, // STGI instruction.
+    VMEXIT_CLGI = 0x85, // CLGI instruction.
+    VMEXIT_SKINIT = 0x86, // SKINIT instruction.
+    VMEXIT_RDTSCP = 0x87, // RDTSCP instruction.
+    VMEXIT_ICEBP = 0x88, // ICEBP instruction.
+    VMEXIT_WBINVD = 0x89, // WBINVD instruction.
+    VMEXIT_MONITOR = 0x8A, // MONITOR instruction.
+    VMEXIT_MWAIT = 0x8B, // MWAIT instruction.
+    VMEXIT_MWAIT_CONDITIONAL = 0x8C, // MWAIT instruction with the events hint set in RCX.
+    VMEXIT_RDPRU = 0x8E, // RDPRU instruction.
+    VMEXIT_XSETBV = 0x8D, // XSETBV instruction.
+    VMEXIT_EFER_WRITE_TRAP = 0x8F, // Write of EFER MSR (occurs after guest instruction finishes)
+
+    VMEXIT_CR0_WRITE_TRAP = 0x90, // Write of CR0-15, respectively (occurs after guest instruction finishes)
+    VMEXIT_CR1_WRITE_TRAP = 0x91,
+    VMEXIT_CR2_WRITE_TRAP = 0x92,
+    VMEXIT_CR3_WRITE_TRAP = 0x93,
+    VMEXIT_CR4_WRITE_TRAP = 0x94,
+    VMEXIT_CR5_WRITE_TRAP = 0x95,
+    VMEXIT_CR6_WRITE_TRAP = 0x96,
+    VMEXIT_CR7_WRITE_TRAP = 0x97,
+    VMEXIT_CR8_WRITE_TRAP = 0x98,
+    VMEXIT_CR9_WRITE_TRAP = 0x99,
+    VMEXIT_CR10_WRITE_TRAP = 0x9A,
+    VMEXIT_CR11_WRITE_TRAP = 0x9B,
+    VMEXIT_CR12_WRITE_TRAP = 0x9C,
+    VMEXIT_CR13_WRITE_TRAP = 0x9D,
+    VMEXIT_CR14_WRITE_TRAP = 0x9E,
+    VMEXIT_CR15_WRITE_TRAP = 0x9F,
+
+    VMEXIT_INVLPGB = 0xA0, // INVLPG instruction.
+    VMEXIT_INVLPGB_ILLEGAL = 0xA1, // INVLPG instruction with an illegal operand.
     VMEXIT_INVPCID = 0xA2, // INVPCID instruction.
     VMEXIT_MCOMMIT = 0xA3, // MCOMMIT instruction.
     VMEXIT_TLBSYNC = 0xA4, // TLBSYNC instruction.
-    VMEXIT_BUSLOCK = 0xA5, // Bus lock while Bus Lock Threshold Counter value is 0.
-    VMEXIT_NPF = 0x400, // Nested paging: host-level page fault occurred.
-    AVIC_INCOMPLETE_IPI = 0x401, // Virtual IPI delivery not completed.
-    AVIC_NOACCEL = 0x402, // Attempted access by guest to vAPIC register not handled by AVIC hardware.
-    VMEXIT_VMGEXIT = 0xA3, // VMGEXIT instruction.
-    VMEXIT_INVALID = -1, // Invalid guest state in VMCB.
-    VMEXIT_BUSY = -2, // BUSY bit was set in the encrypted VMSA.
-    VMEXIT_IDLE_REQUIRED = -3 // The sibling thread is not in an idle state.
+    VMEXIT_BUSLOCK = 0xA5, // Bus lock while Bus Lock Threshold Counter value is 0
+    
+    VMEXIT_NPF = 0x400, // Nested paging: host-level page fault occurred (EXITINFO1 contains fault error code; EXITINFO2 contains the guest physical address causing the fault)
+    VMEXIT_AVIC_INCOMPLETE_IPI = 0x401, // AVIC—Virtual IPI delivery not completed. 
+    VMEXIT_AVIC_NOACCEL = 0x402, // AVIC—Attempted access by guest to vAPIC register not handled by AVIC hardware
+    VMEXIT_VMGEXIT = 0x403, // VMGEXIT instruction
+
+    VMEXIT_INVALID = -1, // Invalid guest state in VMCB
+    VMEXIT_BUSY = -2, // BUSY bit was set in the encrypted VMSA
+    VMEXIT_IDLE_REQUIRED = -3, // The sibling thread is not in an idle state
 };

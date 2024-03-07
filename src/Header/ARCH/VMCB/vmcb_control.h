@@ -1,8 +1,9 @@
 #pragma once
-#include "datatypes.h"
-#include "exit_int_info.h"
-#include "exitinfo1.h"
-#include "MSRs.h"
+#include "../../datatypes.h"
+#include "../VMEXIT/exit_int_info.h"
+#include "../VMEXIT/EXITINFO/exitinfo1.h"
+#include "../MSRs/msrs.h"
+#include "../VMEXIT/svm_intercept_code.h"
 
 struct vmcb_control {
 	union {
@@ -280,10 +281,10 @@ struct vmcb_control {
 	};
 
 	// 070h
-	uint64_t exit_code;
+	svm_intercept_code exit_code;
 
 	// 078h
-	EXITINFO1::exitinfo1 exit_info_1;
+	EXITINFO::exitinfo1 exit_info_1;
 
 	// 080h
 	uint64_t exit_info_2;

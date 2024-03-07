@@ -1,7 +1,7 @@
 #pragma once
-#include "datatypes.h"
+#include "../../../commons.h"
 
-namespace EXITINFO1 {
+namespace EXITINFO {
 	union exitinfo1
 	{
 		uint64_t info;
