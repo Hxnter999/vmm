@@ -1,5 +1,5 @@
 #pragma once
-#include "datatypes.h"
+#include "../../../commons.h"
 
 namespace EXITINFO1 {
 	union exitinfo1

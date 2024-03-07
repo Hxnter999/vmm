@@ -123,6 +123,7 @@
     </ClCompile>
     <ClCompile>
       <PrecompiledHeaderFile>commons.h</PrecompiledHeaderFile>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
@@ -139,19 +140,26 @@
     <FilesToPackage Include="$(TargetPath)" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\Header\Util\bitset.cpp" />
+    <ClCompile Include="src\Header\Util\bitset.cpp">
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\commons.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\commons.h</PrecompiledHeaderFile>
+    </ClCompile>
     <ClCompile Include="src\Source\commons.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">commons.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\Header\commons.h</PrecompiledHeaderFile>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">commons.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\Header\commons.h</PrecompiledHeaderFile>
     </ClCompile>
-    <ClCompile Include="src\Source\main.cpp" />
+    <ClCompile Include="src\Source\main.cpp">
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\Header\commons.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\Header\commons.h</PrecompiledHeaderFile>
+    </ClCompile>
     <MASM Include="src\Source\svmintrin.asm">
       <FileType>Document</FileType>
     </MASM>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Header\ARCH\dtr.h" />
     <ClInclude Include="src\Header\Util\bitset.h" />
     <ClInclude Include="src\Header\commons.h" />
     <ClInclude Include="src\Header\ARCH\CPUID\cpuid_t.h" />
@@ -164,7 +172,6 @@
     <ClInclude Include="src\Header\ARCH\CPUID\Standard Features\fn_vendor.h" />
     <ClInclude Include="src\Header\ARCH\MSRs\hsave_pa.h" />
     <ClInclude Include="src\Header\ARCH\VMEXIT\EXITINFO\exitinfo1.h" />
-    <ClInclude Include="src\Header\ARCH\drt.h" />
     <ClInclude Include="src\Header\ARCH\MSRs\msrs.h" />
     <ClInclude Include="src\Header\ARCH\MSRs\pat.h" />
     <ClInclude Include="src\Header\ARCH\SEGMENT\segment.h" />

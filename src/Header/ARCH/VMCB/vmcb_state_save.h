@@ -1,35 +1,41 @@
 #pragma once
-#include "datatypes.h"
-#include "segment.h"
-#include "drt.h"
+#include "../../datatypes.h"
+#include "../SEGMENT/segment.h"
+#include "../dtr.h"
 
 struct vmcb_state_save {
 	// 000h
-	SEGMENT::segment_descriptor es;
+	SEGMENT::segment_descriptor es; // only lower 32 bits of base are implemented
 
 	// 010h
-	SEGMENT::segment_descriptor cs;
+	SEGMENT::segment_descriptor cs; // only lower 32 bits of base are implemented
 
 	// 020h
-	SEGMENT::segment_descriptor ss;
+	SEGMENT::segment_descriptor ss;	// only lower 32 bits of base are implemented
 
 	// 030h
-	SEGMENT::segment_descriptor ds;
+	SEGMENT::segment_descriptor ds; // only lower 32 bits of base are implemented
 
 	// 040h
-	SEGMENT::segment_descriptor fs;
+	SEGMENT::segment_descriptor fs; 
 
 	// 050h
-	SEGMENT::segment_descriptor gs;
+	SEGMENT::segment_descriptor gs;	
 
 	// 060h
-	dtr gdtr;
+	uint8_t reserved60[6]; // reserved placeholders for selector and attribute of gdtr
+
+	// 066h
+	dtr gdtr; //  only lower 16 bits of limit are implemented
 
 	// 070h
 	SEGMENT::segment_descriptor ldtr;
 
 	// 080h
-	dtr idtr;
+	uint8_t reserved80[6]; // reserved placeholders for selector and attribute of idtr
+
+	// 086h
+	dtr idtr; // only lower 16 bits of limit are implemented
 
 	// 090h
 	SEGMENT::segment_descriptor tr;

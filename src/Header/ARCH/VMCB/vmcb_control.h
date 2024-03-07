@@ -1,8 +1,8 @@
 #pragma once
-#include "datatypes.h"
-#include "exit_int_info.h"
-#include "exitinfo1.h"
-#include "MSRs.h"
+#include "../../datatypes.h"
+#include "../VMEXIT/exit_int_info.h"
+#include "../VMEXIT/EXITINFO/exitinfo1.h"
+#include "../MSRs/msrs.h"
 
 struct vmcb_control {
 	union {

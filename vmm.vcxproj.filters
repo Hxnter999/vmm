@@ -114,9 +114,7 @@
     <ClInclude Include="src\Header\ARCH\CPUID\Standard Features\fn_vendor.h">
       <Filter>Header\ARCH\CPUID\Extended Features</Filter>
     </ClInclude>
-    <ClInclude Include="src\Header\ARCH\drt.h">
-      <Filter>Header\ARCH</Filter>
-    </ClInclude>
+    <ClInclude Include="src\Header\ARCH\dtr.h" />
   </ItemGroup>
   <ItemGroup>
     <MASM Include="src\Source\svmintrin.asm">

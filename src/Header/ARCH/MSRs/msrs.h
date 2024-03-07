@@ -1,6 +1,6 @@
 #pragma once
-#include "datatypes.h"
-#include "bitset.h"
+#include "../../datatypes.h"
+#include "../../Util/bitset.h"
 #include <intrin.h>
 #pragma warning(disable : 4996)
 

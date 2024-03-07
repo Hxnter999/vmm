@@ -1,5 +1,5 @@
 #pragma once
-#include "datatypes.h"
+#include "../../datatypes.h"
 
 namespace SEGMENT {
 	struct segment_attribute {
@@ -24,6 +24,6 @@ namespace SEGMENT {
 		uint16_t selector;
 		segment_attribute attributes; // 16 bits
 		uint32_t limit;
-		uint64_t base; // only lower 32 bits are implemented
+		uint64_t base; 
 	};
 }

@@ -8,7 +8,7 @@
 #include "../Header/ARCH/MSRs/vm_cr.h"
 #include "../Header/ARCH/VMCB/vmcb.h"
 #include "../Header/ARCH/MSRs/pat.h"
-#include "../Header/ARCH/drt.h"
+#include "../Header/ARCH/dtr.h"
 
 extern "C" {
 	extern void __sgdt(void* gdtr); // here for now
@@ -64,10 +64,10 @@ SVM_STATUS inittest()
 	return SVM_STATUS::SVM_DISABLED_WITH_KEY;
 }
 
+MSR::msrpm vcpu::shared_msrpm{};
 void setupvmcb() //dis just a test
 {
 	vcpu Vcpu{};
-	vcpu::shared_msrpm = MSR::msrpm{}; // shared msrpm
 
 	Vcpu.guest_vmcb.control.msrpm_base_pa = MmGetPhysicalAddress(&vcpu::shared_msrpm);
 
@@ -112,9 +112,6 @@ extern "C" NTSTATUS DriverEntry(PDRIVER_OBJECT pDriverObject, PUNICODE_STRING pR
 		return STATUS_UNSUCCESSFUL;
 	}
 	
-	MSR::EFER efer{};
-	efer.svme = 0;
-	efer.storeMSR();
 
 	return STATUS_SUCCESS;
 }

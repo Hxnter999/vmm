@@ -1,5 +1,5 @@
 #pragma once
-#include "cpuid_t.h"
+#include "../cpuid_t.h"
 
 namespace CPUID {
 	// 8000_000A
