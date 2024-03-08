@@ -160,6 +160,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Header\ARCH\dtr.h" />
+    <ClInclude Include="src\Header\ARCH\VMEXIT\EXITINFO\exitinfo2.h" />
     <ClInclude Include="src\Header\Util\bitset.h" />
     <ClInclude Include="src\Header\commons.h" />
     <ClInclude Include="src\Header\ARCH\CPUID\cpuid_t.h" />

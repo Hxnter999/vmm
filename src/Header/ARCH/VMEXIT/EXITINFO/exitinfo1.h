@@ -44,6 +44,7 @@ namespace EXITINFO {
 				uint64_t unused : 32;
 			} in_out;
 
+			// If the SMI wasn't asserted during an I/O instruction, the extra EXITINFO1 and EXITINFO2 bits are undefined
 			struct { // 15.10.3 and 15.13.3
 				uint64_t smi_source : 1; // 0 = internal | 1 = external: whether the SMI was caused internally by I / O Trapping(=0), or asserted externally(=1).
 				uint64_t redirect_machine_check : 1; // smi was due to a redirect machine check error
@@ -64,7 +65,7 @@ namespace EXITINFO {
 				uint64_t eflags_tf : 1; // eflags.tf value
 				uint64_t breakpoint : 1; // I/O breakpoint matches
 				uint64_t port_number : 16;
-			} smi_on_io;
+			} smi;
 
 			struct { // 15.11
 				uint64_t value : 64;
@@ -133,4 +134,4 @@ namespace EXITINFO {
 			} control_protection;
 		};
 	}; // union exitinfo1
-} // namespace EXITINFO1
+} // namespace EXITINFO

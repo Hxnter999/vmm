@@ -2,6 +2,7 @@
 #include "../../datatypes.h"
 #include "../VMEXIT/exit_int_info.h"
 #include "../VMEXIT/EXITINFO/exitinfo1.h"
+#include "../VMEXIT/EXITINFO/exitinfo2.h"
 #include "../MSRs/msrs.h"
 #include "../VMEXIT/svm_intercept_code.h"
 
@@ -287,7 +288,7 @@ struct vmcb_control {
 	EXITINFO::exitinfo1 exit_info_1;
 
 	// 080h
-	uint64_t exit_info_2;
+	EXITINFO::exitinfo2 exit_info_2;
 
 	// 088h
 	exit_int_info exit_int_info;

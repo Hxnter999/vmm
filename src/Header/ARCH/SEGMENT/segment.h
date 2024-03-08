@@ -1,8 +1,6 @@
 #pragma once
 #include "../../datatypes.h"
 
-
-
 namespace SEGMENT {
 	struct segment_selector {
 		union {
