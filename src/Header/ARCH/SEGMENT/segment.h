@@ -1,7 +1,20 @@
 #pragma once
 #include "../../datatypes.h"
 
+
+
 namespace SEGMENT {
+	struct segment_selector {
+		union {
+			uint16_t value;
+			struct {
+				uint16_t rpl : 2;
+				uint16_t ti : 1;
+				uint16_t index : 13;
+			};
+		};
+	};
+
 	struct segment_attribute {
 		union {
 			uint16_t value;
@@ -17,25 +30,6 @@ namespace SEGMENT {
 				uint16_t reserved : 4;
 			};
 		};
-	};
-
-	struct segment_selector {
-		union {
-			uint16_t value;
-			struct {
-				uint16_t rpl : 2;
-				uint16_t ti : 1;
-				uint16_t index : 13;
-			};
-		};
-	};
-
-	struct segment_register
-	{
-		segment_selector selector;
-		segment_attribute attributes; // 16 bits
-		uint32_t limit;
-		uint64_t base; 
 	};
 
 	struct segment_descriptor {
@@ -59,5 +53,29 @@ namespace SEGMENT {
 				uint64_t base_high : 8;
 			};
 		};
+	};
+
+	struct segment_register
+	{
+		segment_selector selector;
+		segment_attribute attributes; // 16 bits
+		uint32_t limit;
+		uint64_t base; 
+
+		void get_attributes(uint64_t descriptor)
+		{
+			segment_descriptor* desc = reinterpret_cast<segment_descriptor*>(descriptor + selector.index);
+
+			attributes.type = desc->type;
+			attributes.system = desc->system;
+			attributes.dpl = desc->dpl;
+			attributes.present = desc->present;
+			attributes.avl = desc->avl;
+			attributes.longmode = desc->long_mode;
+			attributes.default_bit = desc->default_bit;
+			attributes.granularity = desc->granularity;
+			attributes.present = desc->present;
+			attributes.reserved = 0;
+		}
 	};
 }

@@ -66,24 +66,7 @@ SVM_STATUS inittest()
 }
 
 
-SEGMENT::segment_attribute get_segment_attributes(SEGMENT::segment_selector selector, uint64_t descriptor)
-{
-	SEGMENT::segment_attribute attributes{};
-	SEGMENT::segment_descriptor* desc = reinterpret_cast<SEGMENT::segment_descriptor*>(descriptor + selector.index);
 
-	attributes.type = desc->type;
-	attributes.system = desc->system;
-	attributes.dpl = desc->dpl;
-	attributes.present = desc->present;
-	attributes.avl = desc->avl;
-	attributes.longmode = desc->long_mode;
-	attributes.default_bit = desc->default_bit;
-	attributes.granularity = desc->granularity;
-	attributes.present = desc->present;
-	attributes.reserved = 0;
-
-	return attributes;
-}
 
 void setupvmcb(vcpu* vcpu) //dis just a test
 {
@@ -144,13 +127,14 @@ void setupvmcb(vcpu* vcpu) //dis just a test
 	vcpu->guest_vmcb.save_state.es.selector.value = ctx->SegEs;
 	vcpu->guest_vmcb.save_state.ss.selector.value = ctx->SegSs;
 
-	vcpu->guest_vmcb.save_state.cs.attributes = get_segment_attributes(vcpu->guest_vmcb.save_state.cs.selector, gdtr.base);
-	vcpu->guest_vmcb.save_state.ds.attributes = get_segment_attributes(vcpu->guest_vmcb.save_state.ds.selector, gdtr.base);
-	vcpu->guest_vmcb.save_state.es.attributes = get_segment_attributes(vcpu->guest_vmcb.save_state.es.selector, gdtr.base);
-	vcpu->guest_vmcb.save_state.ss.attributes = get_segment_attributes(vcpu->guest_vmcb.save_state.ss.selector, gdtr.base);
+	vcpu->guest_vmcb.save_state.cs.get_attributes(gdtr.base);
+	vcpu->guest_vmcb.save_state.ds.get_attributes(gdtr.base);
+	vcpu->guest_vmcb.save_state.es.get_attributes(gdtr.base);
+	vcpu->guest_vmcb.save_state.ss.get_attributes(gdtr.base);
 
 
 	vcpu->is_virtualized = true;
+	ExFreePoolWithTag(ctx, 'sgma');
 }
 
 void Unload(PDRIVER_OBJECT pDriverObject);
