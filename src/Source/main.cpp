@@ -139,14 +139,16 @@ void setupvmcb(vcpu* vcpu) //dis just a test
 	vcpu->guest_vmcb.save_state.es.get_attributes(gdtr.base);
 	vcpu->guest_vmcb.save_state.ss.get_attributes(gdtr.base);
 
-	__svm_vmsave(MmGetPhysicalAddress(&vcpu->guest_vmcb).QuadPart);
+	//__svm_vmsave(MmGetPhysicalAddress(&vcpu->guest_vmcb).QuadPart);
 
 	// WHYT IS THIS SHIT TWEAKIN:
-	//MSR::HSAVE_PA hsave_pa{};
-	//hsave_pa.bits = MmGetPhysicalAddress(&vcpu->host_state_area).QuadPart;
-	//hsave_pa.store();
+	print("Attempting to store host_state_area\n");
+	MSR::HSAVE_PA hsave_pa{};
+	hsave_pa.bits = MmGetPhysicalAddress(&vcpu->host_state_area).QuadPart;
+	hsave_pa.store();
 
-	__svm_vmsave(MmGetPhysicalAddress(&vcpu->host_vmcb).QuadPart);
+	//__svm_vmsave(MmGetPhysicalAddress(&vcpu->host_vmcb).QuadPart);
+
 
 	vcpu->is_virtualized = true;
 	ExFreePoolWithTag(ctx, 'sgma');
