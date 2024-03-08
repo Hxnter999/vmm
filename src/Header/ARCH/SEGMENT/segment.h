@@ -64,7 +64,7 @@ namespace SEGMENT {
 
 		void get_attributes(uint64_t descriptor)
 		{
-			segment_descriptor* desc = reinterpret_cast<segment_descriptor*>(descriptor + selector.index);
+			segment_descriptor* desc = reinterpret_cast<segment_descriptor*>(descriptor + selector.index * 8);
 
 			attributes.type = desc->type;
 			attributes.system = desc->system;

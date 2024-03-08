@@ -12,7 +12,7 @@
 #include "../Header/ARCH/dtr.h"
 
 extern "C" {
-	extern void __sgdt(void* gdtr); // here for now
+	extern void _sgdt(void* gdtr); // here for now
 }
 
 SVM_STATUS inittest() 
@@ -89,8 +89,10 @@ void setupvmcb(vcpu* vcpu) //dis just a test
 	MSR::HSAVE_PA hsave_pa{};
 	hsave_pa.bits = MmGetPhysicalAddress(&vcpu->host_state_area).QuadPart;
 	hsave_pa.store();
+	
 	//Set up control area
-
+	//vcpu->guest_vmcb.control
+	
 	//TODO: set interupts blah blah
 
 	vcpu->guest_vmcb.control.vmrun = 1; // VMRUN intercepts muse be enabled 15.5.1
@@ -107,7 +109,7 @@ void setupvmcb(vcpu* vcpu) //dis just a test
 
 	dtr idtr{}; __sidt(&idtr);
 	vcpu->guest_vmcb.save_state.idtr = idtr;
-	dtr gdtr{}; __sgdt(&gdtr);
+	dtr gdtr{}; _sgdt(&gdtr);
 	vcpu->guest_vmcb.save_state.gdtr = gdtr;
 
 	//TODO: need to set RSP, RIP, and RFLAGS (This is where the guest will start executing)
@@ -131,12 +133,11 @@ void setupvmcb(vcpu* vcpu) //dis just a test
 	vcpu->guest_vmcb.save_state.es.get_attributes(gdtr.base);
 	vcpu->guest_vmcb.save_state.ss.get_attributes(gdtr.base);
 
-	vcpu->guest_vmcb.control.
 
 	vcpu->is_virtualized = true;
 	ExFreePoolWithTag(ctx, 'sgma');
 
-	__svm_vmrun(MmGetPhysicalAddress(&vcpu->guest_vmcb).QuadPart);
+	//__svm_vmrun(MmGetPhysicalAddress(&vcpu->guest_vmcb).QuadPart); not here sigma
 	
 }
 
@@ -177,5 +178,5 @@ extern "C" NTSTATUS DriverEntry(PDRIVER_OBJECT pDriverObject, PUNICODE_STRING pR
 void Unload(PDRIVER_OBJECT pDriverObject)
 {
 	UNREFERENCED_PARAMETER(pDriverObject);
-	print("Driver Unloaded\n");
+	print("---------\n\n");
 }
