@@ -172,6 +172,7 @@ extern "C" NTSTATUS DriverEntry(PDRIVER_OBJECT pDriverObject, PUNICODE_STRING pR
 
 	auto vcpu_count = KeQueryActiveProcessorCount(nullptr);
 	auto vcpus = reinterpret_cast<vcpu*>(ExAllocatePoolWithTag(NonPagedPool, vcpu_count * sizeof(vcpu), 'sgma')); //FREE THIS LATER
+	memset(vcpus, 0, vcpu_count * sizeof(vcpu));
 
 	for (uint32_t i = 0; i < vcpu_count; i++) 
 	{
