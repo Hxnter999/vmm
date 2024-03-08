@@ -131,9 +131,13 @@ void setupvmcb(vcpu* vcpu) //dis just a test
 	vcpu->guest_vmcb.save_state.es.get_attributes(gdtr.base);
 	vcpu->guest_vmcb.save_state.ss.get_attributes(gdtr.base);
 
+	vcpu->guest_vmcb.control.
 
 	vcpu->is_virtualized = true;
 	ExFreePoolWithTag(ctx, 'sgma');
+
+	__svm_vmrun(MmGetPhysicalAddress(&vcpu->guest_vmcb).QuadPart);
+	
 }
 
 void Unload(PDRIVER_OBJECT pDriverObject);
@@ -159,13 +163,12 @@ extern "C" NTSTATUS DriverEntry(PDRIVER_OBJECT pDriverObject, PUNICODE_STRING pR
 	{
 		auto original_affinity = KeSetSystemAffinityThreadEx(1ll << i);
 		print("attempting to set up vcpu %d\n", KeGetCurrentProcessorIndex());
-		setupvmcb(vcpus + i);
+		setupvmcb(&vcpus[i]);
 
 		KeRevertToUserAffinityThreadEx(original_affinity);
 	}
 
-
-
+	ExFreePoolWithTag(vcpus, 'sgma');
 
 	return STATUS_SUCCESS;
 }
