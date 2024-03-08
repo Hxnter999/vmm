@@ -67,7 +67,6 @@ SVM_STATUS inittest()
 
 
 
-
 void setupvmcb(vcpu* vcpu) //dis just a test
 {
 	CONTEXT* ctx = reinterpret_cast<CONTEXT*>(ExAllocatePoolWithTag(NonPagedPool, sizeof(CONTEXT), 'sgma'));
