@@ -1,4 +1,3 @@
-
 .CODE
 
 ; void __sgdt(void* gdtr);

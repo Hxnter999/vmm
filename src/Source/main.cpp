@@ -131,6 +131,7 @@ void setupvmcb(vcpu* vcpu) //dis just a test
 	vcpu->guest_vmcb.save_state.es.get_attributes(gdtr.base);
 	vcpu->guest_vmcb.save_state.ss.get_attributes(gdtr.base);
 
+	//__svm_vmsave(MmGetPhysicalAddress(&vcpu->guest_vmcb).QuadPart);
 
 	vcpu->is_virtualized = true;
 	ExFreePoolWithTag(ctx, 'sgma');
