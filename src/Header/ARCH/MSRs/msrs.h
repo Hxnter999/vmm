@@ -40,8 +40,6 @@ namespace MSR {
 			util::bitset<0x2000> vector;
 		};
 
-	private:
-
 		//bool at(uint64_t msr, bool read)
 		
 
