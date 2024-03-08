@@ -8,6 +8,7 @@
 #include "../Header/ARCH/MSRs/vm_cr.h"
 #include "../Header/ARCH/VMCB/vmcb.h"
 #include "../Header/ARCH/MSRs/pat.h"
+#include "../Header/ARCH/MSRs/hsave_pa.h"
 #include "../Header/ARCH/dtr.h"
 
 extern "C" {
@@ -65,45 +66,92 @@ SVM_STATUS inittest()
 }
 
 
+SEGMENT::segment_attribute get_segment_attributes(SEGMENT::segment_selector selector, uint64_t descriptor)
+{
+	SEGMENT::segment_attribute attributes{};
+	SEGMENT::segment_descriptor* desc = reinterpret_cast<SEGMENT::segment_descriptor*>(descriptor + selector.index);
 
-//void setupvmcb(vcpu* vcpu) //dis just a test
-//{
-//	MSR::EFER efer{};
-//	efer.load();
-//
-//	efer.svme = 1;
-//	efer.store();
-//
-//
-//
-//	vcpu->guest_vmcb.control.msrpm_base_pa = MmGetPhysicalAddress(&sharedVcpu.shared_msrpm);
-//
-//	//Set up control area
-//
-//	//TODO: set interupts blah blah
-//
-//	vcpu->guest_vmcb.control.vmrun = 1; // VMRUN intercepts muse be enabled 15.5.1
-//
-//	vcpu->guest_vmcb.control.asid = 1; // Address space identifier "ASID [cannot be] equal to zero" 15.5.1
-//
-//	// Set up the guest state
-//	vcpu->guest_vmcb.save_state.cr0 = __readcr0();
-//	vcpu->guest_vmcb.save_state.cr2 = __readcr2();
-//	vcpu->guest_vmcb.save_state.cr3 = __readcr3();
-//	vcpu->guest_vmcb.save_state.cr4 = __readcr4();
-//	vcpu->guest_vmcb.save_state.efer = __readmsr(MSR::EFER::MSR_EFER);
-//	vcpu->guest_vmcb.save_state.g_pat = __readmsr(MSR::PAT::MSR_PAT); // very sigma (kinda like MTRRs but for page tables)
-//
-//	dtr idtr{}; __sidt(&idtr);
-//	vcpu->guest_vmcb.save_state.idtr = idtr;
-//	dtr gdtr{}; __sgdt(&gdtr);
-//	vcpu->guest_vmcb.save_state.gdtr = gdtr;
-//
-//	//TODO: need to set RSP, RIP, and RFLAGS (This is where the guest will start executing)
-//
-//	//TODO: Setup all the segment registers
-//
-//}
+	attributes.type = desc->type;
+	attributes.system = desc->system;
+	attributes.dpl = desc->dpl;
+	attributes.present = desc->present;
+	attributes.avl = desc->avl;
+	attributes.longmode = desc->long_mode;
+	attributes.default_bit = desc->default_bit;
+	attributes.granularity = desc->granularity;
+	attributes.present = desc->present;
+	attributes.reserved = 0;
+
+	return attributes;
+}
+
+void setupvmcb(vcpu* vcpu) //dis just a test
+{
+	CONTEXT* ctx = reinterpret_cast<CONTEXT*>(ExAllocatePoolWithTag(NonPagedPool, sizeof(CONTEXT), 'sgma'));
+	RtlCaptureContext(ctx);
+
+	if (vcpu->is_virtualized) {
+		print("already virtualized\n");
+		return;
+	}
+
+	MSR::EFER efer{};
+	efer.load();
+	efer.svme = 1;
+	efer.store();
+
+	static sharedvcpu sharedVcpu{};
+
+	vcpu->guest_vmcb.control.msrpm_base_pa = MmGetPhysicalAddress(&sharedVcpu.shared_msrpm);
+	
+	MSR::HSAVE_PA hsave_pa{};
+	hsave_pa.bits = MmGetPhysicalAddress(&vcpu->host_state_area).QuadPart;
+	hsave_pa.store();
+	//Set up control area
+
+	//TODO: set interupts blah blah
+
+	vcpu->guest_vmcb.control.vmrun = 1; // VMRUN intercepts muse be enabled 15.5.1
+
+	vcpu->guest_vmcb.control.asid = 1; // Address space identifier "ASID [cannot be] equal to zero" 15.5.1
+
+	// Set up the guest state
+	vcpu->guest_vmcb.save_state.cr0 = __readcr0();
+	vcpu->guest_vmcb.save_state.cr2 = __readcr2();
+	vcpu->guest_vmcb.save_state.cr3 = __readcr3();
+	vcpu->guest_vmcb.save_state.cr4 = __readcr4();
+	vcpu->guest_vmcb.save_state.efer = __readmsr(MSR::EFER::MSR_EFER);
+	vcpu->guest_vmcb.save_state.g_pat = __readmsr(MSR::PAT::MSR_PAT); // very sigma (kinda like MTRRs but for page tables)
+
+	dtr idtr{}; __sidt(&idtr);
+	vcpu->guest_vmcb.save_state.idtr = idtr;
+	dtr gdtr{}; __sgdt(&gdtr);
+	vcpu->guest_vmcb.save_state.gdtr = gdtr;
+
+	//TODO: need to set RSP, RIP, and RFLAGS (This is where the guest will start executing)
+	vcpu->guest_vmcb.save_state.rsp = ctx->Rsp;
+	vcpu->guest_vmcb.save_state.rip = ctx->Rip;
+	vcpu->guest_vmcb.save_state.rflags = ctx->EFlags;
+
+	//TODO: Setup all the segment registers
+	vcpu->guest_vmcb.save_state.cs.limit = __segmentlimit(ctx->SegCs);
+	vcpu->guest_vmcb.save_state.ds.limit = __segmentlimit(ctx->SegDs);
+	vcpu->guest_vmcb.save_state.es.limit = __segmentlimit(ctx->SegEs);
+	vcpu->guest_vmcb.save_state.ss.limit = __segmentlimit(ctx->SegSs);
+
+	vcpu->guest_vmcb.save_state.cs.selector.value = ctx->SegCs;
+	vcpu->guest_vmcb.save_state.ds.selector.value = ctx->SegDs;
+	vcpu->guest_vmcb.save_state.es.selector.value = ctx->SegEs;
+	vcpu->guest_vmcb.save_state.ss.selector.value = ctx->SegSs;
+
+	vcpu->guest_vmcb.save_state.cs.attributes = get_segment_attributes(vcpu->guest_vmcb.save_state.cs.selector, gdtr.base);
+	vcpu->guest_vmcb.save_state.ds.attributes = get_segment_attributes(vcpu->guest_vmcb.save_state.ds.selector, gdtr.base);
+	vcpu->guest_vmcb.save_state.es.attributes = get_segment_attributes(vcpu->guest_vmcb.save_state.es.selector, gdtr.base);
+	vcpu->guest_vmcb.save_state.ss.attributes = get_segment_attributes(vcpu->guest_vmcb.save_state.ss.selector, gdtr.base);
+
+
+	vcpu->is_virtualized = true;
+}
 
 void Unload(PDRIVER_OBJECT pDriverObject);
 
@@ -122,13 +170,13 @@ extern "C" NTSTATUS DriverEntry(PDRIVER_OBJECT pDriverObject, PUNICODE_STRING pR
 	print("SVM supported\n");
 
 	auto vcpu_count = KeQueryActiveProcessorCount(nullptr);
-	//auto vcpus = reinterpret_cast<vcpu*>(ExAllocatePoolWithTag(NonPagedPool, vcpu_count * sizeof(vcpu), 'sgma'));
+	auto vcpus = reinterpret_cast<vcpu*>(ExAllocatePoolWithTag(NonPagedPool, vcpu_count * sizeof(vcpu), 'sgma'));
 
 	for (uint32_t i = 0; i < vcpu_count; i++) 
 	{
 		auto original_affinity = KeSetSystemAffinityThreadEx(1ll << i);
 		print("attempting to set up vcpu %d\n", KeGetCurrentProcessorIndex());
-		//setupvmcb(vcpus + i);
+		setupvmcb(vcpus + i);
 
 		KeRevertToUserAffinityThreadEx(original_affinity);
 	}

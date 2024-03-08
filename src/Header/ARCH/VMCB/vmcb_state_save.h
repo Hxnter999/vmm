@@ -5,22 +5,22 @@
 
 struct vmcb_state_save {
 	// 000h
-	SEGMENT::segment_descriptor es; // only lower 32 bits of base are implemented
+	SEGMENT::segment_register es; // only lower 32 bits of base are implemented
 
 	// 010h
-	SEGMENT::segment_descriptor cs; // only lower 32 bits of base are implemented
+	SEGMENT::segment_register cs; // only lower 32 bits of base are implemented
 
 	// 020h
-	SEGMENT::segment_descriptor ss;	// only lower 32 bits of base are implemented
+	SEGMENT::segment_register ss;	// only lower 32 bits of base are implemented
 
 	// 030h
-	SEGMENT::segment_descriptor ds; // only lower 32 bits of base are implemented
+	SEGMENT::segment_register ds; // only lower 32 bits of base are implemented
 
 	// 040h
-	SEGMENT::segment_descriptor fs; 
+	SEGMENT::segment_register fs;
 
 	// 050h
-	SEGMENT::segment_descriptor gs;	
+	SEGMENT::segment_register gs;
 
 	// 060h
 	uint8_t reserved60[6]; // reserved placeholders for selector and attribute of gdtr
@@ -29,7 +29,7 @@ struct vmcb_state_save {
 	dtr gdtr; //  only lower 16 bits of limit are implemented
 
 	// 070h
-	SEGMENT::segment_descriptor ldtr;
+	SEGMENT::segment_register ldtr;
 
 	// 080h
 	uint8_t reserved80[6]; // reserved placeholders for selector and attribute of idtr
@@ -38,7 +38,7 @@ struct vmcb_state_save {
 	dtr idtr; // only lower 16 bits of limit are implemented
 
 	// 090h
-	SEGMENT::segment_descriptor tr;
+	SEGMENT::segment_register tr;
 
 	// 0a0h - 0cah
 	uint8_t reserveda0[0x2a];
