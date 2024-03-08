@@ -12,7 +12,7 @@ struct alignas(0x1000) vmcb {
 
 struct sharedvcpu 
 {
-	MSR::msrpm shared_msrpm{};
+	MSR::msrpm* shared_msrpm{};
 };
 
 struct vcpu {

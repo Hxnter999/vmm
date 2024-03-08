@@ -83,21 +83,27 @@ void setupvmcb(vcpu* vcpu) //dis just a test
 	efer.store();
 
 	static sharedvcpu sharedVcpu{};
+	if (sharedVcpu.shared_msrpm == nullptr)
+	{
+		PHYSICAL_ADDRESS high{ .QuadPart = -1 };
+		sharedVcpu.shared_msrpm = reinterpret_cast<MSR::msrpm*>(MmAllocateContiguousMemory(sizeof(MSR::msrpm), high));
+		if (sharedVcpu.shared_msrpm == nullptr)
+		{
+			print("couldnt allocate msrpm\n");
+			return;
+		}
+	}
 
-	vcpu->guest_vmcb.control.msrpm_base_pa = MmGetPhysicalAddress(&sharedVcpu.shared_msrpm);
+	vcpu->guest_vmcb.control.msrpm_base_pa = MmGetPhysicalAddress(sharedVcpu.shared_msrpm);
 	
-	MSR::HSAVE_PA hsave_pa{};
-	hsave_pa.bits = MmGetPhysicalAddress(&vcpu->host_state_area).QuadPart;
-	hsave_pa.store();
 	
 	//Set up control area
-	//vcpu->guest_vmcb.control
-	
 	//TODO: set interupts blah blah
-
 	vcpu->guest_vmcb.control.vmrun = 1; // VMRUN intercepts muse be enabled 15.5.1
 
 	vcpu->guest_vmcb.control.asid = 1; // Address space identifier "ASID [cannot be] equal to zero" 15.5.1
+
+	//vcpu->guest_vmcb.control.np_enable = 0;
 
 	// Set up the guest state
 	vcpu->guest_vmcb.save_state.cr0 = __readcr0();
@@ -133,12 +139,17 @@ void setupvmcb(vcpu* vcpu) //dis just a test
 	vcpu->guest_vmcb.save_state.es.get_attributes(gdtr.base);
 	vcpu->guest_vmcb.save_state.ss.get_attributes(gdtr.base);
 
+	__svm_vmsave(MmGetPhysicalAddress(&vcpu->guest_vmcb).QuadPart);
+
+	// WHYT IS THIS SHIT TWEAKIN:
+	//MSR::HSAVE_PA hsave_pa{};
+	//hsave_pa.bits = MmGetPhysicalAddress(&vcpu->host_state_area).QuadPart;
+	//hsave_pa.store();
+
+	__svm_vmsave(MmGetPhysicalAddress(&vcpu->host_vmcb).QuadPart);
 
 	vcpu->is_virtualized = true;
 	ExFreePoolWithTag(ctx, 'sgma');
-
-	//__svm_vmrun(MmGetPhysicalAddress(&vcpu->guest_vmcb).QuadPart); not here sigma
-	
 }
 
 void Unload(PDRIVER_OBJECT pDriverObject);
@@ -158,7 +169,7 @@ extern "C" NTSTATUS DriverEntry(PDRIVER_OBJECT pDriverObject, PUNICODE_STRING pR
 	print("SVM supported\n");
 
 	auto vcpu_count = KeQueryActiveProcessorCount(nullptr);
-	auto vcpus = reinterpret_cast<vcpu*>(ExAllocatePoolWithTag(NonPagedPool, vcpu_count * sizeof(vcpu), 'sgma'));
+	auto vcpus = reinterpret_cast<vcpu*>(ExAllocatePoolWithTag(NonPagedPool, vcpu_count * sizeof(vcpu), 'sgma')); //FREE THIS LATER
 
 	for (uint32_t i = 0; i < vcpu_count; i++) 
 	{
@@ -169,7 +180,7 @@ extern "C" NTSTATUS DriverEntry(PDRIVER_OBJECT pDriverObject, PUNICODE_STRING pR
 		KeRevertToUserAffinityThreadEx(original_affinity);
 	}
 
-	ExFreePoolWithTag(vcpus, 'sgma');
+	print("virtualized hopefully\n");
 
 	return STATUS_SUCCESS;
 }
