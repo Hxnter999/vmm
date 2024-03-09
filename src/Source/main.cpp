@@ -169,7 +169,7 @@ void setupvmcb(vcpu* vcpu) //dis just a test
 	}
 	vcpu->is_virtualized = true;
 
-	print("Starting to virtualize... ");
+	print("Starting to virtualize...\n");
 	MSR::EFER efer{};
 	efer.load();
 	efer.svme = 1;
@@ -198,10 +198,10 @@ void setupvmcb(vcpu* vcpu) //dis just a test
 	//	memset(sharedVcpu.pt, 0, sizeof(PT));
 	//	setup_npt(&sharedVcpu);
 	//}
-
+	
 	vcpu->guest_vmcb.control.msrpm_base_pa = MmGetPhysicalAddress(sharedVcpu.shared_msrpm).QuadPart;
-	
-	
+
+
 	//Set up control area
 	//TODO: set interupts blah blah
 	vcpu->guest_vmcb.control.vmrun = 1; // VMRUN intercepts muse be enabled 15.5.1
@@ -287,7 +287,7 @@ void setupvmcb(vcpu* vcpu) //dis just a test
 	}
 
 
-	print("Switching to guest... ");
+	print("Switching to guest...\n");
 	__svm_vmrun(MmGetPhysicalAddress(&vcpu->guest_vmcb).QuadPart);
 	
 	print("[1] VMEXIT\n");

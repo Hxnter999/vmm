@@ -214,13 +214,14 @@ struct vmcb_control {
 	uint16_t pause_filter_count;
 
 	// 040h 
-	union {
-		uint64_t value40;
-		struct {
-			uint64_t ignored : 12; // ignored
-			uint64_t iopm_base_pa : 52; // iopm_base_pa: i/o permission bit map base physical address
-		};
-	};
+	uint64_t iopm_base_pa; //Should always be aligned
+	//union {
+	//	uint64_t value40;
+	//	struct {
+	//		uint64_t ignored : 12; // ignored
+	//		uint64_t iopm_base_pa : 52; // iopm_base_pa: i/o permission bit map base physical address
+	//	};
+	//};
 
 	// 048h 
 	uint64_t msrpm_base_pa; //Should always be aligned 
@@ -327,7 +328,6 @@ struct vmcb_control {
 	// 0b0h
 	uint64_t n_cr3; // nested page table cr3 to use for nested paging
 
-
 	// 0b8h
 	union {
 		uint64_t valueb8;
@@ -402,7 +402,7 @@ struct vmcb_control {
 		};
 	};
 
-	// 100h - 10hh reserved
+	// 100h - 107h reserved
 	uint8_t reserved100[7];
 
 	// 108h
