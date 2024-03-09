@@ -136,63 +136,60 @@ struct vmcb_state_save {
 	// 280h
 	uint64_t br_to;
 
-	// 288h to 7c8 might be wrong, possibly off by 8 due to shitty manuals
-	uint64_t last_excp_from;
+	// 288h
+	uint8_t last_excp_from[10];
 
-	// 290h
-	uint64_t last_excp_to;
-
-	// 299h
+	// 298h
 	uint64_t dbg_extn_cfg;
 
-	// 2A0h
-	uint8_t reserved298[0x48];
+	//manual says: "299h - 2DFh" which doesnt make sense as dbg_extn_cfg is a QWORD
+	//Therfore I will go with the following to assure reserved299 ends at byte 0x2DF
+	//0x2A0 - 0x2DF
+	uint8_t reserved299[0x3F];
 
-	// 2e8h
+	// 2e0h
 	uint64_t spec_ctrl;
 
-	// 2f0h
-	uint8_t reserved2e8[0x388];
+	// 2E8h
+	uint8_t reserved2e8[0x387];
 
-	// 6780h
+	// 670h–76Fh 
 	uint64_t lbr_stack_from[16];
-
-	// 6f8h
 	uint64_t lbr_stack_to[16];
 
-	// 778h
+	// 770h
 	uint64_t lbr_select;
 
-	// 780h
+	// 778h
 	uint64_t ibs_fetch_ctl;
 
-	// 788h
+	// 780h
 	uint64_t ibs_fetch_linaddr;
 
-	// 790h
+	// 788h
 	uint64_t ibs_op_ctl;
 
-	// 798h
+	// 790h
 	uint64_t ibs_op_rip;
 
-	// 7A0h
+	// 798h
 	uint64_t ibs_op_data1;
 
-	// 7a8h
+	// 7A0h
 	uint64_t ibs_op_data2;
 
-	// 7B0h
+	// 7A8h
 	uint64_t ibs_op_data3;
 
-	// 7b8h
+	// 7B0h
 	uint64_t ibs_dc_linaddr;
 
-	// 7c0h
+	// 7B8h
 	uint64_t bp_ibstgt_rip;
 
-	// 7c8h
+	// 7C0h
 	uint64_t ic_ibs_extd_ctl;
 
-	// 7d0h
+	// 7C8h 
 	uint8_t reservedbc7[0x430];
 };
