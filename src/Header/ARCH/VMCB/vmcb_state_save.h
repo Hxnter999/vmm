@@ -41,7 +41,7 @@ struct vmcb_state_save {
 	SEGMENT::segment_register tr;
 
 	// 0a0h - 0cah
-	uint8_t reserveda0[0x2a];
+	uint8_t reserveda0[0x2b];
 
 	// 0cbh
 	uint8_t cpl; // if the guest is real-mode then the cpl is forced to 0; if the guest is virtual - mode then the cpl is forced to 3
@@ -53,7 +53,7 @@ struct vmcb_state_save {
 	uint64_t efer;
 
 	// 0d8h - 147h
-	uint8_t reservedd8[0x70];
+	uint8_t reservedd8[0x6F];
 
 	// 148h
 	uint64_t cr4;
@@ -77,7 +77,7 @@ struct vmcb_state_save {
 	uint64_t rip;
 
 	// 180h - 1d7h
-	uint8_t reserved180[0x58];
+	uint8_t reserved180[0x57];
 
 	// 1d8h
 	uint64_t rsp;
@@ -122,7 +122,7 @@ struct vmcb_state_save {
 	uint64_t cr2;
 
 	// 248 - 267h 
-	uint8_t reserved248[0x20];
+	uint8_t reserved248[0x1F];
 
 	// 268h
 	uint64_t g_pat;
@@ -137,25 +137,23 @@ struct vmcb_state_save {
 	uint64_t br_to;
 
 	// 288h
-	uint8_t last_excp_from[10];
+	uint64_t last_excp_from;
+
+	// 290h
+	uint64_t dbgextncfg;
 
 	// 298h
-	uint64_t dbg_extn_cfg;
-
-	//manual says: "299h - 2DFh" which doesnt make sense as dbg_extn_cfg is a QWORD
-	//Therfore I will go with the following to assure reserved299 ends at byte 0x2DF
-	//0x2A0 - 0x2DF
-	uint8_t reserved299[0x3F];
+	uint8_t reserved2a0[72];
 
 	// 2e0h
 	uint64_t spec_ctrl;
 
-	// 2E8h
-	uint8_t reserved2e8[0x387];
+	// 2e8h
+	uint8_t reserved2e8[904];
 
-	// 670h–76Fh 
-	uint64_t lbr_stack_from[16];
-	uint64_t lbr_stack_to[16];
+	// 670h - 770h
+	uint8_t lbr_srack_from[128];
+	uint8_t lbr_srack_to[128];
 
 	// 770h
 	uint64_t lbr_select;
@@ -164,7 +162,7 @@ struct vmcb_state_save {
 	uint64_t ibs_fetch_ctl;
 
 	// 780h
-	uint64_t ibs_fetch_linaddr;
+	uint64_t ibs_fetch_linear_address;
 
 	// 788h
 	uint64_t ibs_op_ctl;
@@ -173,23 +171,17 @@ struct vmcb_state_save {
 	uint64_t ibs_op_rip;
 
 	// 798h
-	uint64_t ibs_op_data1;
+	uint64_t ibs_op_data[3];
 
-	// 7A0h
-	uint64_t ibs_op_data2;
+	// 7b0h
+	uint64_t ibs_dc_linear_address;
 
-	// 7A8h
-	uint64_t ibs_op_data3;
-
-	// 7B0h
-	uint64_t ibs_dc_linaddr;
-
-	// 7B8h
+	// 7b8h
 	uint64_t bp_ibstgt_rip;
 
-	// 7C0h
+	// 7c0h
 	uint64_t ic_ibs_extd_ctl;
 
-	// 7C8h 
-	uint8_t reservedbc7[0x430];
+	// 7c8h
+	uint8_t reserved7c8[0x438];
 };
