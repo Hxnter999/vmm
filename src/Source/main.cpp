@@ -252,7 +252,7 @@ void setupvmcb(vcpu* vcpu) //dis just a test
 
 	//
 	MSR::HSAVE_PA hsave_pa{};
-	hsave_pa.bits = MmGetPhysicalAddress(&vcpu->host_vmcb.save_state).QuadPart;
+	hsave_pa.bits = MmGetPhysicalAddress(&vcpu->host_state_area).QuadPart;
 	hsave_pa.store();
 
 	//__svm_vmsave(MmGetPhysicalAddress(&vcpu->host_vmcb).QuadPart);
