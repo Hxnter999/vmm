@@ -3,7 +3,9 @@
 
 
 namespace MSR {
-	struct HSAVE_PA : BASE_MSR // VM_HSAVE_PA holds page alligned physical address of the host save area
+	// VM_HSAVE_PA holds page alligned physical address of the host save area
+	// (not guaranteed to be used, other parts of the chip could be used too) 
+	struct HSAVE_PA : BASE_MSR 
 	{
 		static constexpr uint64_t MSR_VM_HSAVE_PA = 0xC0010117;
 
