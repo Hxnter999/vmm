@@ -223,7 +223,7 @@ struct vmcb_control {
 	};
 
 	// 048h 
-	PHYSICAL_ADDRESS msrpm_base_pa; //Should always be aligned 
+	uint64_t msrpm_base_pa; //Should always be aligned 
 	//union {
 	//	uint64_t value48;
 	//	struct {

@@ -185,7 +185,6 @@ void setupvmcb(vcpu* vcpu) //dis just a test
 			print("couldnt allocate msrpm\n");
 			return;
 		}
-
 		memset(sharedVcpu.shared_msrpm, 0, sizeof(MSR::msrpm));
 	}
 	//if (sharedVcpu.pt == nullptr)
@@ -200,7 +199,7 @@ void setupvmcb(vcpu* vcpu) //dis just a test
 	//	setup_npt(&sharedVcpu);
 	//}
 
-	vcpu->guest_vmcb.control.msrpm_base_pa = MmGetPhysicalAddress(sharedVcpu.shared_msrpm);
+	vcpu->guest_vmcb.control.msrpm_base_pa = MmGetPhysicalAddress(sharedVcpu.shared_msrpm).QuadPart;
 	
 	
 	//Set up control area
@@ -218,9 +217,11 @@ void setupvmcb(vcpu* vcpu) //dis just a test
 	vcpu->guest_vmcb.save_state.g_pat = __readmsr(MSR::PAT::MSR_PAT); // very sigma (kinda like MTRRs but for page tables)
 
 	dtr idtr{}; __sidt(&idtr);
-	vcpu->guest_vmcb.save_state.idtr = idtr;
+	vcpu->guest_vmcb.save_state.idtr.base = idtr.base;
+	vcpu->guest_vmcb.save_state.idtr.limit = idtr.limit;
 	dtr gdtr{}; _sgdt(&gdtr);
-	vcpu->guest_vmcb.save_state.gdtr = gdtr;
+	vcpu->guest_vmcb.save_state.gdtr.base = gdtr.base;
+	vcpu->guest_vmcb.save_state.gdtr.limit = gdtr.limit;
 
 	//TODO: need to set RSP, RIP, and RFLAGS (This is where the guest will start executing)
 	vcpu->guest_vmcb.save_state.rsp = ctx->Rsp;
@@ -262,9 +263,8 @@ void setupvmcb(vcpu* vcpu) //dis just a test
 		cr::cr3 cr3{ .value = vcpu->guest_vmcb.save_state.cr3 };
 		cr::cr4 cr4{ .value = vcpu->guest_vmcb.save_state.cr4 };
 		MSR::EFER ef{ .bits = vcpu->guest_vmcb.save_state.efer };
-		if (cr0.cd == 0 && cr0.nw == 1) {
+		if (cr0.cd == 0 && cr0.nw == 1) 
 			print("cr0.cd=0 cr0.nw=1\n");
-		}
 		if (cr0.reserved32)
 			print("cr0.reserved32\n");
 		if (cr3.reserved0 || cr3.reserved5 || cr3.reserved52)
@@ -279,9 +279,8 @@ void setupvmcb(vcpu* vcpu) //dis just a test
 			print("lme=1 pg=1 pae=1 pe=0\n");
 		if (ef.lme && cr0.pg && cr4.pae && vcpu->guest_vmcb.save_state.cs.attributes.longmode)  // does the manual refer to the default bit as D? unsure
 			print("lme=1 pg=1 pae=1 cs.l=1 cs.db=%d cs.dpl=%d\n", vcpu->guest_vmcb.save_state.cs.attributes.default_bit, vcpu->guest_vmcb.save_state.cs.attributes.dpl);
-		if (vcpu->guest_vmcb.save_state.s_cet) {
+		if (vcpu->guest_vmcb.save_state.s_cet) 
 			print("check for s_cet: %zX\n", vcpu->guest_vmcb.save_state.s_cet);
-		}
 		if(cr4.cet && cr0.wp == 0)
 			print("cet=1 wp=0\n");
 	}
@@ -291,8 +290,10 @@ void setupvmcb(vcpu* vcpu) //dis just a test
 	__svm_vmrun(MmGetPhysicalAddress(&vcpu->guest_vmcb).QuadPart);
 	
 	print("[1] VMEXIT\n");
-	print("[1] ExitCode: %p\n", vcpu->guest_vmcb.control.exit_code);
-	print("[1] ExitIntInfo: %p\n", vcpu->guest_vmcb.control.exit_int_info.bits);
+	print("[1] ExitCode: %llx\n", vcpu->guest_vmcb.control.exit_code);
+	print("[1] ExitIntInfo: %llx\n", vcpu->guest_vmcb.control.exit_int_info.bits);
+	print("[1] ExitInfo1: %llx\n", vcpu->guest_vmcb.control.exit_info_1.info);
+	print("[1] ExitInfo2: %llx\n", vcpu->guest_vmcb.control.exit_info_2.info);
 	ExFreePoolWithTag(ctx, 'sgma');
 }
 
