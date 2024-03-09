@@ -428,8 +428,8 @@ struct vmcb_control {
 	uint16_t bus_lock_threshhold_counter;
 
 	// 122h - 3dfh 
-	uint8_t reserved122[0x2bd];
+	uint8_t reserved122[0x2BE];
 
 	// 3e0h - 3ffh reserved for host usage
-	uint8_t host_reserved3e0[0x1f];
+	uint8_t host_reserved3e0[0x20];
 };

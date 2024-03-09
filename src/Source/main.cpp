@@ -205,6 +205,7 @@ void setupvmcb(vcpu* vcpu) //dis just a test
 	//Set up control area
 	//TODO: set interupts blah blah
 	vcpu->guest_vmcb.control.vmrun = 1; // VMRUN intercepts muse be enabled 15.5.1
+	vcpu->guest_vmcb.control.vmmcall = 1; // UM call VM
 
 	vcpu->guest_vmcb.control.asid = 1; // Address space identifier "ASID [cannot be] equal to zero" 15.5.1
 
@@ -230,7 +231,7 @@ void setupvmcb(vcpu* vcpu) //dis just a test
 
 	//vcpu->guest_vmcb.save_state.rax = ctx->Rax; // necessary?
 
-	//TODO: Setup all the segment registers
+	//Setup all the segment registers
 	vcpu->guest_vmcb.save_state.cs.limit = __segmentlimit(ctx->SegCs);
 	vcpu->guest_vmcb.save_state.ds.limit = __segmentlimit(ctx->SegDs);
 	vcpu->guest_vmcb.save_state.es.limit = __segmentlimit(ctx->SegEs);
@@ -245,11 +246,11 @@ void setupvmcb(vcpu* vcpu) //dis just a test
 	vcpu->guest_vmcb.save_state.ds.get_attributes(gdtr.base);
 	vcpu->guest_vmcb.save_state.es.get_attributes(gdtr.base);
 	vcpu->guest_vmcb.save_state.ss.get_attributes(gdtr.base);
-	
+
 
 	//__svm_vmsave(MmGetPhysicalAddress(&vcpu->guest_vmcb).QuadPart);
 
-	// WHYT IS THIS SHIT TWEAKIN:
+	//
 	MSR::HSAVE_PA hsave_pa{};
 	hsave_pa.bits = MmGetPhysicalAddress(&vcpu->host_vmcb.save_state).QuadPart;
 	hsave_pa.store();
