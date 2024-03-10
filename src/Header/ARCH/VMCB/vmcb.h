@@ -9,7 +9,8 @@ struct vmcb {
 	static_assert(sizeof(vmcb_control) == 0x400, "vmcb control is not 0x400");
 	// table b-2 (state save area)
 	vmcb_state_save save_state;
-
+	static_assert(sizeof(vmcb_state_save) == 0x298, "vmcb state save is not 0x298");
+	uint8_t reserved[0x1000 - 0x400 - 0x298];
 };
 static_assert(sizeof(vmcb) == 0x1000, "vmcb size is not 0x1000");
 
@@ -24,4 +25,4 @@ struct alignas(0x1000) vcpu {
 	uint8_t host_state_area[0x1000]; //Do not modfiy (depends on chipset), just set phys (page alligned) to VM_HSAVE_PA
 };
 
-static_assert(sizeof(vcpu) == 0x3000, "vcpu size is not 0x4000");
+static_assert(sizeof(vcpu) == 0x3000, "vcpu size is not 0x3000");

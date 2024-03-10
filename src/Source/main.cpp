@@ -13,6 +13,7 @@
 #include "../Header/Util/bitset.h"
 extern "C" {
 	extern void _sgdt(void* gdtr); // here for now
+	extern void testing_vmrun(uint64_t vmcb_pa);
 }
 
 SVM_STATUS inittest() 
@@ -286,17 +287,16 @@ void setupvmcb(vcpu* vcpu) //dis just a test
 		if(cr4.cet && cr0.wp == 0)
 			print("cet=1 wp=0\n");
 	}
-
-
-	print("Switching to guest...\n");
-	__svm_vmrun(MmGetPhysicalAddress(&vcpu->guest_vmcb).QuadPart);
+	__debugbreak();
+	uint64_t test = MmGetPhysicalAddress(&vcpu->guest_vmcb).QuadPart;
+	testing_vmrun(test);
 	
 	print("[1] VMEXIT\n");
 	print("[1] ExitCode: %llx\n", vcpu->guest_vmcb.control.exit_code);
 	print("[1] ExitIntInfo: %llx\n", vcpu->guest_vmcb.control.exit_int_info.bits);
 	print("[1] ExitInfo1: %llx\n", vcpu->guest_vmcb.control.exit_info_1.info);
 	print("[1] ExitInfo2: %llx\n", vcpu->guest_vmcb.control.exit_info_2.info);
-	ExFreePoolWithTag(ctx, 'sgma');
+	ExFreePoolWithTag(ctx, 'sgma'); 
 }
 
 void Unload(PDRIVER_OBJECT pDriverObject);

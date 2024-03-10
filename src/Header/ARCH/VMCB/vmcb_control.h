@@ -213,23 +213,9 @@ struct vmcb_control {
 
 	// 040h 
 	uint64_t iopm_base_pa; //Should always be aligned
-	//union {
-	//	uint64_t value40;
-	//	struct {
-	//		uint64_t ignored : 12; // ignored
-	//		uint64_t iopm_base_pa : 52; // iopm_base_pa: i/o permission bit map base physical address
-	//	};
-	//};
 
 	// 048h 
 	uint64_t msrpm_base_pa; //Should always be aligned 
-	//union {
-	//	uint64_t value48;
-	//	struct {
-	//		uint64_t ignored : 12; // ignored
-	//		uint64_t msrpm_base_pa : 52; // msrpm_base_pa: msr permission bit map base physical address (aligned to 4k boundary)
-	//	};
-	//};
 
 	// 050h 
 	uint64_t tsc_offset;
@@ -365,7 +351,9 @@ struct vmcb_control {
 	uint64_t nrip; // nrip—next sequential instruction pointer
 
 	// 0d0h
-	uint64_t guest_intruction_bytes[2]; // 0:7 number of bytes fetched. 8:127 intruction bytes
+	// 0:7 number of bytes fetched. 8:127 intruction bytes
+	uint8_t number_of_bytes_fetched;
+	uint8_t guest_instructions[15];
 
 	// 0e0h
 	union {
@@ -376,8 +364,8 @@ struct vmcb_control {
 		};
 	};
 
-	// 0e8h - 0efh reserved
-	uint8_t reserved0e8[7];
+	// 0e8h 
+	uint64_t reserved0e8;
 
 	// 0f0h
 	union {
@@ -400,8 +388,8 @@ struct vmcb_control {
 		};
 	};
 
-	// 100h - 107h reserved
-	uint8_t reserved100[7];
+	// 100h
+	uint64_t reserved100;
 
 	// 108h
 	union {
@@ -417,17 +405,11 @@ struct vmcb_control {
 	uint64_t vmgexit_rax;
 
 	// 118h
-	uint8_t vmgexit_cpl;
-
-	// 119h
-	uint8_t reserved119[7];
+	uint64_t vmgexit_cpl;
 
 	// 120h
-	uint16_t bus_lock_threshhold_counter;
+	uint16_t bus_lock_threshold_counter;
 
-	// 122h - 3dfh 
-	uint8_t reserved122[0x2BE];
-
-	// 3e0h - 3ffh reserved for host usage
-	uint8_t host_reserved3e0[0x20];
+	// 122h - 400h reserved
+	uint8_t reserved122[0x2de];
 };
