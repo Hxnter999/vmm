@@ -23,19 +23,13 @@ struct vmcb_state_save {
 	SEGMENT::segment_register gs;
 
 	// 060h
-	uint8_t reserved60[6]; // reserved placeholders for selector and attribute of gdtr
-
-	// 066h
-	dtr gdtr; //  only lower 16 bits of limit are implemented
+	SEGMENT::segment_register gdtr; //  only lower 16 bits of limit are implemented
 
 	// 070h
 	SEGMENT::segment_register ldtr;
 
 	// 080h
-	uint8_t reserved80[6]; // reserved placeholders for selector and attribute of idtr
-
-	// 086h
-	dtr idtr; // only lower 16 bits of limit are implemented
+	SEGMENT::segment_register idtr; // only lower 16 bits of limit are implemented
 
 	// 090h
 	SEGMENT::segment_register tr;
