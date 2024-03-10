@@ -202,10 +202,8 @@ struct vmcb_control {
 		};
 	};
 
-	// 018h - 030h  
-	uint64_t reserved18[4];
-	// 038h - 03bh 
-	uint8_t reserved38[3];
+	//18h-3bh
+	uint8_t reserved18[0x24];
 
 	// 03ch 
 	uint16_t pause_filter_threshold;

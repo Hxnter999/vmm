@@ -157,17 +157,18 @@ namespace cr {
 	};
 }
 
+bool isvirt = false;
 void setupvmcb(vcpu* vcpu) //dis just a test
 {
 	CONTEXT* ctx = reinterpret_cast<CONTEXT*>(ExAllocatePoolWithTag(NonPagedPool, sizeof(CONTEXT), 'sgma'));
 	memset(ctx, 0, sizeof(CONTEXT));
 	RtlCaptureContext(ctx);
 
-	if (vcpu->is_virtualized) {
+	if (isvirt) {
 		print("already virtualized\n");
 		return;
 	}
-	vcpu->is_virtualized = true;
+	isvirt = true;
 
 	print("Starting to virtualize...\n");
 	MSR::EFER efer{};
@@ -207,7 +208,7 @@ void setupvmcb(vcpu* vcpu) //dis just a test
 	vcpu->guest_vmcb.control.vmrun = 1; // VMRUN intercepts muse be enabled 15.5.1
 	vcpu->guest_vmcb.control.vmmcall = 1; // UM call VM
 
-	vcpu->guest_vmcb.control.asid = 1; // Address space identifier "ASID [cannot be] equal to zero" 15.5.1
+	vcpu->guest_vmcb.control.asid = 1; // Address space identifier "ASID [cannot be] equal to zero" 15.5.1 ASID 0 is for the host
 
 	// Set up the guest state
 	vcpu->guest_vmcb.save_state.cr0 = __readcr0();

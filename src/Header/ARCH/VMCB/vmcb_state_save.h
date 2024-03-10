@@ -53,7 +53,7 @@ struct vmcb_state_save {
 	uint64_t efer;
 
 	// 0d8h - 147h
-	uint8_t reservedd8[0x6F];
+	uint8_t reservedd8[0x70];
 
 	// 148h
 	uint64_t cr4;
@@ -77,7 +77,7 @@ struct vmcb_state_save {
 	uint64_t rip;
 
 	// 180h - 1d7h
-	uint8_t reserved180[0x57];
+	uint8_t reserved180[0x58];
 
 	// 1d8h
 	uint64_t rsp;
@@ -122,7 +122,7 @@ struct vmcb_state_save {
 	uint64_t cr2;
 
 	// 248 - 267h 
-	uint8_t reserved248[0x1F];
+	uint8_t reserved248[0x20];
 
 	// 268h
 	uint64_t g_pat;
