@@ -209,7 +209,7 @@ void setupvmcb(vcpu* vcpu) //dis just a test
 	vcpu->guest_vmcb.control.vmrun = 1; // VMRUN intercepts muse be enabled 15.5.1
 	vcpu->guest_vmcb.control.vmmcall = 1; // UM call VM
 
-	vcpu->guest_vmcb.control.asid = 1; // Address space identifier "ASID [cannot be] equal to zero" 15.5.1 ASID 0 is for the host
+	vcpu->guest_vmcb.control.guest_asid = 1; // Address space identifier "ASID [cannot be] equal to zero" 15.5.1 ASID 0 is for the host
 
 	// Set up the guest state
 	vcpu->guest_vmcb.save_state.cr0 = __readcr0();
@@ -259,37 +259,10 @@ void setupvmcb(vcpu* vcpu) //dis just a test
 
 	//__svm_vmsave(MmGetPhysicalAddress(&vcpu->host_vmcb).QuadPart);
 
-	// just manual consistency check to make sure everything is fine
-	{
-		cr::cr0 cr0{ .value = vcpu->guest_vmcb.save_state.cr0 };
-		cr::cr2 cr2{ .value = vcpu->guest_vmcb.save_state.cr2 };
-		cr::cr3 cr3{ .value = vcpu->guest_vmcb.save_state.cr3 };
-		cr::cr4 cr4{ .value = vcpu->guest_vmcb.save_state.cr4 };
-		MSR::EFER ef{ .bits = vcpu->guest_vmcb.save_state.efer };
-		if (cr0.cd == 0 && cr0.nw == 1) 
-			print("cr0.cd=0 cr0.nw=1\n");
-		if (cr0.reserved32)
-			print("cr0.reserved32\n");
-		if (cr3.reserved0 || cr3.reserved5 || cr3.reserved52)
-			print("cr3.reserved\n");
-		if (cr4.reserved13 || cr4.reserved19 || cr4.reserved24)
-			print("cr4.reserved\n");
-		if (ef.reserved1 || ef.reserved16 || ef.reserved19 || ef.reserved22 || ef.reserved9)
-			print("efer.reserved\n");
-		if(ef.lme && cr0.pg && cr4.pae == 0)
-			print("lme=1 pg=1 pae=0\n");
-		if (ef.lme && cr0.pg && cr4.pae && cr0.pe == 0)
-			print("lme=1 pg=1 pae=1 pe=0\n");
-		if (ef.lme && cr0.pg && cr4.pae && vcpu->guest_vmcb.save_state.cs.attributes.longmode)  // does the manual refer to the default bit as D? unsure
-			print("lme=1 pg=1 pae=1 cs.l=1 cs.db=%d cs.dpl=%d\n", vcpu->guest_vmcb.save_state.cs.attributes.default_bit, vcpu->guest_vmcb.save_state.cs.attributes.dpl);
-		if (vcpu->guest_vmcb.save_state.s_cet) 
-			print("check for s_cet: %zX\n", vcpu->guest_vmcb.save_state.s_cet);
-		if(cr4.cet && cr0.wp == 0)
-			print("cet=1 wp=0\n");
-	}
 	__debugbreak();
 	uint64_t test = MmGetPhysicalAddress(&vcpu->guest_vmcb).QuadPart;
-	testing_vmrun(test);
+	//testing_vmrun(test);
+	__svm_vmrun(test);
 	
 	print("[1] VMEXIT\n");
 	print("[1] ExitCode: %llx\n", vcpu->guest_vmcb.control.exit_code);

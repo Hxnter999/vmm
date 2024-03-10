@@ -1,6 +1,6 @@
 #pragma once
 #include "../../datatypes.h"
-
+#pragma pack(push, 1)
 namespace SEGMENT {
 	struct segment_selector {
 		union {
@@ -77,3 +77,4 @@ namespace SEGMENT {
 		}
 	};
 }
+#pragma pack(pop)

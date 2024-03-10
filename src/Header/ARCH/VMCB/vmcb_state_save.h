@@ -52,7 +52,7 @@ struct vmcb_state_save {
 	// 0d0h
 	uint64_t efer;
 
-	// 0d8h - 147h
+	// 0d8h
 	uint8_t reservedd8[0x70];
 
 	// 148h
@@ -76,7 +76,7 @@ struct vmcb_state_save {
 	// 178h
 	uint64_t rip;
 
-	// 180h - 1d7h
+	// 180h
 	uint8_t reserved180[0x58];
 
 	// 1d8h
@@ -140,7 +140,48 @@ struct vmcb_state_save {
 	uint64_t last_excp_from;
 
 	// 290h
-	uint64_t last_excp_to;
+	uint64_t dbgextncfg;
 
-	// from here on its lbr virtualization bs and reserved fields
+	// 298h
+	uint8_t reserved2a0[72];
+
+	// 2e0h
+	uint64_t spec_ctrl;
+
+	// 2e8h
+	uint8_t reserved2e8[904];
+
+	// 670h - 770h
+	uint8_t lbr_srack_from[128];
+	uint8_t lbr_srack_to[128];
+
+	// 770h
+	uint64_t lbr_select;
+
+	// 778h
+	uint64_t ibs_fetch_ctl;
+
+	// 780h
+	uint64_t ibs_fetch_linear_address;
+
+	// 788h
+	uint64_t ibs_op_ctl;
+
+	// 790h
+	uint64_t ibs_op_rip;
+
+	// 798h
+	uint64_t ibs_op_data[3];
+
+	// 7b0h
+	uint64_t ibs_dc_linear_address;
+
+	// 7b8h
+	uint64_t bp_ibstgt_rip;
+
+	// 7c0h
+	uint64_t ic_ibs_extd_ctl;
+
+	// 7c8h
+	uint8_t reserved7c8[0x438];
 };
