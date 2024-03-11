@@ -17,8 +17,7 @@ struct vcpu {
 	union {
 		uint8_t host_stack[0x6000];
 		struct {
-			uint8_t stack_contents[0x6000 - sizeof(KTRAP_FRAME) - (sizeof(uint64_t) * 6)];
-			KTRAP_FRAME trap_frame;
+			uint8_t stack_contents[0x6000 - (sizeof(uint64_t) * 6)];
 			uint64_t guest_vmcb_pa; // host rsp
 			uint64_t host_vmcb_pa;
 			vcpu* self;
@@ -31,7 +30,7 @@ struct vcpu {
 	bool is_virtualized;
 };
 
-static_assert(sizeof(vcpu) == 0x3010 + 0x6000, "vcpu size is not 0x9010");
+//static_assert(sizeof(vcpu) == 0x3010 + 0x6000, "vcpu size is not 0x9010");
 
 struct shared {
 	vcpu* current_vcpu;

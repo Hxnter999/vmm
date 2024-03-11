@@ -146,7 +146,7 @@ void setupvmcb(vcpu* vcpu) //dis just a test
 	hsave_pa.bits = MmGetPhysicalAddress(&vcpu->host_state_area).QuadPart;
 	hsave_pa.store();
 
-	__svm_vmsave(MmGetPhysicalAddress(&vcpu->host_vmcb).QuadPart);
+	//__svm_vmsave(MmGetPhysicalAddress(&vcpu->host_vmcb).QuadPart);
 }
 
 void Unload(PDRIVER_OBJECT pDriverObject);
@@ -191,8 +191,6 @@ extern "C" NTSTATUS DriverEntry(PDRIVER_OBJECT pDriverObject, PUNICODE_STRING pR
 		// this wont be executed eitherway
 		//KeRevertToUserAffinityThreadEx(original_affinity);
 	}
-
-	print("virtualized hopefully\n");
 
 	return STATUS_SUCCESS;
 }
