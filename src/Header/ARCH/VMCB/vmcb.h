@@ -13,9 +13,32 @@ struct vmcb {
 };
 static_assert(sizeof(vmcb) == 0x1000, "vmcb size is not 0x1000");
 
+struct stack_frame //stuff that isnt saved by vmcb
+{
+	//r registers
+	uint64_t rax;
+	uint64_t rcx;
+	uint64_t rdx;
+	uint64_t r8;
+	uint64_t r9;
+	uint64_t r10;
+	uint64_t r11;
+	uint64_t r12;
+	uint64_t r13;
+	uint64_t r14;
+	uint64_t r15;
+
+	uint128_t xmm0;
+	uint128_t xmm1;
+	uint128_t xmm2;
+	uint128_t xmm3;
+	uint128_t xmm4;
+	uint128_t xmm5;
+};
+
 struct vcpu {
 	union {
-		uint8_t host_stack[0x6000];
+		uint8_t host_stack[0x6000]; //0x6000 default size of KM stack
 		struct {
 			uint8_t stack_contents[0x6000 - (sizeof(uint64_t) * 6)];
 			uint64_t guest_vmcb_pa; // host rsp
