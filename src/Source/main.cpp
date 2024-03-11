@@ -14,6 +14,7 @@
 extern "C" {
 	extern void _sgdt(void* gdtr); // here for now
 	extern void testing_vmrun(uint64_t vmcb_pa);
+	extern void testcall();
 }
 
 SVM_STATUS inittest() 
@@ -158,18 +159,21 @@ namespace cr {
 	};
 }
 
-bool isvirt = false;
 void setupvmcb(vcpu* vcpu) //dis just a test
 {
+	global::current_vcpu = vcpu;
+
 	CONTEXT* ctx = reinterpret_cast<CONTEXT*>(ExAllocatePoolWithTag(NonPagedPool, sizeof(CONTEXT), 'sgma'));
 	memset(ctx, 0, sizeof(CONTEXT));
 	RtlCaptureContext(ctx);
 
-	if (isvirt) {
+	__debugbreak();
+	if (global::current_vcpu->is_virtualized) {
 		print("already virtualized\n");
+		testcall();
 		return;
 	}
-	isvirt = true;
+	vcpu->is_virtualized = true;
 
 	print("Starting to virtualize...\n");
 	MSR::EFER efer{};
@@ -177,18 +181,7 @@ void setupvmcb(vcpu* vcpu) //dis just a test
 	efer.svme = 1;
 	efer.store();
 
-	static sharedvcpu sharedVcpu{};
-	if (sharedVcpu.shared_msrpm == nullptr)
-	{
-		PHYSICAL_ADDRESS high{ .QuadPart = -1 };
-		sharedVcpu.shared_msrpm = reinterpret_cast<MSR::msrpm*>(MmAllocateContiguousMemory(sizeof(MSR::msrpm), high));
-		if (sharedVcpu.shared_msrpm == nullptr)
-		{
-			print("couldnt allocate msrpm\n");
-			return;
-		}
-		memset(sharedVcpu.shared_msrpm, 0, sizeof(MSR::msrpm));
-	}
+	
 	//if (sharedVcpu.pt == nullptr)
 	//{
 	//	sharedVcpu.pt = reinterpret_cast<PT*>(ExAllocatePoolWithTag(NonPagedPool, sizeof(PT), 'sgma'));
@@ -201,13 +194,15 @@ void setupvmcb(vcpu* vcpu) //dis just a test
 	//	setup_npt(&sharedVcpu);
 	//}
 	
-	vcpu->guest_vmcb.control.msrpm_base_pa = MmGetPhysicalAddress(sharedVcpu.shared_msrpm).QuadPart;
+	vcpu->guest_vmcb.control.msrpm_base_pa = MmGetPhysicalAddress(global::shared_msrpm).QuadPart;
 
 
 	//Set up control area
 	//TODO: set interupts blah blah
 	vcpu->guest_vmcb.control.vmrun = 1; // VMRUN intercepts muse be enabled 15.5.1
 	vcpu->guest_vmcb.control.vmmcall = 1; // UM call VM
+	vcpu->guest_vmcb.control.vmmload = 1; // VMLOAD intercepts must be enabled 15.5.1
+	vcpu->guest_vmcb.control.vmmsave = 1; // VMSAVE intercepts must be enabled 15.5.1
 
 	vcpu->guest_vmcb.control.guest_asid = 1; // Address space identifier "ASID [cannot be] equal to zero" 15.5.1 ASID 0 is for the host
 
@@ -232,7 +227,7 @@ void setupvmcb(vcpu* vcpu) //dis just a test
 	vcpu->guest_vmcb.save_state.rflags = ctx->EFlags;
 
 	//vcpu->guest_vmcb.save_state.rax = ctx->Rax; // necessary?
-
+	
 	//Setup all the segment registers
 	vcpu->guest_vmcb.save_state.cs.limit = __segmentlimit(ctx->SegCs);
 	vcpu->guest_vmcb.save_state.ds.limit = __segmentlimit(ctx->SegDs);
@@ -258,7 +253,7 @@ void setupvmcb(vcpu* vcpu) //dis just a test
 	hsave_pa.store();
 
 	//__svm_vmsave(MmGetPhysicalAddress(&vcpu->host_vmcb).QuadPart);
-
+	print("return: %p\n", _ReturnAddress());
 	__debugbreak();
 	uint64_t test = MmGetPhysicalAddress(&vcpu->guest_vmcb).QuadPart;
 	//testing_vmrun(test);
@@ -288,15 +283,25 @@ extern "C" NTSTATUS DriverEntry(PDRIVER_OBJECT pDriverObject, PUNICODE_STRING pR
 
 	print("SVM supported\n");
 
-	auto vcpu_count = KeQueryActiveProcessorCount(nullptr);
-	auto vcpus = reinterpret_cast<vcpu*>(ExAllocatePoolWithTag(NonPagedPool, vcpu_count * sizeof(vcpu), 'sgma')); //FREE THIS LATER
-	memset(vcpus, 0, vcpu_count * sizeof(vcpu));
+	global::vcpu_count = KeQueryActiveProcessorCount(nullptr);
+	global::vcpus = reinterpret_cast<vcpu*>(ExAllocatePoolWithTag(NonPagedPool, global::vcpu_count * sizeof(vcpu), 'sgma')); //FREE THIS LATER
+	memset(global::vcpus, 0, global::vcpu_count * sizeof(vcpu));
 
-	for (uint32_t i = 0; i < vcpu_count; i++) 
+	PHYSICAL_ADDRESS high{ .QuadPart = -1 };
+	global::shared_msrpm = reinterpret_cast<MSR::msrpm*>(MmAllocateContiguousMemory(sizeof(MSR::msrpm), high));
+	if (global::shared_msrpm == nullptr)
+	{
+		print("couldnt allocate msrpm\n");
+		return STATUS_INSUFFICIENT_RESOURCES;
+	}
+	memset(global::shared_msrpm, 0, sizeof(MSR::msrpm));
+	
+
+	for (uint32_t i = 0; i < global::vcpu_count; i++)
 	{
 		auto original_affinity = KeSetSystemAffinityThreadEx(1ll << i);
 		print("attempting to set up vcpu %d\n", KeGetCurrentProcessorIndex());
-		setupvmcb(&vcpus[i]);
+		setupvmcb(&global::vcpus[i]);
 		print("vcpu %d set up\n", KeGetCurrentProcessorIndex());
 		KeRevertToUserAffinityThreadEx(original_affinity);
 	}

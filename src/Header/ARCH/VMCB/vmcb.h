@@ -13,15 +13,18 @@ struct vmcb {
 };
 static_assert(sizeof(vmcb) == 0x1000, "vmcb size is not 0x1000");
 
-struct sharedvcpu 
-{
-	MSR::msrpm* shared_msrpm{};
-};
-
-struct alignas(0x1000) vcpu {
+struct vcpu {
 	vmcb host_vmcb;
 	vmcb guest_vmcb;
 	uint8_t host_state_area[0x1000]; //Do not modfiy (depends on chipset), just set phys (page alligned) to VM_HSAVE_PA
+	bool is_virtualized;
 };
 
-static_assert(sizeof(vcpu) == 0x3000, "vcpu size is not 0x3000");
+static_assert(sizeof(vcpu) == 0x3008, "vcpu size is not 0x3008");
+
+namespace global {
+	vcpu* current_vcpu;
+	vcpu* vcpus;
+	uint32_t vcpu_count;
+	MSR::msrpm* shared_msrpm;
+}
