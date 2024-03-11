@@ -4,7 +4,7 @@
 #include "../VMEXIT/EXITINFO/exitinfo1.h"
 #include "../VMEXIT/EXITINFO/exitinfo2.h"
 #include "../MSRs/msrs.h"
-#include "../VMEXIT/svm_intercept_code.h"
+#include "../VMEXIT/svm_exit_code.h"
 
 struct vmcb_control {
 	union {
@@ -267,7 +267,7 @@ struct vmcb_control {
 	};
 
 	// 070h
-	svm_intercept_code exit_code;
+	svm_exit_code exit_code;
 
 	// 078h
 	EXITINFO::exitinfo1 exit_info_1;

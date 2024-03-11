@@ -159,7 +159,6 @@
     </MASM>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\Header\ARCH\dtr.h" />
     <ClInclude Include="src\Header\ARCH\VMEXIT\EXITINFO\exitinfo2.h" />
     <ClInclude Include="src\Header\Util\bitset.h" />
     <ClInclude Include="src\Header\commons.h" />
@@ -176,7 +175,7 @@
     <ClInclude Include="src\Header\ARCH\MSRs\msrs.h" />
     <ClInclude Include="src\Header\ARCH\MSRs\pat.h" />
     <ClInclude Include="src\Header\ARCH\SEGMENT\segment.h" />
-    <ClInclude Include="src\Header\ARCH\VMEXIT\svm_intercept_code.h" />
+    <ClInclude Include="src\Header\ARCH\VMEXIT\svm_exit_code.h" />
     <ClInclude Include="src\Header\SVM_STATUS.h" />
     <ClInclude Include="src\Header\ARCH\VMCB\vmcb.h" />
     <ClInclude Include="src\Header\ARCH\VMCB\vmcb_control.h" />

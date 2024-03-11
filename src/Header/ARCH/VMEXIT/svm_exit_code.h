@@ -1,7 +1,7 @@
 #pragma once
 #include "../../datatypes.h"
 
-enum svm_intercept_code : uint64_t {
+enum svm_exit_code : uint64_t {
     VMEXIT_CR0_READ = 0x0, // Read of CR 0 through 15, respectively.
     VMEXIT_CR1_READ = 0x1,
     VMEXIT_CR2_READ = 0x2,

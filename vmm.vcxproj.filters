@@ -105,7 +105,7 @@
     <ClInclude Include="src\Header\ARCH\VMEXIT\exit_int_info.h">
       <Filter>Header\ARCH\VMEXIT</Filter>
     </ClInclude>
-    <ClInclude Include="src\Header\ARCH\VMEXIT\svm_intercept_code.h">
+    <ClInclude Include="src\Header\ARCH\VMEXIT\svm_exit_code.h">
       <Filter>Header\ARCH\VMEXIT</Filter>
     </ClInclude>
     <ClInclude Include="src\Header\ARCH\VMEXIT\EXITINFO\exitinfo1.h">
@@ -114,7 +114,6 @@
     <ClInclude Include="src\Header\ARCH\CPUID\Standard Features\fn_vendor.h">
       <Filter>Header\ARCH\CPUID\Extended Features</Filter>
     </ClInclude>
-    <ClInclude Include="src\Header\ARCH\dtr.h" />
     <ClInclude Include="src\Header\ARCH\VMEXIT\EXITINFO\exitinfo2.h" />
   </ItemGroup>
   <ItemGroup>

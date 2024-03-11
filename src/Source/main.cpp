@@ -9,11 +9,9 @@
 #include "../Header/ARCH/VMCB/vmcb.h"
 #include "../Header/ARCH/MSRs/pat.h"
 #include "../Header/ARCH/MSRs/hsave_pa.h"
-#include "../Header/ARCH/dtr.h"
 #include "../Header/Util/bitset.h"
 extern "C" {
 	extern void _sgdt(void* gdtr); // here for now
-	extern void testing_vmrun(uint64_t vmcb_pa);
 	extern void testcall();
 }
 
@@ -167,32 +165,19 @@ void setupvmcb(vcpu* vcpu) //dis just a test
 	memset(ctx, 0, sizeof(CONTEXT));
 	RtlCaptureContext(ctx);
 
-	__debugbreak();
 	if (global::current_vcpu->is_virtualized) {
+		__debugbreak();
 		print("already virtualized\n");
 		testcall();
 		return;
 	}
-	vcpu->is_virtualized = true;
+	global::current_vcpu->is_virtualized = true;
 
 	print("Starting to virtualize...\n");
 	MSR::EFER efer{};
 	efer.load();
 	efer.svme = 1;
 	efer.store();
-
-	
-	//if (sharedVcpu.pt == nullptr)
-	//{
-	//	sharedVcpu.pt = reinterpret_cast<PT*>(ExAllocatePoolWithTag(NonPagedPool, sizeof(PT), 'sgma'));
-	//	if (sharedVcpu.pt == nullptr)
-	//	{
-	//		print("couldnt allocate page table\n");
-	//		return;
-	//	}
-	//	memset(sharedVcpu.pt, 0, sizeof(PT));
-	//	setup_npt(&sharedVcpu);
-	//}
 	
 	vcpu->guest_vmcb.control.msrpm_base_pa = MmGetPhysicalAddress(global::shared_msrpm).QuadPart;
 
@@ -214,10 +199,10 @@ void setupvmcb(vcpu* vcpu) //dis just a test
 	vcpu->guest_vmcb.save_state.efer = __readmsr(MSR::EFER::MSR_EFER);
 	vcpu->guest_vmcb.save_state.g_pat = __readmsr(MSR::PAT::MSR_PAT); // very sigma (kinda like MTRRs but for page tables)
 
-	dtr idtr{}; __sidt(&idtr);
+	SEGMENT::descriptor_table_register idtr{}, gdtr{}; __sidt(&idtr); _sgdt(&gdtr);
 	vcpu->guest_vmcb.save_state.idtr.base = idtr.base;
 	vcpu->guest_vmcb.save_state.idtr.limit = idtr.limit;
-	dtr gdtr{}; _sgdt(&gdtr);
+	
 	vcpu->guest_vmcb.save_state.gdtr.base = gdtr.base;
 	vcpu->guest_vmcb.save_state.gdtr.limit = gdtr.limit;
 
@@ -226,7 +211,7 @@ void setupvmcb(vcpu* vcpu) //dis just a test
 	vcpu->guest_vmcb.save_state.rip = ctx->Rip;
 	vcpu->guest_vmcb.save_state.rflags = ctx->EFlags;
 
-	//vcpu->guest_vmcb.save_state.rax = ctx->Rax; // necessary?
+	//vcpu->guest_vmcb.save_state.rax = ctx->Rax;
 	
 	//Setup all the segment registers
 	vcpu->guest_vmcb.save_state.cs.limit = __segmentlimit(ctx->SegCs);
@@ -247,24 +232,22 @@ void setupvmcb(vcpu* vcpu) //dis just a test
 
 	//__svm_vmsave(MmGetPhysicalAddress(&vcpu->guest_vmcb).QuadPart);
 
-	//
 	MSR::HSAVE_PA hsave_pa{};
 	hsave_pa.bits = MmGetPhysicalAddress(&vcpu->host_state_area).QuadPart;
 	hsave_pa.store();
 
 	//__svm_vmsave(MmGetPhysicalAddress(&vcpu->host_vmcb).QuadPart);
-	print("return: %p\n", _ReturnAddress());
+	
 	__debugbreak();
 	uint64_t test = MmGetPhysicalAddress(&vcpu->guest_vmcb).QuadPart;
-	//testing_vmrun(test);
 	__svm_vmrun(test);
-	
+
 	print("[1] VMEXIT\n");
-	print("[1] ExitCode: %llx\n", vcpu->guest_vmcb.control.exit_code);
-	print("[1] ExitIntInfo: %llx\n", vcpu->guest_vmcb.control.exit_int_info.bits);
-	print("[1] ExitInfo1: %llx\n", vcpu->guest_vmcb.control.exit_info_1.info);
-	print("[1] ExitInfo2: %llx\n", vcpu->guest_vmcb.control.exit_info_2.info);
-	ExFreePoolWithTag(ctx, 'sgma'); 
+	print("[1] ExitCode: %llx\n", global::current_vcpu->guest_vmcb.control.exit_code);
+	print("[1] ExitIntInfo: %llx\n", global::current_vcpu->guest_vmcb.control.exit_int_info.bits);
+	print("[1] ExitInfo1: %llx\n", global::current_vcpu->guest_vmcb.control.exit_info_1.info);
+	print("[1] ExitInfo2: %llx\n", global::current_vcpu->guest_vmcb.control.exit_info_2.info);
+
 }
 
 void Unload(PDRIVER_OBJECT pDriverObject);

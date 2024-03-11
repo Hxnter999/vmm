@@ -53,6 +53,11 @@ namespace SEGMENT {
 		};
 	};
 
+	struct descriptor_table_register {
+		uint16_t limit;
+		uint64_t base;
+	};
+
 	struct segment_register
 	{
 		segment_selector selector;

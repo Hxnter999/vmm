@@ -1,7 +1,6 @@
 #pragma once
 #include "../../datatypes.h"
 #include "../SEGMENT/segment.h"
-#include "../dtr.h"
 
 struct vmcb_state_save {
 	// 000h
