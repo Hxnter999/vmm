@@ -1,6 +1,7 @@
 #pragma once
 #include "../../datatypes.h"
 #include "../SEGMENT/segment.h"
+#include "../CR/control_registers.h"
 
 struct vmcb_state_save {
 	// 000h
@@ -49,13 +50,13 @@ struct vmcb_state_save {
 	uint8_t reservedd8[0x70];
 
 	// 148h
-	uint64_t cr4;
+	CR::cr4 cr4;
 
 	// 150h
-	uint64_t cr3;
+	CR::cr3 cr3;
 
 	// 158h
-	uint64_t cr0;
+	CR::cr0 cr0;
 
 	// 160h
 	uint64_t dr7;
@@ -112,7 +113,7 @@ struct vmcb_state_save {
 	uint64_t sysenter_eip;
 
 	// 240h
-	uint64_t cr2;
+	CR::cr2 cr2;
 
 	// 248h 
 	uint8_t reserved248[0x20];

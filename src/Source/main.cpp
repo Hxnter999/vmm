@@ -100,10 +100,10 @@ void setupvmcb(vcpu* vcpu) //dis just a test
 	vcpu->guest_vmcb.control.guest_asid = 1; // Address space identifier "ASID [cannot be] equal to zero" 15.5.1 ASID 0 is for the host
 
 	// Set up the guest state
-	vcpu->guest_vmcb.save_state.cr0 = __readcr0();
-	vcpu->guest_vmcb.save_state.cr2 = __readcr2();
-	vcpu->guest_vmcb.save_state.cr3 = __readcr3();
-	vcpu->guest_vmcb.save_state.cr4 = __readcr4();
+	vcpu->guest_vmcb.save_state.cr0.value = __readcr0();
+	vcpu->guest_vmcb.save_state.cr2.value = __readcr2();
+	vcpu->guest_vmcb.save_state.cr3.value = __readcr3();
+	vcpu->guest_vmcb.save_state.cr4.value = __readcr4();
 	vcpu->guest_vmcb.save_state.efer = __readmsr(MSR::EFER::MSR_EFER);
 	vcpu->guest_vmcb.save_state.g_pat = __readmsr(MSR::PAT::MSR_PAT); // very sigma (kinda like MTRRs but for page tables)
 
