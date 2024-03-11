@@ -14,17 +14,28 @@ struct vmcb {
 static_assert(sizeof(vmcb) == 0x1000, "vmcb size is not 0x1000");
 
 struct vcpu {
+	union {
+		uint8_t host_stack[0x6000];
+		struct {
+			uint8_t stack_contents[0x6000 - sizeof(KTRAP_FRAME) - (sizeof(uint64_t) * 6)];
+			KTRAP_FRAME trap_frame;
+			uint64_t guest_vmcb_pa; // host rsp
+			uint64_t host_vmcb_pa;
+			vcpu* self;
+			struct shared* shared_data;
+		};
+	};
 	vmcb host_vmcb;
 	vmcb guest_vmcb;
 	uint8_t host_state_area[0x1000]; //Do not modfiy (depends on chipset), just set phys (page alligned) to VM_HSAVE_PA
 	bool is_virtualized;
 };
 
-static_assert(sizeof(vcpu) == 0x3008, "vcpu size is not 0x3008");
+static_assert(sizeof(vcpu) == 0x3010 + 0x6000, "vcpu size is not 0x9010");
 
-namespace global {
+struct shared {
 	vcpu* current_vcpu;
 	vcpu* vcpus;
 	uint32_t vcpu_count;
 	MSR::msrpm* shared_msrpm;
-}
+};

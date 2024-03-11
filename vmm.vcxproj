@@ -159,6 +159,7 @@
     </MASM>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Header\ARCH\CR\cr.h" />
     <ClInclude Include="src\Header\ARCH\VMEXIT\EXITINFO\exitinfo2.h" />
     <ClInclude Include="src\Header\Util\bitset.h" />
     <ClInclude Include="src\Header\commons.h" />
