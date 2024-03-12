@@ -66,9 +66,32 @@ vmrun_loop:
 
 	call vmexit_handler
 
-	test rax, rax
-
 	;reset registers
+	add rsp, 0D0h
+
+	mov rcx, [rsp]
+	mov rdx, [rsp-8]
+	mov rbx, [rsp-10h]
+	mov rsi, [rsp-18h]
+	mov rdi, [rsp-20h]
+	mov r8, [rsp-28h]
+	mov r9, [rsp-30h]
+	mov r10, [rsp-38h]
+	mov r11, [rsp-40h]
+	mov r12, [rsp-48h]
+	mov r13, [rsp-50h]
+	mov r14, [rsp-58h]
+	mov r15, [rsp-60h]
+
+	movaps xmm0, xmmword ptr [rsp-70h]
+	movaps xmm1, xmmword ptr [rsp-80h]
+	movaps xmm2, xmmword ptr [rsp-90h]
+	movaps xmm3, xmmword ptr [rsp-0A0h]
+	movaps xmm4, xmmword ptr [rsp-0B0h]
+	movaps xmm5, xmmword ptr [rsp-0C0h]
+
+	; check return address
+	test rax, rax
 
 	jnz vmrun_loop ; if returns 1 (non-zero) loop
 
