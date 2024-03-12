@@ -41,12 +41,9 @@ struct vcpu {
 	union {
 		uint8_t host_stack[0x6000]; //0x6000 default size of KM stack
 		struct {
-			uint8_t stack_contents[0x6000 - (sizeof(uint64_t) * 4) - sizeof(stack_frame)];
+			uint8_t stack_contents[0x6000 - sizeof(uint64_t) - sizeof(stack_frame)];
 			stack_frame guest_stack_frame;
 			uint64_t guest_vmcb_pa; // host rsp
-			uint64_t host_vmcb_pa;
-			vcpu* self;
-			struct shared* shared_data;
 		};
 	};
 	vmcb host_vmcb;
