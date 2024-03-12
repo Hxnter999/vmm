@@ -28,13 +28,13 @@ struct stack_frame //stuff that isnt saved by vmcb
 	uint64_t r13;
 	uint64_t r14;
 	uint64_t r15;
-
-	uint128_t xmm0;
-	uint128_t xmm1;
-	uint128_t xmm2;
-	uint128_t xmm3;
-	uint128_t xmm4;
-	uint128_t xmm5;
+	
+	M128A xmm0;
+	M128A xmm1;
+	M128A xmm2;
+	M128A xmm3;
+	M128A xmm4;
+	M128A xmm5;
 };
 
 struct vcpu {
