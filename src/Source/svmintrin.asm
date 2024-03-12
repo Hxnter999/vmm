@@ -1,18 +1,13 @@
 .code
 
-; extern void vmexit_handler(vcpu* vcpu);
+; extern bool vmexit_handler(vcpu* vcpu);
 extern vmexit_handler  : proc
 
-; extern void WHATS_A_GOOD_NAME(uint64_t* guest_vmcb_pa);
+; extern void WHATS_A_GOOD_NAME(vcpu* _vcpu);
 WHATS_A_GOOD_NAME PROC
-	mov rsp, rcx
-	mov rax, [rsp]
-	
-	;		stack_frame guest_stack_frame;
-	; -->	uint64_t guest_vmcb_pa; // host rsp
-	;		uint64_t host_vmcb_pa;
-	;		vcpu* self;
-	;		struct shared* shared_data;
+	mov rsp, rcx - 8 ; set RSP to guest_stack_frame 
+	; stack grows downwards so our shit will populate the stack frame
+	mov rax, [rcx] ; pa of vmcb is at rcx
 	
 vmrun_loop:
 	int 3
@@ -35,20 +30,19 @@ vmrun_loop:
 	; uint64_t r15;
 
 	;	-->	stack_frame guest_stack_frame;
-	sub rsp, 0C8h
 	mov [rsp], rcx
-	mov [rsp+8], rdx
-	mov [rsp+10h], rbx
-	mov [rsp+18h], rsi
-	mov [rsp+20h], rdi
-	mov [rsp+28h], r8
-	mov [rsp+30h], r9
-	mov [rsp+38h], r10
-	mov [rsp+40h], r11
-	mov [rsp+48h], r12
-	mov [rsp+50h], r13
-	mov [rsp+58h], r14
-	mov [rsp+60h], r15
+	mov [rsp-8], rdx
+	mov [rsp-10h], rbx
+	mov [rsp-18h], rsi
+	mov [rsp-20h], rdi
+	mov [rsp-28h], r8
+	mov [rsp-30h], r9
+	mov [rsp-38h], r10
+	mov [rsp-40h], r11
+	mov [rsp-48h], r12
+	mov [rsp-50h], r13
+	mov [rsp-58h], r14
+	mov [rsp-60h], r15
 
 	; uint128_t xmm0;
 	; uint128_t xmm1;
@@ -56,24 +50,21 @@ vmrun_loop:
 	; uint128_t xmm3;
 	; uint128_t xmm4;
 	; uint128_t xmm5;
-	movaps xmmword ptr [rsp+68h], xmm0
-	movaps xmmword ptr [rsp+78h], xmm1
-	movaps xmmword ptr [rsp+88h], xmm2
-	movaps xmmword ptr [rsp+98h], xmm3
-	movaps xmmword ptr [rsp+0A8h], xmm4
-	movaps xmmword ptr [rsp+0B8h], xmm5
+	movaps xmmword ptr [rsp-68h], xmm0
+	movaps xmmword ptr [rsp-78h], xmm1
+	movaps xmmword ptr [rsp-88h], xmm2
+	movaps xmmword ptr [rsp-98h], xmm3
+	movaps xmmword ptr [rsp-0A8h], xmm4
+	movaps xmmword ptr [rsp-0B8h], xmm5
 
-	add rsp, 0C8h
 
-	; 		stack_frame guest_stack_frame;
-	; -->	uint64_t guest_vmcb_pa; // host rsp
-	;		uint64_t host_vmcb_pa;
-	;		vcpu* self;
-	;		struct shared* shared_data;
 
 	; call vmexit_handler(vcpu* vcpu); with self
 	; rsp is at guest_stack_frame, sizeof(stack_frame) = 0C8h
-	mov rcx, [rsp + 10h]
+	mov rcx, [rsp + 8]
+
+	sub rsp, 0C8h
+
 	call vmexit_handler
 
 devirtualize:
