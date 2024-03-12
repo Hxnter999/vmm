@@ -17,7 +17,7 @@ extern "C" {
 		__debugbreak();
 		print("VMEXIT\n");
 	}
-	extern void WHATS_A_GOOD_NAME(uint64_t* guest_vmcb_pa);
+	extern void WHATS_A_GOOD_NAME(vcpu* guest_vmcb_pa);
 }
 
 SVM_STATUS inittest() 
@@ -143,7 +143,6 @@ void setupvmcb(vcpu* vcpu) //dis just a test
 	vcpu->guest_vmcb.save_state.ss.get_attributes(gdtr.base);
 
 	vcpu->guest_vmcb_pa = MmGetPhysicalAddress(&vcpu->guest_vmcb).QuadPart;
-	vcpu->host_vmcb_pa = MmGetPhysicalAddress(&vcpu->host_vmcb).QuadPart;
 
 	__svm_vmsave(MmGetPhysicalAddress(&vcpu->guest_vmcb).QuadPart);
 
@@ -184,14 +183,11 @@ extern "C" NTSTATUS DriverEntry(PDRIVER_OBJECT pDriverObject, PUNICODE_STRING pR
 	
 	for (uint32_t i = 0; i < global.vcpu_count; i++)
 	{
-		global.vcpus[i].self = &global.vcpus[i];
-		global.vcpus[i].shared_data = &global;
-
 		KeSetSystemAffinityThreadEx(1ll << i);
 		print("attempting to set up vcpu %d\n", KeGetCurrentProcessorIndex());
 
 		setupvmcb(&global.vcpus[i]);
-		WHATS_A_GOOD_NAME(&global.vcpus[i].guest_vmcb_pa);
+		WHATS_A_GOOD_NAME(&global.vcpus[i]);
 
 		// this wont be executed eitherway
 		//KeRevertToUserAffinityThreadEx(original_affinity);

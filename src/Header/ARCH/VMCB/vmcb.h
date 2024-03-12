@@ -28,6 +28,7 @@ struct stack_frame //stuff that isnt saved by vmcb
 	uint64_t r13;
 	uint64_t r14;
 	uint64_t r15;
+	uint64_t alignment;
 	
 	M128A xmm0;
 	M128A xmm1;

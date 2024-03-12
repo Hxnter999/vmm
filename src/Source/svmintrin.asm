@@ -5,7 +5,8 @@ extern vmexit_handler  : proc
 
 ; extern void WHATS_A_GOOD_NAME(vcpu* _vcpu);
 WHATS_A_GOOD_NAME PROC
-	mov rsp, rcx - 8 ; set RSP to guest_stack_frame 
+    sub rcx, 8
+	mov rsp, rcx; set RSP to guest_stack_frame 
 	; stack grows downwards so our shit will populate the stack frame
 	mov rax, [rcx] ; pa of vmcb is at rcx
 	
@@ -44,26 +45,24 @@ vmrun_loop:
 	mov [rsp-58h], r14
 	mov [rsp-60h], r15
 
-	; uint128_t xmm0;
-	; uint128_t xmm1;
-	; uint128_t xmm2;
-	; uint128_t xmm3;
-	; uint128_t xmm4;
-	; uint128_t xmm5;
-	movaps xmmword ptr [rsp-68h], xmm0
-	movaps xmmword ptr [rsp-78h], xmm1
-	movaps xmmword ptr [rsp-88h], xmm2
-	movaps xmmword ptr [rsp-98h], xmm3
-	movaps xmmword ptr [rsp-0A8h], xmm4
-	movaps xmmword ptr [rsp-0B8h], xmm5
+	; M128A xmm0;
+	; M128A xmm1;
+	; M128A xmm2;
+	; M128A xmm3;
+	; M128A xmm4;
+	; M128A xmm5;
+	movaps xmmword ptr [rsp-70h], xmm0
+	movaps xmmword ptr [rsp-80h], xmm1
+	movaps xmmword ptr [rsp-90h], xmm2
+	movaps xmmword ptr [rsp-0A0h], xmm3
+	movaps xmmword ptr [rsp-0B0h], xmm4
+	movaps xmmword ptr [rsp-0C0h], xmm5
 
 
-
-	; call vmexit_handler(vcpu* vcpu); with self
-	; rsp is at guest_stack_frame, sizeof(stack_frame) = 0C8h
+	; call vmexit_handler(vcpu* vcpu); 
 	mov rcx, [rsp + 8]
 
-	sub rsp, 0C8h
+	sub rsp, 0D0h; sizeof(stack_frame)
 
 	call vmexit_handler
 
