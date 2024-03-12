@@ -60,7 +60,7 @@ vmrun_loop:
 
 
 	; call vmexit_handler(vcpu* vcpu); 
-	mov rcx, [rsp + 8]
+	mov rcx, rsp + 8
 
 	sub rsp, 0D0h; sizeof(stack_frame)
 
