@@ -99,6 +99,8 @@ devirtualize:
 	
 
 
+	ret
+
 WHATS_A_GOOD_NAME ENDP
 
 end
