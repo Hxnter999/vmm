@@ -12,10 +12,14 @@
 #include "../Header/Util/bitset.h"
 extern "C" {
 	extern void _sgdt(void* gdtr); // here for now
-	extern void vmexit_handler(vcpu* vcpu) {
+	extern bool vmexit_handler(vcpu* vcpu) {
 		UNREFERENCED_PARAMETER(vcpu);
 		__debugbreak();
 		print("VMEXIT\n");
+
+		//true to continue
+		//false to devirt
+		return true;
 	}
 	extern void WHATS_A_GOOD_NAME(vcpu* guest_vmcb_pa);
 }

@@ -66,8 +66,14 @@ vmrun_loop:
 
 	call vmexit_handler
 
-devirtualize:
+	test rax, rax
 
+	;reset registers
+
+	jnz vmrun_loop ; if returns 1 (non-zero) loop
+
+devirtualize:
+	
 
 
 WHATS_A_GOOD_NAME ENDP
