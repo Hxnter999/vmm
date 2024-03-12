@@ -1,5 +1,5 @@
 #pragma once
-
+#pragma warning(disable : 4201)
 /* stdint */
 typedef signed char        int8_t;
 typedef short              int16_t;
