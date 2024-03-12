@@ -43,8 +43,9 @@ struct vcpu {
 		uint8_t host_stack[0x6000]; //0x6000 default size of KM stack
 		struct {
 			uint64_t guest_vmcb_pa;
+			uint64_t alignment; // bc of M128A
 			stack_frame guest_stack_frame; // host rsp
-			uint8_t stack_contents[0x6000 - sizeof(uint64_t) - sizeof(stack_frame)];
+			uint8_t stack_contents[0x6000 - (sizeof(uint64_t) * 2) - sizeof(stack_frame)];
 		};
 	};
 	vmcb host_vmcb;

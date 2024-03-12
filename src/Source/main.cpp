@@ -12,10 +12,13 @@
 #include "../Header/Util/bitset.h"
 extern "C" {
 	extern void _sgdt(void* gdtr); // here for now
+	extern void testcall();
 	extern bool vmexit_handler(vcpu* vcpu) {
 		UNREFERENCED_PARAMETER(vcpu);
 		__debugbreak();
 		print("VMEXIT\n");
+		print("vcpu: %p\n", vcpu);
+		print("Exit: %X", vcpu->guest_vmcb.control.exit_code);
 
 		//true to continue
 		//false to devirt
@@ -86,6 +89,8 @@ void setupvmcb(vcpu* vcpu) //dis just a test
 	if (global.current_vcpu->is_virtualized) {
 		__debugbreak();
 		print("already virtualized\n");
+		testcall();
+		testcall();
 		return;
 	}
 	global.current_vcpu->is_virtualized = true;
@@ -184,7 +189,7 @@ extern "C" NTSTATUS DriverEntry(PDRIVER_OBJECT pDriverObject, PUNICODE_STRING pR
 		return STATUS_INSUFFICIENT_RESOURCES;
 	}
 	memset(global.shared_msrpm, 0, sizeof(MSR::msrpm));
-	
+	__debugbreak();
 	for (uint32_t i = 0; i < global.vcpu_count; i++)
 	{
 		KeSetSystemAffinityThreadEx(1ll << i);

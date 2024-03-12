@@ -3,12 +3,18 @@
 ; extern bool vmexit_handler(vcpu* vcpu);
 extern vmexit_handler  : proc
 
+; extern void testcall();
+testcall proc
+	vmmcall
+	ret
+testcall endp
+
 ; extern void WHATS_A_GOOD_NAME(vcpu* _vcpu);
 WHATS_A_GOOD_NAME PROC
-    sub rcx, 8
-	mov rsp, rcx; set RSP to guest_stack_frame 
 	; stack grows downwards so our shit will populate the stack frame
 	mov rax, [rcx] ; pa of vmcb is at rcx
+	add rcx, 10h
+	mov rsp, rcx; set RSP to guest_stack_frame 
 	
 vmrun_loop:
 	int 3
@@ -30,20 +36,20 @@ vmrun_loop:
 	; uint64_t r14;
 	; uint64_t r15;
 
-	;	-->	stack_frame guest_stack_frame;
+	;	--> guest_stack_frame;
 	mov [rsp], rcx
-	mov [rsp-8], rdx
-	mov [rsp-10h], rbx
-	mov [rsp-18h], rsi
-	mov [rsp-20h], rdi
-	mov [rsp-28h], r8
-	mov [rsp-30h], r9
-	mov [rsp-38h], r10
-	mov [rsp-40h], r11
-	mov [rsp-48h], r12
-	mov [rsp-50h], r13
-	mov [rsp-58h], r14
-	mov [rsp-60h], r15
+	mov [rsp+8], rdx
+	mov [rsp+10h], rbx
+	mov [rsp+18h], rsi
+	mov [rsp+20h], rdi
+	mov [rsp+28h], r8
+	mov [rsp+30h], r9
+	mov [rsp+38h], r10
+	mov [rsp+40h], r11
+	mov [rsp+48h], r12
+	mov [rsp+50h], r13
+	mov [rsp+58h], r14
+	mov [rsp+60h], r15
 
 	; M128A xmm0;
 	; M128A xmm1;
@@ -60,28 +66,26 @@ vmrun_loop:
 
 
 	; call vmexit_handler(vcpu* vcpu); 
-	mov rcx, rsp + 8
-
-	sub rsp, 0D0h; sizeof(stack_frame)
-
+	sub rsp, 10h ; --> guest_vmcb_pa
+	mov rcx, rsp
 	call vmexit_handler
+	add rsp, 10h ; --> guest_stack_frame
 
 	;reset registers
-	add rsp, 0D0h
 
 	mov rcx, [rsp]
-	mov rdx, [rsp-8]
-	mov rbx, [rsp-10h]
-	mov rsi, [rsp-18h]
-	mov rdi, [rsp-20h]
-	mov r8, [rsp-28h]
-	mov r9, [rsp-30h]
-	mov r10, [rsp-38h]
-	mov r11, [rsp-40h]
-	mov r12, [rsp-48h]
-	mov r13, [rsp-50h]
-	mov r14, [rsp-58h]
-	mov r15, [rsp-60h]
+	mov rdx, [rsp+8]
+	mov rbx, [rsp+10h]
+	mov rsi, [rsp+18h]
+	mov rdi, [rsp+20h]
+	mov r8,  [rsp+28h]
+	mov r9,  [rsp+30h]
+	mov r10, [rsp+38h]
+	mov r11, [rsp+40h]
+	mov r12, [rsp+48h]
+	mov r13, [rsp+50h]
+	mov r14, [rsp+58h]
+	mov r15, [rsp+60h]
 
 	movaps xmm0, xmmword ptr [rsp-70h]
 	movaps xmm1, xmmword ptr [rsp-80h]
@@ -91,7 +95,7 @@ vmrun_loop:
 	movaps xmm5, xmmword ptr [rsp-0C0h]
 
 	; check return address
-	test rax, rax
+	test al, al
 
 	jnz vmrun_loop ; if returns 1 (non-zero) loop
 
