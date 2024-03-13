@@ -38,7 +38,7 @@ struct stack_frame //stuff that isnt saved by vmcb
 	M128A xmm5;
 };
 
-struct vcpu {
+struct alignas(0x1000) vcpu {
 	union {
 		uint8_t host_stack[0x6000]; //0x6000 default size of KM stack
 		struct {
