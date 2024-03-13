@@ -67,12 +67,20 @@ SVM_STATUS inittest()
 		return SVM_STATUS::SVM_NESTED_PAGING_NOT_SUPPORTED;
 	}
 
+	if (!svm_rev.svm_feature_identification.n_rip) 
+	{
+		print("Uh oh! Next RIP not supported\n");
+		return SVM_STATUS::SVM_NEXT_RIP_NOT_SUPPORTED;
+	}
+
 	MSR::VM_CR vm_cr{};
 	vm_cr.load();
 
 	if (!vm_cr.svmdis)
 	{
 		print("SVM not enabled but can be (;\n");
+
+
 		return SVM_STATUS::SVM_IS_CAPABLE_OF_BEING_ENABLE; // Yippe!
 	}
 
@@ -227,5 +235,11 @@ extern "C" NTSTATUS DriverEntry(PDRIVER_OBJECT pDriverObject, PUNICODE_STRING pR
 void Unload(PDRIVER_OBJECT pDriverObject)
 {
 	UNREFERENCED_PARAMETER(pDriverObject);
+
+	if (global.vcpus)
+		ExFreePoolWithTag(global.vcpus, 'sgma');
+	if (global.shared_msrpm)
+		MmFreeContiguousMemory(global.shared_msrpm);
+
 	print("---------\n\n");
 }
