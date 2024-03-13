@@ -15,6 +15,7 @@ static_assert(sizeof(vmcb) == 0x1000, "vmcb size is not 0x1000");
 
 struct stack_frame //stuff that isnt saved by vmcb
 {
+	uint64_t rax;
 	uint64_t rcx;
 	uint64_t rdx;
 	uint64_t rbx;
@@ -28,7 +29,6 @@ struct stack_frame //stuff that isnt saved by vmcb
 	uint64_t r13;
 	uint64_t r14;
 	uint64_t r15;
-	uint64_t alignment;
 	
 	M128A xmm0;
 	M128A xmm1;
@@ -42,19 +42,20 @@ struct alignas(0x1000) vcpu {
 	union {
 		uint8_t host_stack[0x6000]; //0x6000 default size of KM stack
 		struct {
-			uint8_t stack_contents[0x6000 - (sizeof(uint64_t) * 2) - sizeof(stack_frame)];
+			uint8_t stack_contents[0x6000 - (sizeof(uint64_t) * 4) - sizeof(stack_frame)];
 			stack_frame guest_stack_frame; 
 			uint64_t guest_vmcb_pa; // host rsp
 			vcpu* self;
+			uint64_t old_rsp;
+			uint64_t is_virtualized; // alignment
 		};
 	};
 	vmcb host_vmcb;
 	vmcb guest_vmcb;
 	uint8_t host_state_area[0x1000]; //Do not modfiy (depends on chipset), just set phys (page alligned) to VM_HSAVE_PA
-	bool is_virtualized;
 };
 
-//static_assert(sizeof(vcpu) == 0x3010 + 0x6000, "vcpu size is not 0x9010");
+static_assert(sizeof(vcpu) == 0x9000, "vcpu size is not 0x9000");
 
 struct shared {
 	vcpu* current_vcpu;
@@ -62,3 +63,5 @@ struct shared {
 	uint32_t vcpu_count;
 	MSR::msrpm* shared_msrpm;
 };
+
+inline shared global{};

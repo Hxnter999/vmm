@@ -140,6 +140,10 @@
     <FilesToPackage Include="$(TargetPath)" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Source\SVM\svm.cpp">
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">../../Header/commons.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">../../Header/commons.h</PrecompiledHeaderFile>
+    </ClCompile>
     <ClCompile Include="src\Header\Util\bitset.cpp">
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\commons.h</PrecompiledHeaderFile>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\commons.h</PrecompiledHeaderFile>
@@ -154,12 +158,13 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\Header\commons.h</PrecompiledHeaderFile>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\Header\commons.h</PrecompiledHeaderFile>
     </ClCompile>
-    <MASM Include="src\Source\svmintrin.asm">
+    <MASM Include="src\Source\asm\vmenter.asm">
       <FileType>Document</FileType>
     </MASM>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Header\ARCH\CR\control_registers.h" />
+    <ClInclude Include="src\Source\SVM\svm.h" />
     <ClInclude Include="src\Header\ARCH\VMEXIT\EXITINFO\exitinfo2.h" />
     <ClInclude Include="src\Header\Util\bitset.h" />
     <ClInclude Include="src\Header\commons.h" />

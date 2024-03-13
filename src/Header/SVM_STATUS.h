@@ -11,7 +11,7 @@ enum class SVM_STATUS
 	SVM_NEXT_RIP_NOT_SUPPORTED
 };
 
-bool operator!(SVM_STATUS status)
+inline bool operator!(SVM_STATUS status)
 {
 	return status != SVM_STATUS::SVM_IS_CAPABLE_OF_BEING_ENABLE;
 }

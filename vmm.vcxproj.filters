@@ -49,6 +49,7 @@
     <ClCompile Include="src\Header\Util\bitset.cpp">
       <Filter>Source\Utils</Filter>
     </ClCompile>
+    <ClCompile Include="src\Source\SVM\svm.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Header\commons.h">
@@ -116,9 +117,10 @@
     </ClInclude>
     <ClInclude Include="src\Header\ARCH\VMEXIT\EXITINFO\exitinfo2.h" />
     <ClInclude Include="src\Header\ARCH\CR\control_registers.h" />
+    <ClInclude Include="src\Source\SVM\svm.h" />
   </ItemGroup>
   <ItemGroup>
-    <MASM Include="src\Source\svmintrin.asm">
+    <MASM Include="src\Source\asm\vmenter.asm">
       <Filter>Source</Filter>
     </MASM>
   </ItemGroup>

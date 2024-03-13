@@ -1,6 +1,8 @@
 #pragma once
 #include "../../datatypes.h"
 #pragma pack(push, 1)
+extern "C" void _sgdt(void* gdtr);
+
 namespace SEGMENT {
 	struct segment_selector {
 		union {

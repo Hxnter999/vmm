@@ -3,14 +3,9 @@
 ; extern bool vmexit_handler(vcpu* vcpu);
 extern vmexit_handler  : proc
 
-; extern void testcall();
-testcall proc
-	vmmcall
-	ret
-testcall endp
-
-; extern void WHATS_A_GOOD_NAME(uint64_t* guest_vmcb_pa);
-WHATS_A_GOOD_NAME PROC
+; extern void vmenter(uint64_t* guest_vmcb_pa);
+vmenter PROC
+	mov [rcx+10h], rsp ; preserve stack pointer
 	mov rsp, rcx
 	
 vmrun_loop:
@@ -33,7 +28,6 @@ vmrun_loop:
 	movaps xmmword ptr [rsp+50h], xmm5
 
 	; rsp -> xmm0
-	push r15 ; alignment
 	push r15
 	push r14
 	push r13
@@ -47,12 +41,14 @@ vmrun_loop:
 	push rbx
 	push rdx
 	push rcx
+	push rax
 
 	; rsp -> stack_contents
 	mov rcx, [rsp + 0D8h] ; sizeof(stack_contents) + sizeof(uint64_t)
 	call vmexit_handler
 	test al, al
 
+	pop rax
 	pop rcx
 	pop rdx
 	pop rbx
@@ -66,7 +62,6 @@ vmrun_loop:
 	pop r13
 	pop r14
 	pop r15
-	pop r15 ; alignment
 
 	; rsp -> xmm0
 	movaps xmm0, xmmword ptr [rsp]
@@ -84,6 +79,6 @@ vmrun_loop:
 devirtualize:
 	ret
 
-WHATS_A_GOOD_NAME ENDP
+vmenter ENDP
 
 end
