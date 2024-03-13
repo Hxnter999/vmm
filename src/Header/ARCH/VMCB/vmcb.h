@@ -17,8 +17,8 @@ struct stack_frame //stuff that isnt saved by vmcb
 {
 	uint64_t rax;
 	uint64_t rcx;
-	uint64_t rdx;
 	uint64_t rbx;
+	uint64_t rdx;
 	uint64_t rsi;
 	uint64_t rdi;
 	uint64_t r8;
@@ -46,8 +46,8 @@ struct alignas(0x1000) vcpu {
 			stack_frame guest_stack_frame; 
 			uint64_t guest_vmcb_pa; // host rsp
 			vcpu* self;
-			uint64_t old_rsp;
-			uint64_t is_virtualized; // alignment
+			bool is_virtualized;
+			uint8_t alignment[15];
 		};
 	};
 	vmcb host_vmcb;

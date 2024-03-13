@@ -13,11 +13,23 @@ bool vmexit_handler(vcpu* vcpu) {
 	case svm_exit_code::VMEXIT_VMMCALL:
 	{
 		print("VMMCALL\n");
-		vcpu->guest_vmcb.save_state.rip = vcpu->guest_vmcb.control.nrip;
-		return false;
-		break;
-	}
+		// testing for devirtualie calls, fix this up later
+		if (vcpu->guest_stack_frame.rcx == 69) {
+			// rcx -> nrip
+			// rbx -> rsp
+			vcpu->guest_stack_frame.rcx = vcpu->guest_vmcb.control.nrip;
+			vcpu->guest_stack_frame.rbx = vcpu->guest_vmcb.save_state.rsp;
 
+			__svm_vmload(vcpu->guest_vmcb_pa);
+
+			_disable();
+			__svm_stgi();
+
+			MSR::EFER efer{}; efer.load(); efer.svme = 0; efer.store();
+			__writeeflags(vcpu->guest_vmcb.save_state.rflags);
+			return false; // stop virtualization loop
+		}
+	}
 	default:
 		// event inject a gp/ud
 		print("Unhandled VMEXIT: %d\n", vcpu->guest_vmcb.control.exit_code);
@@ -90,7 +102,7 @@ void setup_vmcb(vcpu* vcpu, CONTEXT* ctx) //dis just a test
 	vcpu->guest_vmcb_pa = MmGetPhysicalAddress(&vcpu->guest_vmcb).QuadPart;
 	vcpu->self = vcpu;
 
-	__svm_vmsave(MmGetPhysicalAddress(&vcpu->guest_vmcb).QuadPart);
+	__svm_vmsave(vcpu->guest_vmcb_pa);
 
 	MSR::HSAVE_PA hsave_pa{};
 	hsave_pa.bits = MmGetPhysicalAddress(&vcpu->host_state_area).QuadPart;

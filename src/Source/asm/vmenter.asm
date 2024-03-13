@@ -1,6 +1,7 @@
 .code
 
 testcall proc
+	mov rcx, 69
 	vmmcall
 	ret
 testcall endp
@@ -12,8 +13,12 @@ extern vmexit_handler  : proc
 vmenter PROC
 	mov [rcx+10h], rsp ; preserve stack pointer
 	mov rsp, rcx
-	
+	sub rsp, 60h ; so the line after this doesnt break anything
+
 vmrun_loop:
+    add rsp, 60h ; have to do it after the conditional jump since it will overwrite the zero flag
+
+	; rsp -> guest_vmcb_pa
 	mov rax, [rsp]
 	vmload rax
 	vmrun rax
@@ -44,20 +49,20 @@ vmrun_loop:
 	push r8
 	push rdi
 	push rsi
-	push rbx
 	push rdx
+	push rbx
 	push rcx
 	push rax
 
-	; rsp -> stack_contents (the start of stack_frame to be exact)
+	; rsp -> stack_frame
 	mov rcx, [rsp + 0D8h] ; sizeof(stack_contents) + sizeof(uint64_t)
 	call vmexit_handler
 	test al, al
 
 	pop rax
 	pop rcx
-	pop rdx
 	pop rbx
+	pop rdx
 	pop rsi
 	pop rdi
 	pop r8
@@ -76,15 +81,18 @@ vmrun_loop:
 	movaps xmm3, xmmword ptr [rsp+30h]
 	movaps xmm4, xmmword ptr [rsp+40h]
 	movaps xmm5, xmmword ptr [rsp+50h]
-	add rsp, 60h
 
 	; rsp -> guest_vmcb_pa
 
 	jnz vmrun_loop
+	add rsp, 60h
 
 devirtualize:
-	mov rsp, [rsp+10h] ; restore stack pointer
-	ret
+	; after the vmexit handler decides its time to devirtualize, it will pass the required information through the registers
+	; rcx -> nrip
+	; rbx -> rsp
+	mov rsp, rbx
+	jmp rcx
 
 vmenter ENDP
 
