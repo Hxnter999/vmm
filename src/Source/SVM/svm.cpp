@@ -14,6 +14,7 @@ bool vmexit_handler(vcpu* vcpu) {
 	{
 		print("VMMCALL\n");
 		vcpu->guest_vmcb.save_state.rip = vcpu->guest_vmcb.control.nrip;
+		return false;
 		break;
 	}
 

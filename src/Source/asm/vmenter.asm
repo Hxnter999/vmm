@@ -1,5 +1,10 @@
 .code
 
+testcall proc
+	vmmcall
+	ret
+testcall endp
+
 ; extern bool vmexit_handler(vcpu* vcpu);
 extern vmexit_handler  : proc
 
@@ -12,6 +17,7 @@ vmrun_loop:
 	mov rax, [rsp]
 	vmload rax
 	vmrun rax
+	int 3
 	vmsave rax
 	
 	; rsp -> guest_vmcb_pa
@@ -20,6 +26,7 @@ vmrun_loop:
 	; cant push xmm directly so we simulate a push by subtracting and manually moving
 	sub rsp, 60h
 
+	; rsp -> xmm0
 	movaps xmmword ptr [rsp], xmm0
 	movaps xmmword ptr [rsp+10h], xmm1
 	movaps xmmword ptr [rsp+20h], xmm2
@@ -27,7 +34,6 @@ vmrun_loop:
 	movaps xmmword ptr [rsp+40h], xmm4
 	movaps xmmword ptr [rsp+50h], xmm5
 
-	; rsp -> xmm0
 	push r15
 	push r14
 	push r13
@@ -43,7 +49,7 @@ vmrun_loop:
 	push rcx
 	push rax
 
-	; rsp -> stack_contents
+	; rsp -> stack_contents (the start of stack_frame to be exact)
 	mov rcx, [rsp + 0D8h] ; sizeof(stack_contents) + sizeof(uint64_t)
 	call vmexit_handler
 	test al, al
@@ -77,6 +83,7 @@ vmrun_loop:
 	jnz vmrun_loop
 
 devirtualize:
+	mov rsp, [rsp+10h] ; restore stack pointer
 	ret
 
 vmenter ENDP

@@ -2,7 +2,7 @@
 #include "SVM/svm.h"
 
 extern "C" void vmenter(uint64_t * guest_vmcb_pa);
-
+extern "C" void testcall();
 void Unload(PDRIVER_OBJECT pDriverObject);
 
 extern "C" NTSTATUS DriverEntry(PDRIVER_OBJECT pDriverObject, PUNICODE_STRING pRegistryPath)
@@ -38,6 +38,7 @@ extern "C" NTSTATUS DriverEntry(PDRIVER_OBJECT pDriverObject, PUNICODE_STRING pR
 		RtlCaptureContext(ctx);
 
 		if (global.current_vcpu->is_virtualized) {
+			__debugbreak();
 			continue;
 		}
 
@@ -51,6 +52,8 @@ extern "C" NTSTATUS DriverEntry(PDRIVER_OBJECT pDriverObject, PUNICODE_STRING pR
 		// this wont be executed eitherway
 		KeRevertToUserAffinityThreadEx(original_affinity);
 	}
+
+	testcall();
 
 	return STATUS_SUCCESS;
 }
