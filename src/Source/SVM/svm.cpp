@@ -1,42 +1,28 @@
 #include "../../Header/commons.h"
 #include "svm.h"
 
-
 bool vmexit_handler(vcpu* vcpu) {
 	UNREFERENCED_PARAMETER(vcpu);
 	__debugbreak();
-	print("rax: %p\n", vcpu->guest_stack_frame.rax);
-	print("rax: %p\n", vcpu->guest_vmcb.save_state.rax);
 
 	switch (vcpu->guest_vmcb.control.exit_code) {
 
 	case svm_exit_code::VMEXIT_VMMCALL:
 	{
-		print("VMMCALL\n");
-		// testing for devirtualie calls, fix this up later
-		if (vcpu->guest_stack_frame.rcx == 69) {
-			// rcx -> nrip
-			// rbx -> rsp
-			vcpu->guest_stack_frame.rcx = vcpu->guest_vmcb.control.nrip;
-			vcpu->guest_stack_frame.rbx = vcpu->guest_vmcb.save_state.rsp;
-
-			__svm_vmload(vcpu->guest_vmcb_pa);
-
-			_disable();
-			__svm_stgi();
-
-			MSR::EFER efer{}; efer.load(); efer.svme = 0; efer.store();
-			__writeeflags(vcpu->guest_vmcb.save_state.rflags);
-			return false; // stop virtualization loop
-		}
-	}
+		hypercall_handler(vcpu);
+	};
+	
 	default:
 		// event inject a gp/ud
 		print("Unhandled VMEXIT: %d\n", vcpu->guest_vmcb.control.exit_code);
 
 	}
+	// just for the cpu, we already pop back rax in vmenter
+	vcpu->guest_vmcb.save_state.rax = vcpu->guest_stack_frame.rax;
+
 	//true to continue
 	//false to devirt
+	if (vcpu->should_exit) return false;
 	return true;
 }
 

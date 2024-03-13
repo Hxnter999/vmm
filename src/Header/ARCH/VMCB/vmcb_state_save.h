@@ -11,7 +11,7 @@ struct vmcb_state_save {
 	SEGMENT::segment_register cs; // only lower 32 bits of base are implemented
 
 	// 020h
-	SEGMENT::segment_register ss;	// only lower 32 bits of base are implemented
+	SEGMENT::segment_register ss; // only lower 32 bits of base are implemented
 
 	// 030h
 	SEGMENT::segment_register ds; // only lower 32 bits of base are implemented

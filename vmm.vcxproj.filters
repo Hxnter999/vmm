@@ -50,6 +50,7 @@
       <Filter>Source\Utils</Filter>
     </ClCompile>
     <ClCompile Include="src\Source\SVM\svm.cpp" />
+    <ClCompile Include="src\Header\Hypercall\hypercall.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Header\commons.h">
@@ -118,6 +119,7 @@
     <ClInclude Include="src\Header\ARCH\VMEXIT\EXITINFO\exitinfo2.h" />
     <ClInclude Include="src\Header\ARCH\CR\control_registers.h" />
     <ClInclude Include="src\Source\SVM\svm.h" />
+    <ClInclude Include="src\Header\Hypercall\hypercall.h" />
   </ItemGroup>
   <ItemGroup>
     <MASM Include="src\Source\asm\vmenter.asm">

@@ -16,6 +16,7 @@
 
 #include "../../Header/SVM_STATUS.h"
 
+#include "../../Header/Hypercall/hypercall.h"
 
 extern "C" bool vmexit_handler(struct vcpu * vcpu);
 void setup_vmcb(struct vcpu* vcpu, CONTEXT* ctx);
