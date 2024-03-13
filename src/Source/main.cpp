@@ -1,7 +1,7 @@
 #include "../Header/commons.h"
 #include "SVM/svm.h"
 
-extern "C" void vmenter(uint64_t * guest_vmcb_pa);
+extern "C" void vmenter(uint64_t* guest_vmcb_pa);
 extern "C" void testcall();
 void Unload(PDRIVER_OBJECT pDriverObject);
 
@@ -20,7 +20,7 @@ extern "C" NTSTATUS DriverEntry(PDRIVER_OBJECT pDriverObject, PUNICODE_STRING pR
 
 	// setup the vcpus
 	global.vcpu_count = KeQueryActiveProcessorCount(nullptr);
-	global.vcpus = reinterpret_cast<vcpu*>(ExAllocatePoolWithTag(NonPagedPool, global.vcpu_count * sizeof(vcpu), 'sgma')); //FREE THIS LATER
+	global.vcpus = reinterpret_cast<vcpu*>(ExAllocatePoolWithTag(NonPagedPool, global.vcpu_count * sizeof(vcpu), 'sgma'));
 	memset(global.vcpus, 0, global.vcpu_count * sizeof(vcpu));
 
 	global.shared_msrpm = reinterpret_cast<MSR::msrpm*>(MmAllocateContiguousMemory(sizeof(MSR::msrpm), { .QuadPart = -1 }));
@@ -49,7 +49,7 @@ extern "C" NTSTATUS DriverEntry(PDRIVER_OBJECT pDriverObject, PUNICODE_STRING pR
 		setup_vmcb(&global.vcpus[i], ctx);
 		vmenter(&global.vcpus[i].guest_vmcb_pa);
 
-		// this wont be executed eitherway
+		// this wont be executed anyway
 		KeRevertToUserAffinityThreadEx(original_affinity);
 	}
 
