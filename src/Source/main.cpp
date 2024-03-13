@@ -16,15 +16,24 @@ extern "C" {
 	extern bool vmexit_handler(vcpu* vcpu) {
 		UNREFERENCED_PARAMETER(vcpu);
 		__debugbreak();
-		print("VMEXIT\n");
-		print("vcpu: %p\n", vcpu);
-		print("Exit: %X", vcpu->guest_vmcb.control.exit_code);
+		
+		switch (vcpu->guest_vmcb.control.exit_code) {
+		case svm_exit_code::VMEXIT_VMMCALL:
+		{
+			print("VMMCALL\n");
+			vcpu->guest_vmcb.save_state.rip = vcpu->guest_vmcb.control.nrip;
+			break;
+		}
+		default:
+			// event inject a gp/ud
+			print("Unhandled VMEXIT: %d\n", vcpu->guest_vmcb.control.exit_code);
 
+		}
 		//true to continue
 		//false to devirt
 		return true;
 	}
-	extern void WHATS_A_GOOD_NAME(vcpu* guest_vmcb_pa);
+	extern void WHATS_A_GOOD_NAME(uint64_t* guest_vmcb_pa);
 }
 
 SVM_STATUS inittest() 
@@ -189,14 +198,23 @@ extern "C" NTSTATUS DriverEntry(PDRIVER_OBJECT pDriverObject, PUNICODE_STRING pR
 		return STATUS_INSUFFICIENT_RESOURCES;
 	}
 	memset(global.shared_msrpm, 0, sizeof(MSR::msrpm));
-	__debugbreak();
+
+	
 	for (uint32_t i = 0; i < global.vcpu_count; i++)
 	{
 		KeSetSystemAffinityThreadEx(1ll << i);
 		print("attempting to set up vcpu %d\n", KeGetCurrentProcessorIndex());
 
 		setupvmcb(&global.vcpus[i]);
-		WHATS_A_GOOD_NAME(&global.vcpus[i]);
+		global.vcpus[i].self = &global.vcpus[i];
+
+		print("rsp: %p\n", &global.vcpus[i].guest_vmcb_pa);
+		print("stack_frame: %p\n", &global.vcpus[i].guest_stack_frame);
+		print("self: %p\n", &global.vcpus[i].self);
+		print("xmm0: %p\n", &global.vcpus[i].guest_stack_frame.xmm0);
+		print("xmm5: %p\n", &global.vcpus[i].guest_stack_frame.xmm5);
+		__debugbreak();
+		WHATS_A_GOOD_NAME(&global.vcpus[i].guest_vmcb_pa);
 
 		// this wont be executed eitherway
 		//KeRevertToUserAffinityThreadEx(original_affinity);
