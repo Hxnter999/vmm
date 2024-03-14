@@ -6,6 +6,11 @@
 
 namespace MSR {
 
+	enum class bit {
+		read = 0,
+		write = 1
+	};
+
 	struct BASE_MSR // all MSRs *MUST* inherit from this (mostly to assure these functions are defined)
 	{
 		template<class Self>
@@ -40,31 +45,27 @@ namespace MSR {
 			util::bitset<0x2000> vector;
 		};
 
-		//bool at(uint64_t msr, bool read)
-		
+		void set(uint64_t msr, bit bit, bool value = true) {
+			[[maybe_unused]] constexpr uint64_t vector1_start = 0x0000'0000, vector1_end = 0x0000'1FFF;
+			[[maybe_unused]] constexpr uint64_t vector2_start = 0xC000'0000, vector2_end = 0xC000'1FFF;
+			[[maybe_unused]] constexpr uint64_t vector3_start = 0xC001'0000, vector3_end = 0xC001'1FFF;
+			// bit::read = 0, bit::write = 1
 
-		void set(uint64_t msr, bool read, bool value) {
-			constexpr uint64_t vector1_start = 0x0000'0000, vector1_end = 0x0000'1FFF;
-			constexpr uint64_t vector2_start = 0xC000'0000, vector2_end = 0xC000'1FFF;
-			constexpr uint64_t vector3_start = 0xC001'0000, vector3_end = 0xC001'1FFF;
-			uint64_t index{};
-
+			util::bitset<0x800>* target = nullptr;
 			if (msr >= vector3_start && msr <= vector3_end) {
-				index = msr - vector3_start + sizeof(vector1) + sizeof(vector2);
-			} else
-			if (msr >= vector2_start && msr <= vector2_end) {
-				index = msr - vector2_start + sizeof(vector1);
+				target = &vector3;
 			}
-			else 
-			if (msr <= vector1_end) {
-					index = msr - vector1_start;
+			else if (msr >= vector2_start && msr <= vector2_end) {
+				target = &vector2;
+			}
+			else if (msr <= vector1_end) {
+				target = &vector1;
 			}
 			else {
-				return; 
+				return;
 			}
 
-			index = index * 2 + (read ? 0 : 1);
-			vector.set(index, value);
+			target->set((msr & 0x7FF) * 2 + (bit == bit::read ? 0 : 1), value);
 		}
 	};
 };

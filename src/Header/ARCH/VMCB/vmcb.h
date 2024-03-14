@@ -46,9 +46,8 @@ struct alignas(0x1000) vcpu {
 			stack_frame guest_stack_frame; 
 			uint64_t guest_vmcb_pa; // host rsp
 			vcpu* self;
-			bool is_virtualized;
-			bool should_exit;
-			uint8_t alignment[14];
+			uint64_t is_virtualized; // 16byte aligned
+			uint64_t should_exit;
 		};
 	};
 	vmcb host_vmcb;

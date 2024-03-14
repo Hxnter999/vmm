@@ -4,7 +4,7 @@
 namespace MSR {
 	struct PAT : BASE_MSR // Page-Attribute Table Mechanism (7.8)
 	{
-		static constexpr uint64_t MSR_PAT = 0x00000277;
+		static constexpr uint32_t MSR_PAT = 0x00000277;
 
 		union {
 			struct {

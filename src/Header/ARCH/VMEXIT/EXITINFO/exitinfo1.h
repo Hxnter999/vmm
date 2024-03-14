@@ -69,8 +69,8 @@ namespace EXITINFO {
 
 			struct { // 15.11
 				uint64_t value : 64;
-				bool is_read() { return (value == 0); }
-				bool is_write() { return (value == 1); }
+				inline bool is_read() { return (value == 0); }
+				inline bool is_write() { return (value == 1); }
 			} msr;
 
 			// 15.12 Exception intercepts

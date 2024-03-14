@@ -148,10 +148,6 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">../../Header/commons.h</PrecompiledHeaderFile>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">../../Header/commons.h</PrecompiledHeaderFile>
     </ClCompile>
-    <ClCompile Include="src\Header\Util\bitset.cpp">
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\commons.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\commons.h</PrecompiledHeaderFile>
-    </ClCompile>
     <ClCompile Include="src\Source\commons.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\Header\commons.h</PrecompiledHeaderFile>
@@ -167,6 +163,7 @@
     </MASM>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Header\ARCH\VMEXIT\handlers.h" />
     <ClInclude Include="src\Header\Hypercall\hypercall.h" />
     <ClInclude Include="src\Header\ARCH\CR\control_registers.h" />
     <ClInclude Include="src\Source\SVM\svm.h" />

@@ -1,7 +1,7 @@
 .code
 
 testcall proc
-	mov rcx, 69
+	mov rcx, 1
 	vmmcall
 	ret
 testcall endp
@@ -22,7 +22,7 @@ vmrun_loop:
 	mov rax, [rsp]
 	vmload rax
 	vmrun rax
-	int 3
+	;int 3
 	vmsave rax
 	
 	; rsp -> guest_vmcb_pa

@@ -17,7 +17,11 @@
 #include "../../Header/SVM_STATUS.h"
 
 #include "../../Header/Hypercall/hypercall.h"
+#include "../../Header/ARCH/VMEXIT/handlers.h"
+
+#include "../../Header/Util/bitset.h"
 
 extern "C" bool vmexit_handler(struct vcpu * vcpu);
+void setup_msrpm();
 void setup_vmcb(struct vcpu* vcpu, CONTEXT* ctx);
 SVM_STATUS initialize();
