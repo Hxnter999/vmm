@@ -24,4 +24,5 @@ void hypercall_handler(vcpu* vcpu) {
 	{
 		break;
 	}
+	}
 }

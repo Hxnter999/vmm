@@ -30,6 +30,7 @@ extern "C" NTSTATUS DriverEntry(PDRIVER_OBJECT pDriverObject, PUNICODE_STRING pR
 		return STATUS_INSUFFICIENT_RESOURCES;
 	}
 	memset(global.shared_msrpm, 0, sizeof(MSR::msrpm));
+	setup_msrpm();
 
 	for (uint32_t i = 0; i < global.vcpu_count; i++)
 	{
@@ -53,7 +54,7 @@ extern "C" NTSTATUS DriverEntry(PDRIVER_OBJECT pDriverObject, PUNICODE_STRING pR
 		KeRevertToUserAffinityThreadEx(original_affinity);
 	}
 
-	testcall();
+	//testcall();
 
 	return STATUS_SUCCESS;
 }

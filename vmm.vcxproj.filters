@@ -46,9 +46,6 @@
     <ClCompile Include="src\Source\commons.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="src\Header\Util\bitset.cpp">
-      <Filter>Source\Utils</Filter>
-    </ClCompile>
     <ClCompile Include="src\Source\SVM\svm.cpp" />
     <ClCompile Include="src\Header\Hypercall\hypercall.cpp" />
   </ItemGroup>

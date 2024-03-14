@@ -17,9 +17,7 @@ namespace MSR {
 				uint64_t svmdis : 1; //When this bit is set, writes to EFER treat the SVME bit as MBZ. When this bit is clear, EFER.SVME can be written normally.This bit does not prevent CPUID from reporting that SVM is available.Setting SVMDIS while EFER.SVME is 1 generates a #GP fault, regardless of the current state of VM_CR.LOCK.This bit is not affected by SKINIT.It is cleared by INIT when LOCK is cleared to 0; otherwise, it is not affected.
 				uint64_t reserved5 : 59;
 			};
-
-		uint64_t bits;
-
+			uint64_t bits;
 		};
 
 		void load()

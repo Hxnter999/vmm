@@ -11,7 +11,13 @@ bool vmexit_handler(vcpu* vcpu) {
 	{
 		hypercall_handler(vcpu);
 	};
-	
+	case svm_exit_code::VMEXIT_MSR:
+	{
+		print("MSR!!!!\n");
+		print("read: %d\n", vcpu->guest_vmcb.control.exit_info_1.msr.is_write());
+		vcpu->guest_vmcb.save_state.rip = vcpu->guest_vmcb.control.nrip;
+		break;
+	}
 	default:
 		// event inject a gp/ud
 		print("Unhandled VMEXIT: %d\n", vcpu->guest_vmcb.control.exit_code);
@@ -24,6 +30,18 @@ bool vmexit_handler(vcpu* vcpu) {
 	//false to devirt
 	if (vcpu->should_exit) return false;
 	return true;
+}
+
+void setup_msrpm() {
+	using namespace MSR;
+	// msrpm->set(msr, bit, value = true)
+	// bit is either 0 (read) or 1 (write)
+	
+	global.shared_msrpm->set(MSR::EFER::MSR_EFER, bit::read);
+	global.shared_msrpm->set(MSR::EFER::MSR_EFER, bit::write);
+
+	global.shared_msrpm->set(MSR::HSAVE_PA::MSR_VM_HSAVE_PA, bit::read);
+	global.shared_msrpm->set(MSR::HSAVE_PA::MSR_VM_HSAVE_PA, bit::write);
 }
 
 void setup_vmcb(vcpu* vcpu, CONTEXT* ctx) //dis just a test
@@ -44,9 +62,10 @@ void setup_vmcb(vcpu* vcpu, CONTEXT* ctx) //dis just a test
 	vcpu->guest_vmcb.control.vmmcall = 1; // explicit vmexits back to host
 	vcpu->guest_vmcb.control.vmmload = 1;
 	vcpu->guest_vmcb.control.vmmsave = 1;
+	vcpu->guest_vmcb.control.msr_prot = 1;
 
 	vcpu->guest_vmcb.control.guest_asid = 1; // Address space identifier "ASID [cannot be] equal to zero" 15.5.1 ASID 0 is for the host
-
+	
 	// Set up the guest state
 	vcpu->guest_vmcb.save_state.cr0.value = __readcr0();
 	vcpu->guest_vmcb.save_state.cr2.value = __readcr2();
