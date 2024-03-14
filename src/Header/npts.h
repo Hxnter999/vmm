@@ -20,8 +20,8 @@ bool setup_huge()
 	proc_cap.load();
 	const uint64_t guest_phys_addr_size = proc_cap.address_size_identifiers.guest_physical_address_size;
 	
-	const uint64_t amount_pdes = (guest_phys_addr_size + pdepe_address_range - 1) / pdepe_address_range; //round up
-	const uint64_t amount_plm4es = (amount_pdes + 511) / 512; //round up
+	const uint64_t amount_pdepes = (guest_phys_addr_size + pdepe_address_range - 1) / pdepe_address_range; //round up
+	const uint64_t amount_plm4es = (amount_pdepes + 511) / 512; //round up
 
 	plm4es = reinterpret_cast<PML4E*>(MmAllocateContiguousMemory(amount_plm4es * sizeof(PML4E), {.QuadPart = -1}));
 	if (!plm4es)
@@ -30,14 +30,15 @@ bool setup_huge()
 		return false;
 	}
 
-	pdepes = reinterpret_cast<PDPE*>(MmAllocateContiguousMemory(amount_pdes * sizeof(PDPE), { .QuadPart = -1 }));
+	pdepes = reinterpret_cast<PDPE*>(MmAllocateContiguousMemory(amount_pdepes * sizeof(PDPE), { .QuadPart = -1 }));
 	if (!pdepes)
 	{
 		print("pdeps failed to be allocated\n");
 		return false;
 	}
 	memset(plm4es, 0, amount_plm4es * sizeof(PML4E));
-	memset(pdepes, 0, amount_pdes * sizeof(PDPE));
+	memset(pdepes, 0, amount_pdepes * sizeof(PDPE));
+
 
 	for (uint64_t i = 0; i < amount_plm4es; i++) {
 
@@ -47,15 +48,14 @@ bool setup_huge()
 		plm4es[i].page_pa = MmGetPhysicalAddress(&pdepes[i * 512]).QuadPart >> PAGE_SHIFT;
 
 
-		for (uint64_t j = 0; j < min(512, amount_pdes - i * 512); j++)
+		for (uint64_t j = 0; j < min(512, amount_pdepes - i * 512); j++)
 		{
 			pdepes[j].present = 1;
 			pdepes[j].huge_page = 1;
 			pdepes[j].write = 1;
 			pdepes[j].usermode = 1;
 
-			pdepes[j].uhuge_page.pat = 1;
-			pdepes[j].uhuge_page.page_pa = (j * pdepe_address_range) + (i * plm4e_address_range);
+			pdepes[j].uhuge_page.page_pa = (j * pdepe_address_range) + (i * plm4e_address_range); //this is wrong (needs to be shifted)
 		}
 	}
 
@@ -64,7 +64,70 @@ bool setup_huge()
 
 bool setup_allusive() 
 {
+	constexpr uint64_t pdes_address_range = 0x200000; //2MB
+	constexpr uint64_t pdepe_address_range = pdes_address_range * 512;
+	constexpr uint64_t plm4e_address_range = pdepe_address_range * 512;
 
+	CPUID::fn_processor_capacity proc_cap{};
+	proc_cap.load();
+	const uint64_t guest_phys_addr_size = proc_cap.address_size_identifiers.guest_physical_address_size;
+
+	const uint64_t amount_pdes = (guest_phys_addr_size + pdes_address_range - 1) / pdes_address_range; //round up
+	const uint64_t amount_pdepes = (amount_pdes + 511) / 512; //round up
+	const uint64_t amount_plm4es = (amount_pdepes + 511) / 512; //round up
+
+	plm4es = reinterpret_cast<PML4E*>(MmAllocateContiguousMemory(amount_plm4es * sizeof(PML4E), { .QuadPart = -1 }));
+	if (!plm4es)
+	{
+		print("plm4es failed to be allocated\n");
+		return false;
+	}
+
+	pdepes = reinterpret_cast<PDPE*>(MmAllocateContiguousMemory(amount_pdepes * sizeof(PDPE), { .QuadPart = -1 }));
+	if (!pdepes)
+	{
+		print("pdeps failed to be allocated\n");
+		return false;
+	}
+
+	pdes = reinterpret_cast<PDE*>(MmAllocateContiguousMemory(amount_pdes * sizeof(PDE), { .QuadPart = -1 }));
+	if (!pdes)
+	{
+		print("pdes failed to be allocated\n");
+		return false;
+	}
+
+	memset(plm4es, 0, amount_plm4es * sizeof(PML4E));
+	memset(pdepes, 0, amount_pdepes * sizeof(PDPE));
+	memset(pdes, 0, amount_pdes * sizeof(PDE));
+
+
+	for (uint64_t i = 0; i < amount_plm4es; i++) {
+
+		plm4es[i].present = 1;
+		plm4es[i].write = 1;
+		plm4es[i].usermode = 1;
+		plm4es[i].page_pa = MmGetPhysicalAddress(&pdepes[i * 512]).QuadPart >> PAGE_SHIFT;
+
+
+		for (uint64_t j = 0; j < min(512, amount_pdepes - i * 512); j++)
+		{
+			pdepes[j].present = 1;
+			pdepes[j].write = 1;
+			pdepes[j].usermode = 1;
+			pdepes[j].page_pa = MmGetPhysicalAddress(&pdes[j * 512]).QuadPart >> PAGE_SHIFT;
+
+			for (uint64_t k = 0; k < min(512, amount_pdes - j * 512); k++) 
+			{
+				pdes[k].present = 1;
+				pdes[k].write = 1;
+				pdes[k].usermode = 1;
+				pdes[k].large_page = 1;
+
+				pdes[k].page_pa = (k * pdes_address_range) + (j * pdepe_address_range) + (i * plm4e_address_range); //this is wrong (needs to be shifted)
+			}
+		}
+	}
 }
 
 void initnpts() 
