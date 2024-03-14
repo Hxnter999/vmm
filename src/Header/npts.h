@@ -124,7 +124,7 @@ bool setup_allusive()
 				pdes[k].usermode = 1;
 				pdes[k].large_page = 1;
 
-				pdes[k].page_pa = (k * pdes_address_range) + (j * pdepe_address_range) + (i * plm4e_address_range); //this is wrong (needs to be shifted)
+				pdes[k].ularge_page.page_pa = (k * pdes_address_range) + (j * pdepe_address_range) + (i * plm4e_address_range); //this is wrong (needs to be shifted)
 			}
 		}
 	}
