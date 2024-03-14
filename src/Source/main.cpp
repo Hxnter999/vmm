@@ -55,6 +55,9 @@ extern "C" NTSTATUS DriverEntry(PDRIVER_OBJECT pDriverObject, PUNICODE_STRING pR
 	}
 
 	//testcall();
+	MSR::EFER efer{}; efer.load();
+	print("svme: %d\n", efer.svme); // correct
+	print("hsave: %p\n", __readmsr(MSR::HSAVE_PA::MSR_VM_HSAVE_PA)); // prints E00000000 even tho its supposed to be 0, fix later
 
 	return STATUS_SUCCESS;
 }

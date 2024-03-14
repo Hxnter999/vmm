@@ -8,27 +8,24 @@ bool vmexit_handler(vcpu* vcpu) {
 	switch (vcpu->guest_vmcb.control.exit_code) {
 
 	case svm_exit_code::VMEXIT_VMMCALL:
-	{
 		hypercall_handler(vcpu);
-	};
-	case svm_exit_code::VMEXIT_MSR:
-	{
-		print("MSR!!!!\n");
-		print("read: %d\n", vcpu->guest_vmcb.control.exit_info_1.msr.is_write());
-		vcpu->guest_vmcb.save_state.rip = vcpu->guest_vmcb.control.nrip;
 		break;
-	}
+
+	case svm_exit_code::VMEXIT_MSR:
+		msr_handler(vcpu);
+		break;
+
 	default:
 		// event inject a gp/ud
 		print("Unhandled VMEXIT: %d\n", vcpu->guest_vmcb.control.exit_code);
-
+		break;
 	}
 	// just for the cpu, we already pop back rax in vmenter
 	vcpu->guest_vmcb.save_state.rax = vcpu->guest_stack_frame.rax;
 
 	//true to continue
 	//false to devirt
-	if (vcpu->should_exit) return false;
+	if (vcpu->should_exit) { return false; };
 	return true;
 }
 

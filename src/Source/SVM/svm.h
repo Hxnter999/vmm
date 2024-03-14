@@ -17,6 +17,7 @@
 #include "../../Header/SVM_STATUS.h"
 
 #include "../../Header/Hypercall/hypercall.h"
+#include "../../Header/ARCH/VMEXIT/handlers.h"
 
 #include "../../Header/Util/bitset.h"
 
