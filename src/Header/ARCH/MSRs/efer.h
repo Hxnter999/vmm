@@ -4,7 +4,7 @@
 namespace MSR {
 	struct EFER : BASE_MSR //Extended Feature Enable Register
 	{
-		static constexpr uint64_t MSR_EFER = 0xC0000080;
+		static constexpr uint32_t MSR_EFER = 0xC0000080;
 
 		union {
 			struct {

@@ -7,7 +7,7 @@ namespace MSR {
 	// (not guaranteed to be used, other parts of the chip could be used too) 
 	struct HSAVE_PA : BASE_MSR 
 	{
-		static constexpr uint64_t MSR_VM_HSAVE_PA = 0xC0010117;
+		static constexpr uint32_t MSR_VM_HSAVE_PA = 0xC0010117;
 
 		union {
 			struct {

@@ -6,7 +6,7 @@
 namespace MSR {
 	struct VM_CR : BASE_MSR
 	{
-		static constexpr uint64_t MSR_VM_CR = 0xC0010114;
+		static constexpr uint32_t MSR_VM_CR = 0xC0010114;
 
 		union {
 			struct {

@@ -5,6 +5,7 @@
 enum class hypercall_code : uint64_t
 {
 	UNLOAD = 0,
+	PING
 };
 
 void hypercall_handler(vcpu* vcpu);

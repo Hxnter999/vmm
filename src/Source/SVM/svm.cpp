@@ -3,7 +3,7 @@
 
 bool vmexit_handler(vcpu* vcpu) {
 	UNREFERENCED_PARAMETER(vcpu);
-	__debugbreak();
+	//__debugbreak();
 
 	switch (vcpu->guest_vmcb.control.exit_code) {
 
@@ -22,6 +22,7 @@ bool vmexit_handler(vcpu* vcpu) {
 	}
 	// just for the cpu, we already pop back rax in vmenter
 	vcpu->guest_vmcb.save_state.rax = vcpu->guest_stack_frame.rax;
+	print("rax: %p %p\n", vcpu->guest_vmcb.save_state.rax, vcpu->guest_stack_frame.rax);
 
 	//true to continue
 	//false to devirt
@@ -59,7 +60,7 @@ void setup_vmcb(vcpu* vcpu, CONTEXT* ctx) //dis just a test
 	vcpu->guest_vmcb.control.vmmcall = 1; // explicit vmexits back to host
 	vcpu->guest_vmcb.control.vmmload = 1;
 	vcpu->guest_vmcb.control.vmmsave = 1;
-	vcpu->guest_vmcb.control.msr_prot = 1;
+	//vcpu->guest_vmcb.control.msr_prot = 1; // enable this once msrpm and handler is fixed up
 
 	vcpu->guest_vmcb.control.guest_asid = 1; // Address space identifier "ASID [cannot be] equal to zero" 15.5.1 ASID 0 is for the host
 	
