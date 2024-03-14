@@ -4,85 +4,67 @@
 #include "ARCH/PAGES/PAGES.h"
 #include "ARCH/CPUID/Extended Features/fn_processor_capacity.h"
 
-
 //todo factor in mttrs
 //todo gpat
 
+PML4E* plm4es;
+PDPE* pdepes;
+PDE* pdes;
+
 bool setup_huge() 
 {
+	constexpr uint64_t pdepe_address_range = 0x40000000; //1GB
+	constexpr uint64_t plm4e_address_range = pdepe_address_range * 512; //512GB
+
 	CPUID::fn_processor_capacity proc_cap{};
 	proc_cap.load();
-	uint64_t GuestPhysAddrSize = proc_cap.address_size_identifiers.guest_physical_address_size;
-	//our pdeps address 1 gb
-	constexpr uint64_t pageaddressrange = 1'073'741'824;
-	const uint64_t amountofpages = GuestPhysAddrSize / (GuestPhysAddrSize + pageaddressrange - 1);
-	const uint64_t amountofplm4es = (amountofpages + 511) / 512;
+	const uint64_t guest_phys_addr_size = proc_cap.address_size_identifiers.guest_physical_address_size;
+	
+	const uint64_t amount_pdes = (guest_phys_addr_size + pdepe_address_range - 1) / pdepe_address_range; //round up
+	const uint64_t amount_plm4es = (amount_pdes + 511) / 512; //round up
 
-	PML4E* plm4es = reinterpret_cast<PML4E*>(MmAllocateContiguousMemory(amountofplm4es * sizeof(PML4E), {.QuadPart = -1}));
+	plm4es = reinterpret_cast<PML4E*>(MmAllocateContiguousMemory(amount_plm4es * sizeof(PML4E), {.QuadPart = -1}));
 	if (!plm4es)
 	{
 		print("plm4es failed to be allocated\n");
 		return false;
 	}
 
-	PDPE* pdeps = reinterpret_cast<PDPE*>(MmAllocateContiguousMemory(amountofpages * sizeof(PDPE), { .QuadPart = -1 }));
-	if (!pdeps) 
+	pdepes = reinterpret_cast<PDPE*>(MmAllocateContiguousMemory(amount_pdes * sizeof(PDPE), { .QuadPart = -1 }));
+	if (!pdepes)
 	{
 		print("pdeps failed to be allocated\n");
 		return false;
 	}
-	memset(plm4es, 0, amountofplm4es * sizeof(PML4E));
-	memset(pdeps, 0, amountofpages * sizeof(PDPE));
+	memset(plm4es, 0, amount_plm4es * sizeof(PML4E));
+	memset(pdepes, 0, amount_pdes * sizeof(PDPE));
 
-	for (uint64_t i = 0; i < amountofplm4es; i++)
-	{
+	for (uint64_t i = 0; i < amount_plm4es; i++) {
+
 		plm4es[i].present = 1;
 		plm4es[i].write = 1;
 		plm4es[i].usermode = 1;
-		plm4es[i].page_pa = MmGetPhysicalAddress(&pdeps[i * 512]).QuadPart >> 12;
-	}
+		plm4es[i].page_pa = MmGetPhysicalAddress(&pdepes[i * 512]).QuadPart >> PAGE_SHIFT;
 
 
-	for (uint64_t i = 0; i < 512; i++)
-	{
-		pdeps[i].present = 1;
-		pdeps[i].huge_page = 1;
-		pdeps[i].write = 1;
+		for (uint64_t j = 0; j < min(512, amount_pdes - i * 512); j++)
+		{
+			pdepes[j].present = 1;
+			pdepes[j].huge_page = 1;
+			pdepes[j].write = 1;
+			pdepes[j].usermode = 1;
 
-		pdeps[i].uhuge_page.pat = 1;
-		pdeps[i].uhuge_page.page_pa = (i << 48); //this is prob wrong
+			pdepes[j].uhuge_page.pat = 1;
+			pdepes[j].uhuge_page.page_pa = (j * pdepe_address_range) + (i * plm4e_address_range);
+		}
 	}
 
 	return true;
 } 
 
-void setup_allusive() 
+bool setup_allusive() 
 {
-	PDPE pdeps[512]{};
 
-	PML4E plm4e{};
-	plm4e.present = 1;
-	plm4e.write = 1;
-	plm4e.page_pa = reinterpret_cast<uint64_t>(&pdeps) << 12;
-
-	for (uint64_t i = 0; i < 512; i++)
-	{
-		PDE pdes[512]{};
-
-		pdeps[i].present = 1;
-		pdeps[i].write = 1;
-		if (i < 256)
-		{
-			pdeps[i].usermode = 1;
-		}
-
-		pdeps[i].page_pa = MmGetPhysicalAddress(pdes);
-
-		for (uint64_t j = 0; j < 512; j++) 
-		{
-
-		}
-	}
 }
 
 void initnpts() 
@@ -106,4 +88,14 @@ void initnpts()
 	{
 		setup_allusive();
 	}
+}
+
+void deletenpts() 
+{
+	if(plm4es)
+		MmFreeContiguousMemory(plm4es);
+	if(pdeps)
+		MmFreeContiguousMemory(pdeps);
+	if(pdes)
+		MmFreeContiguousMemory(pdes);
 }
