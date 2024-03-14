@@ -157,8 +157,8 @@ void deletenpts()
 {
 	if(plm4es)
 		MmFreeContiguousMemory(plm4es);
-	if(pdeps)
-		MmFreeContiguousMemory(pdeps);
+	if(pdepes)
+		MmFreeContiguousMemory(pdepes);
 	if(pdes)
 		MmFreeContiguousMemory(pdes);
 }
