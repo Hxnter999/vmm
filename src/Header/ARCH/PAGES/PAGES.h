@@ -1,11 +1,11 @@
 #pragma once
 #include "../../datatypes.h"
 
-struct PML4e 
+struct PML4E 
 {
 	uint64_t present : 1;
 	uint64_t write : 1;
-	uint64_t supervisor : 1;
+	uint64_t usermode : 1;
 	uint64_t page_write_thru : 1;
 	uint64_t page_cache_disable : 1;
 	uint64_t accessed : 1;
@@ -22,7 +22,7 @@ struct PDPE
 {
 	uint64_t present : 1;
 	uint64_t write : 1;
-	uint64_t supervisor : 1;
+	uint64_t usermode : 1;
 	uint64_t page_write_thru : 1;
 	uint64_t page_cache_disable : 1;
 	uint64_t accessed : 1;
@@ -41,7 +41,7 @@ struct PDPE
 			uint64_t page_pa : 22;
 			uint64_t available : 7;
 			uint64_t mpk : 4;
-		} huge_page;
+		} uhuge_page;
 	};
 
 	uint64_t no_execute : 1;
@@ -51,7 +51,7 @@ struct PDE
 {
 	uint64_t present : 1;
 	uint64_t write : 1;
-	uint64_t supervisor : 1;
+	uint64_t usermode : 1;
 	uint64_t page_write_thru : 1;
 	uint64_t page_cache_disable : 1;
 	uint64_t accessed : 1;
@@ -71,7 +71,7 @@ struct PDE
 			uint64_t page_pa : 31;
 			uint64_t available : 7;
 			uint64_t mpk : 4;
-		} large_page;
+		} ularge_page;
 	};
 
 	uint64_t no_execute : 1;
@@ -81,7 +81,7 @@ struct PTE
 {
 	uint64_t present : 1;
 	uint64_t write : 1;
-	uint64_t supervisor : 1;
+	uint64_t usermode : 1;
 	uint64_t page_write_thru : 1;
 	uint64_t page_cache_disable : 1;
 	uint64_t accessed : 1;
