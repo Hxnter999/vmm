@@ -23,14 +23,10 @@ extern "C" NTSTATUS DriverEntry(PDRIVER_OBJECT pDriverObject, PUNICODE_STRING pR
 	global.vcpus = reinterpret_cast<vcpu_t*>(ExAllocatePoolWithTag(NonPagedPool, global.vcpu_count * sizeof(vcpu_t), 'sgma'));
 	memset(global.vcpus, 0, global.vcpu_count * sizeof(vcpu_t));
 
-	global.shared_msrpm = reinterpret_cast<MSR::msrpm_t*>(MmAllocateContiguousMemory(sizeof(MSR::msrpm_t), { .QuadPart = -1 }));
-	if (global.shared_msrpm == nullptr)
-	{
-		print("couldnt allocate msrpm\n");
+	if (!setup_msrpm()) {
+		print("failed to allocate msrpm\n");
 		return STATUS_INSUFFICIENT_RESOURCES;
 	}
-	memset(global.shared_msrpm, 0, sizeof(MSR::msrpm_t));
-	setup_msrpm();
 
 	for (uint32_t i = 0; i < global.vcpu_count; i++)
 	{

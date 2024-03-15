@@ -1,7 +1,7 @@
 #pragma once
 #include "../../datatypes.h"
 
-struct PML4E 
+struct pml4e_t 
 {
 	uint64_t present : 1;
 	uint64_t write : 1;
@@ -18,7 +18,7 @@ struct PML4E
 
 };
 
-struct PDPE 
+struct pdpe_t 
 {
 	uint64_t present : 1;
 	uint64_t write : 1;
@@ -47,7 +47,7 @@ struct PDPE
 	uint64_t no_execute : 1;
 };
 
-struct PDE
+struct pde_t
 {
 	uint64_t present : 1;
 	uint64_t write : 1;
@@ -77,7 +77,7 @@ struct PDE
 	uint64_t no_execute : 1;
 };
 
-struct PTE
+struct pte_t
 {
 	uint64_t present : 1;
 	uint64_t write : 1;

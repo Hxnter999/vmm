@@ -22,6 +22,6 @@
 #include "../../Header/Util/bitset.h"
 
 extern "C" bool vmexit_handler(vcpu_t* vcpu);
-void setup_msrpm();
+bool setup_msrpm();
 void setup_vmcb(vcpu_t* vcpu, CONTEXT* ctx);
 SVM_STATUS initialize();

@@ -2,7 +2,6 @@
 #include "svm.h"
 
 bool vmexit_handler(vcpu_t* vcpu) {
-	UNREFERENCED_PARAMETER(vcpu);
 	//__debugbreak();
 
 	// guest rax overwriten by host after vmexit
@@ -31,8 +30,15 @@ bool vmexit_handler(vcpu_t* vcpu) {
 	return true;
 }
 
-void setup_msrpm() {
+bool setup_msrpm() {
 	using namespace MSR;
+
+	global.shared_msrpm = reinterpret_cast<MSR::msrpm_t*>(MmAllocateContiguousMemory(sizeof(MSR::msrpm_t), { .QuadPart = -1 }));
+	if (global.shared_msrpm == nullptr)
+		return false;
+	
+	memset(global.shared_msrpm, 0, sizeof(MSR::msrpm_t));
+
 	// msrpm->set(msr, bit, value = true)
 	// bit is either 0 (read) or 1 (write)
 	
@@ -41,6 +47,7 @@ void setup_msrpm() {
 
 	global.shared_msrpm->set(MSR::HSAVE_PA::MSR_VM_HSAVE_PA, access::read);
 	global.shared_msrpm->set(MSR::HSAVE_PA::MSR_VM_HSAVE_PA, access::write);
+	return true;
 }
 
 void setup_vmcb(vcpu_t* vcpu, CONTEXT* ctx) //dis just a test

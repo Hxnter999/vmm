@@ -1,17 +1,12 @@
 #pragma once
-#include "commons.h"
-#include "ARCH/CPUID/Extended Features/fn_identifiers.h"
-#include "ARCH/PAGES/PAGES.h"
-#include "ARCH/CPUID/Extended Features/fn_processor_capacity.h"
-#include "ARCH/VMCB/vmcb.h"
+#include "../../commons.h"
+#include "../CPUID/Extended Features/fn_identifiers.h"
+#include "../PAGES/PAGES.h"
+#include "../CPUID/Extended Features/fn_processor_capacity.h"
+#include "../VMCB/vmcb.h"
 
 //todo factor in mttrs
 //todo gpat
-
-//might wanna put this shit in the shared vpcu thingo
-PML4E* plm4es; //aka buffer
-PDPE* pdepes;
-PDE* pdes;
 
 bool setup_huge() 
 {
@@ -33,8 +28,8 @@ bool setup_huge()
 	}
 	memset(buffer, 0, (amount_plm4es + amount_pdepes) * 8);
 
-	plm4es = reinterpret_cast<PML4E*>(buffer);
-	pdepes = reinterpret_cast<PDPE*>(buffer + amount_plm4es);
+	plm4es = reinterpret_cast<pml4e_t*>(buffer);
+	pdepes = reinterpret_cast<pdpe_t*>(buffer + amount_plm4es);
 
 
 	for (uint64_t i = 0; i < amount_plm4es; i++) {
@@ -81,9 +76,9 @@ bool setup_allusive()
 	}
 	memset(buffer, 0, (amount_plm4es + amount_pdepes + amount_pdes) * 8);
 
-	plm4es = reinterpret_cast<PML4E*>(buffer);
-	pdepes = reinterpret_cast<PDPE*>(buffer + amount_plm4es);
-	pdes = reinterpret_cast<PDE*>(buffer + amount_plm4es + amount_pdepes);
+	plm4es = reinterpret_cast<pml4e_t*>(buffer);
+	pdepes = reinterpret_cast<pdpe_t*>(buffer + amount_plm4es);
+	pdes = reinterpret_cast<pde_t*>(buffer + amount_plm4es + amount_pdepes);
 
 	for (uint64_t i = 0; i < amount_plm4es; i++) {
 

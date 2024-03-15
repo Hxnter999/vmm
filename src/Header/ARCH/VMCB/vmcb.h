@@ -2,6 +2,7 @@
 #include "vmcb_control.h"
 #include "vmcb_state_save.h"
 #include "../MSRs/msrs.h"
+#include "../PAGES/pages.h"
 
 struct vmcb_t {
 	// table b-1 (control area)
@@ -62,6 +63,9 @@ struct shared {
 	vcpu_t* vcpus;
 	uint32_t vcpu_count;
 	MSR::msrpm_t* shared_msrpm;
+	pml4e_t* plm4es;
+	pdpe_t* pdepes;
+	pde_t* pdes;
 };
 
 inline shared global{};
