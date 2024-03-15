@@ -2,8 +2,6 @@
 #include "../VMCB/vmcb.h"
 
 inline void msr_handler(vcpu_t* vcpu) {
-	vcpu->guest_vmcb.save_state.rip = vcpu->guest_vmcb.control.nrip;
-
 	// MSR return value is split between 2 registers, we have to handle them both before passing it back into the guest.
 	ULARGE_INTEGER result;
 	uint32_t msr = vcpu->guest_stack_frame.rcx & 0xFFFFFFFF;
@@ -19,7 +17,7 @@ inline void msr_handler(vcpu_t* vcpu) {
 		}
 		else {
 			efer.bits = result.QuadPart;
-			if (!efer.svme) {
+			if (!efer.svme) { // we cant disable svme.
 				vcpu->guest_vmcb.save_state.efer = result.QuadPart;
 			}
 		}

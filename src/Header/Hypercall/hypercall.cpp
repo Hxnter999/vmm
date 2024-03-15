@@ -1,25 +1,14 @@
 #include "../commons.h"
 #include "hypercall.h"
+#include "../../Source/SVM/svm.h"
 
 void hypercall_handler(vcpu_t* vcpu) {
-	vcpu->guest_vmcb.save_state.rip = vcpu->guest_vmcb.control.nrip;
-
+	__debugbreak();
+	print("hypercall: %d\n", vcpu->guest_stack_frame.rcx);
 	switch (static_cast<hypercall_code>(vcpu->guest_stack_frame.rcx)) {
 	case hypercall_code::UNLOAD:
 	{
-		vcpu->should_exit = true;
-		// rcx -> nrip
-		// rbx -> rsp
-		vcpu->guest_stack_frame.rcx = vcpu->guest_vmcb.control.nrip;
-		vcpu->guest_stack_frame.rbx = vcpu->guest_vmcb.save_state.rsp;
-	
-		__svm_vmload(vcpu->guest_vmcb_pa);
-	
-		_disable();
-		__svm_stgi();
-	
-		MSR::EFER efer{}; efer.load(); efer.svme = 0; efer.store();
-		__writeeflags(vcpu->guest_vmcb.save_state.rflags);
+		devirtualize();
 		break;
 	}
 	case hypercall_code::PING:
@@ -29,7 +18,6 @@ void hypercall_handler(vcpu_t* vcpu) {
 	}
 	default:
 	{
-		print("PONG\n");
 		break;
 	}
 	}

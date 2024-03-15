@@ -1,9 +1,11 @@
 #include "../../Header/commons.h"
 #include "svm.h"
+extern "C" void vmenter(uint64_t* guest_vmcb_pa);
 
 bool vmexit_handler(vcpu_t* vcpu) {
-	//__debugbreak();
+	if (vcpu->should_exit) { return false; }; // do this check twice incase devirtualization occured from another vcpu, we dont need to handle exits
 
+	vcpu->guest_vmcb.save_state.rip = vcpu->guest_vmcb.control.nrip;
 	// guest rax overwriten by host after vmexit
 	vcpu->guest_stack_frame.rax = vcpu->guest_vmcb.save_state.rax;
 	switch (vcpu->guest_vmcb.control.exit_code) {
@@ -16,37 +18,22 @@ bool vmexit_handler(vcpu_t* vcpu) {
 		msr_handler(vcpu);
 		break;
 
+	case svm_exit_code::VMEXIT_INVALID:
+		print("INVALID GUEST STATE, EXITING...\n");
+		devirtualize();
+		break;
+
 	default:
 		// event inject a gp/ud
 		print("Unhandled VMEXIT: %d\n", vcpu->guest_vmcb.control.exit_code);
 		break;
 	}
-	// just for the cpu, we already pop back rax in vmenter
+	// the cpu handles guest rax for us
 	vcpu->guest_vmcb.save_state.rax = vcpu->guest_stack_frame.rax;
 
 	//true to continue
 	//false to devirt
 	if (vcpu->should_exit) { return false; };
-	return true;
-}
-
-bool setup_msrpm() {
-	using namespace MSR;
-
-	global.shared_msrpm = reinterpret_cast<MSR::msrpm_t*>(MmAllocateContiguousMemory(sizeof(MSR::msrpm_t), { .QuadPart = -1 }));
-	if (global.shared_msrpm == nullptr)
-		return false;
-	
-	memset(global.shared_msrpm, 0, sizeof(MSR::msrpm_t));
-
-	// msrpm->set(msr, bit, value = true)
-	// bit is either 0 (read) or 1 (write)
-	
-	global.shared_msrpm->set(MSR::EFER::MSR_EFER, access::read);
-	global.shared_msrpm->set(MSR::EFER::MSR_EFER, access::write);
-
-	global.shared_msrpm->set(MSR::HSAVE_PA::MSR_VM_HSAVE_PA, access::read);
-	global.shared_msrpm->set(MSR::HSAVE_PA::MSR_VM_HSAVE_PA, access::write);
 	return true;
 }
 
@@ -69,18 +56,19 @@ void setup_vmcb(vcpu_t* vcpu, CONTEXT* ctx) //dis just a test
 	vcpu->guest_vmcb.control.vmmload = 1;
 	vcpu->guest_vmcb.control.vmmsave = 1;
 	vcpu->guest_vmcb.control.msr_prot = 1; // enable this once msrpm and handler is fixed up
+
 	vcpu->guest_vmcb.control.guest_asid = 1; // Address space identifier "ASID [cannot be] equal to zero" 15.5.1 ASID 0 is for the host
 	vcpu->guest_vmcb.control.v_intr_masking = 1; // 15.21.1 & 15.22.2
 
-	vcpu->guest_vmcb.control.np_enable = 1;
-	vcpu->guest_vmcb.control.n_cr3 = MmGetPhysicalAddress(global.plm4es).QuadPart;
+	//vcpu->guest_vmcb.control.np_enable = 1;
+	//vcpu->guest_vmcb.control.n_cr3 = MmGetPhysicalAddress(global.npt).QuadPart;
 	
 	// Set up the guest state
 	vcpu->guest_vmcb.save_state.cr0.value = __readcr0();
 	vcpu->guest_vmcb.save_state.cr2.value = __readcr2();
 	vcpu->guest_vmcb.save_state.cr3.value = __readcr3();
 	vcpu->guest_vmcb.save_state.cr4.value = __readcr4();
-	efer.svme = 0; vcpu->guest_vmcb.save_state.efer = efer.bits;
+	vcpu->guest_vmcb.save_state.efer = efer.bits;
 	vcpu->guest_vmcb.save_state.g_pat = __readmsr(MSR::PAT::MSR_PAT); // very sigma (kinda like MTRRs but for page tables)
 
 	SEGMENT::descriptor_table_register idtr{}, gdtr{}; __sidt(&idtr); _sgdt(&gdtr);
@@ -125,6 +113,67 @@ void setup_vmcb(vcpu_t* vcpu, CONTEXT* ctx) //dis just a test
 	//__svm_vmsave(MmGetPhysicalAddress(&vcpu->host_vmcb).QuadPart); // idk about this
 }
 
+bool virtualize(vcpu_t* vcpu) {
+	CONTEXT* ctx = reinterpret_cast<CONTEXT*>(ExAllocatePoolWithTag(NonPagedPool, sizeof(CONTEXT), 'sgma')); memset(ctx, 0, sizeof(CONTEXT));
+	RtlCaptureContext(ctx);
+
+	if (global.current_vcpu->is_virtualized) {
+		//__debugbreak();
+		return true;
+	}
+	setup_vmcb(vcpu, ctx);
+	vmenter(&vcpu->guest_vmcb_pa);
+	return false;
+}
+
+void devirtualize() {
+
+	for (uint32_t i = 0; i < global.vcpu_count; i++)
+	{
+		global.current_vcpu = &global.vcpus[i];
+
+		auto original_affinity = KeSetSystemAffinityThreadEx(1ll << i);
+
+		{
+			global.vcpus[i].should_exit = true;
+			// rcx -> nrip
+			// rbx -> rsp
+			global.vcpus[i].guest_stack_frame.rcx = global.vcpus[i].guest_vmcb.control.nrip;
+			global.vcpus[i].guest_stack_frame.rbx = global.vcpus[i].guest_vmcb.save_state.rsp;
+			
+			__svm_vmload(global.vcpus[i].guest_vmcb_pa);
+			
+			_disable();
+			__svm_stgi();
+			
+			MSR::EFER efer{}; efer.load(); efer.svme = 0; efer.store();
+			__writeeflags(global.vcpus[i].guest_vmcb.save_state.rflags);
+		}
+
+		KeRevertToUserAffinityThreadEx(original_affinity);
+	}
+}
+
+bool setup_msrpm() {
+	using namespace MSR;
+
+	global.shared_msrpm = reinterpret_cast<MSR::msrpm_t*>(MmAllocateContiguousMemory(sizeof(MSR::msrpm_t), { .QuadPart = -1 }));
+	if (global.shared_msrpm == nullptr)
+		return false;
+
+	memset(global.shared_msrpm, 0, sizeof(MSR::msrpm_t));
+
+	// msrpm->set(msr, bit, value = true)
+	// bit is either 0 (read) or 1 (write)
+
+	global.shared_msrpm->set(MSR::EFER::MSR_EFER, access::read);
+	global.shared_msrpm->set(MSR::EFER::MSR_EFER, access::write);
+
+	global.shared_msrpm->set(MSR::HSAVE_PA::MSR_VM_HSAVE_PA, access::read);
+	global.shared_msrpm->set(MSR::HSAVE_PA::MSR_VM_HSAVE_PA, access::write);
+	return true;
+}
+
 SVM_STATUS initialize() {
 	CPUID::fn_vendor vendor_check{};
 	vendor_check.load();
@@ -142,7 +191,7 @@ SVM_STATUS initialize() {
 
 	if (!id.feature_identifiers.svm)
 	{
-		print("SVM not supported, womp womp\n");
+		print("SVM not supported\n");
 		return SVM_STATUS::SVM_IS_NOT_SUPPORTED_BY_CPU;
 	}
 
@@ -151,7 +200,7 @@ SVM_STATUS initialize() {
 
 	if (!svm_rev.svm_feature_identification.nested_paging)
 	{
-		print("Nested paging not supported, womp womp\n");
+		print("Nested paging not supported\n");
 		return SVM_STATUS::SVM_NESTED_PAGING_NOT_SUPPORTED;
 	}
 

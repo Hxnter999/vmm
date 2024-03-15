@@ -1,7 +1,6 @@
 .code
 
 testcall proc
-	mov rcx, 1
 	vmmcall
 	ret
 testcall endp
@@ -13,7 +12,7 @@ extern vmexit_handler  : proc
 vmenter PROC
 	mov [rcx+10h], rsp ; preserve stack pointer
 	mov rsp, rcx
-	sub rsp, 60h ; so the line after this doesnt break anything
+	sub rsp, 60h ; needed at first cause the loop always adds 60h from the start
 
 vmrun_loop:
     add rsp, 60h ; have to do it after the conditional jump since it will overwrite the zero flag
@@ -82,12 +81,12 @@ vmrun_loop:
 	movaps xmm4, xmmword ptr [rsp+40h]
 	movaps xmm5, xmmword ptr [rsp+50h]
 
-	; rsp -> guest_vmcb_pa
-
 	jnz vmrun_loop
-	add rsp, 60h
 
 devirtualize:
+	; rsp -> guest_vmcb_pa
+	add rsp, 60h
+
 	; after the vmexit handler decides its time to devirtualize, it will pass the required information through the registers
 	; rcx -> nrip
 	; rbx -> rsp
