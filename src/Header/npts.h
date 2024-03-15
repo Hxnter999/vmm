@@ -9,7 +9,7 @@
 //todo gpat
 
 //might wanna put this shit in the shared vpcu thingo
-PML4E* plm4es;
+PML4E* plm4es; //aka buffer
 PDPE* pdepes;
 PDE* pdes;
 
@@ -25,21 +25,16 @@ bool setup_huge()
 	const uint64_t amount_pdepes = (guest_phys_addr_size + pdepe_address_range - 1) / pdepe_address_range; //round up
 	const uint64_t amount_plm4es = (amount_pdepes + 511) / 512; //round up
 
-	plm4es = reinterpret_cast<PML4E*>(MmAllocateContiguousMemory(amount_plm4es * sizeof(PML4E), {.QuadPart = -1}));
-	if (!plm4es)
+	uint64_t* buffer = static_cast<uint64_t*>(MmAllocateContiguousMemory((amount_plm4es + amount_pdepes) * 8, { .QuadPart = -1 }));
+	if (!buffer)
 	{
-		print("plm4es failed to be allocated\n");
+		print("buffer failed to be allocated\n");
 		return false;
 	}
+	memset(buffer, 0, (amount_plm4es + amount_pdepes) * 8);
 
-	pdepes = reinterpret_cast<PDPE*>(MmAllocateContiguousMemory(amount_pdepes * sizeof(PDPE), { .QuadPart = -1 }));
-	if (!pdepes)
-	{
-		print("pdeps failed to be allocated\n");
-		return false;
-	}
-	memset(plm4es, 0, amount_plm4es * sizeof(PML4E));
-	memset(pdepes, 0, amount_pdepes * sizeof(PDPE));
+	plm4es = reinterpret_cast<PML4E*>(buffer);
+	pdepes = reinterpret_cast<PDPE*>(buffer + amount_plm4es);
 
 
 	for (uint64_t i = 0; i < amount_plm4es; i++) {
@@ -78,31 +73,17 @@ bool setup_allusive()
 	const uint64_t amount_pdepes = (amount_pdes + 511) / 512; //round up
 	const uint64_t amount_plm4es = (amount_pdepes + 511) / 512; //round up
 
-	plm4es = reinterpret_cast<PML4E*>(MmAllocateContiguousMemory(amount_plm4es * sizeof(PML4E), { .QuadPart = -1 }));
-	if (!plm4es)
+	uint64_t* buffer = static_cast<uint64_t*>(MmAllocateContiguousMemory((amount_plm4es + amount_pdepes + amount_pdes) * 8, { .QuadPart = -1 }));
+	if (!buffer)
 	{
-		print("plm4es failed to be allocated\n");
+		print("buffer failed to be allocated\n");
 		return false;
 	}
+	memset(buffer, 0, (amount_plm4es + amount_pdepes + amount_pdes) * 8);
 
-	pdepes = reinterpret_cast<PDPE*>(MmAllocateContiguousMemory(amount_pdepes * sizeof(PDPE), { .QuadPart = -1 }));
-	if (!pdepes)
-	{
-		print("pdeps failed to be allocated\n");
-		return false;
-	}
-
-	pdes = reinterpret_cast<PDE*>(MmAllocateContiguousMemory(amount_pdes * sizeof(PDE), { .QuadPart = -1 }));
-	if (!pdes)
-	{
-		print("pdes failed to be allocated\n");
-		return false;
-	}
-
-	memset(plm4es, 0, amount_plm4es * sizeof(PML4E));
-	memset(pdepes, 0, amount_pdepes * sizeof(PDPE));
-	memset(pdes, 0, amount_pdes * sizeof(PDE));
-
+	plm4es = reinterpret_cast<PML4E*>(buffer);
+	pdepes = reinterpret_cast<PDPE*>(buffer + amount_plm4es);
+	pdes = reinterpret_cast<PDE*>(buffer + amount_plm4es + amount_pdepes);
 
 	for (uint64_t i = 0; i < amount_plm4es; i++) {
 
@@ -152,7 +133,7 @@ void initnpts()
 	}
 	else 
 	{
-		result =setup_allusive();
+		result = setup_allusive();
 	}
 
 	if (!result) 
@@ -174,8 +155,4 @@ void deletenpts()
 {
 	if(plm4es)
 		MmFreeContiguousMemory(plm4es);
-	if(pdepes)
-		MmFreeContiguousMemory(pdepes);
-	if(pdes)
-		MmFreeContiguousMemory(pdes);
 }
