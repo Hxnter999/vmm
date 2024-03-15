@@ -4,6 +4,7 @@ extern "C" void vmenter(uint64_t* guest_vmcb_pa);
 
 bool vmexit_handler(vcpu_t* vcpu) {
 	vcpu->guest_vmcb.save_state.rip = vcpu->guest_vmcb.control.nrip;
+
 	// guest rax overwriten by host after vmexit
 	vcpu->guest_stack_frame.rax = vcpu->guest_vmcb.save_state.rax;
 	switch (vcpu->guest_vmcb.control.exit_code) {
@@ -34,7 +35,6 @@ bool vmexit_handler(vcpu_t* vcpu) {
 	if (vcpu->should_exit) {
 		devirtualize(vcpu); // devirtualize current vcpu and alert all others
 		return false;
-		
 	};
 
 	return true;
@@ -44,7 +44,6 @@ void setup_vmcb(vcpu_t* vcpu, CONTEXT* ctx) //dis just a test
 {
 	vcpu->is_virtualized = true;
 
-	print("Starting to virtualize...\n");
 	MSR::EFER efer{};
 	efer.load();
 	efer.svme = 1;
@@ -134,6 +133,7 @@ void devirtualize(vcpu_t* vcpu) {
 	for (uint32_t i = 0; i < global.vcpu_count; i++) // alert all other vcpus
 	{
 		global.vcpus[i].should_exit = true;
+		if (&global.vcpus[i] == vcpu) print("Exiting [%d]...\n", i);
 	}
 
 	// devirtualize current vcpu
@@ -149,7 +149,6 @@ void devirtualize(vcpu_t* vcpu) {
 
 	MSR::EFER efer{}; efer.load(); efer.svme = 0; efer.store();
 	__writeeflags(vcpu->guest_vmcb.save_state.rflags);
-
 }
 
 bool setup_msrpm() {

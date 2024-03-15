@@ -30,7 +30,8 @@ extern "C" NTSTATUS DriverEntry(PDRIVER_OBJECT pDriverObject, PUNICODE_STRING pR
 	for (uint32_t i = 0; i < global.vcpu_count; i++)
 	{
 		global.current_vcpu = &global.vcpus[i];
-		
+		print("Virtualizing [%d]...\n", i);
+
 		auto original_affinity = KeSetSystemAffinityThreadEx(1ll << i);
 
 		if (!virtualize(&global.vcpus[i])) {
@@ -49,6 +50,16 @@ extern "C" NTSTATUS DriverEntry(PDRIVER_OBJECT pDriverObject, PUNICODE_STRING pR
 void Unload(PDRIVER_OBJECT pDriverObject)
 {
 	UNREFERENCED_PARAMETER(pDriverObject);
+
+	for (uint32_t i = 0; i < global.vcpu_count; i++)
+	{
+		print("Devirtualizing [%d]...\n", i);
+		auto original_affinity = KeSetSystemAffinityThreadEx(1ll << i);
+
+		testcall(hypercall_code::UNLOAD);
+
+		KeRevertToUserAffinityThreadEx(original_affinity); // fix later
+	}
 
 	if (global.vcpus)
 		ExFreePoolWithTag(global.vcpus, 'sgma');
