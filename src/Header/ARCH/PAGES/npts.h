@@ -47,7 +47,14 @@ bool setup_huge()
 			pdepes[j].write = 1;
 			pdepes[j].usermode = 1;
 
-			pdepes[j].page_pa = (j * pdepe_address_range) + (i * plm4e_address_range); //this is wrong (needs to be shifted)
+			const uint64_t value = (j * pdepe_address_range) + (i * plm4e_address_range);
+
+			constexpr uint64_t adjustedShift = 30;
+			const uint64_t shiftedValue = value >> adjustedShift;
+			const uint64_t mask = (1ULL << 22) - 1; // Mask for the 22-bit page_pa field
+			const uint64_t maskedValue = shiftedValue & mask;
+
+			pdepes[j].page_pa = maskedValue;
 		}
 	}
 
@@ -103,7 +110,12 @@ bool setup_allusive()
 				pdes[k].usermode = 1;
 				pdes[k].large_page = 1;
 
-				pdes[k].page_pa = (k * pdes_address_range) + (j * pdepe_address_range) + (i * plm4e_address_range); //this is wrong (needs to be shifted)
+				const uint64_t value = (k * pdes_address_range) + (j * pdepe_address_range) + (i * plm4e_address_range);
+				constexpr uint64_t shiftAmount = 21;
+				const uint64_t mask = (1ULL << 31) - 1; // Mask for the 31-bit page_pa field
+				const uint64_t shiftedValue = (value >> shiftAmount) & mask;
+
+				pdes[k].page_pa = shiftedValue;
 			}
 		}
 	}
