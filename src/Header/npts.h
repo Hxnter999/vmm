@@ -3,10 +3,12 @@
 #include "ARCH/CPUID/Extended Features/fn_identifiers.h"
 #include "ARCH/PAGES/PAGES.h"
 #include "ARCH/CPUID/Extended Features/fn_processor_capacity.h"
+#include "ARCH/VMCB/vmcb.h"
 
 //todo factor in mttrs
 //todo gpat
 
+//might wanna put this shit in the shared vpcu thingo
 PML4E* plm4es;
 PDPE* pdepes;
 PDE* pdes;
@@ -143,13 +145,28 @@ void initnpts()
 
 	bool huge_page_supported = ident.feature_identifiers_ext.page_1gb;
 
+	bool result{};
 	if (huge_page_supported)
 	{
-		setup_huge();
+		result = setup_huge();
 	}
 	else 
 	{
-		setup_allusive();
+		result =setup_allusive();
+	}
+
+	if (!result) 
+	{
+		print("failed to setup npts\n");
+		deletenpts();
+		return;
+	}
+
+	//set vmcb here
+	for (uint16_t i = 0; i < global.vcpu_count; i++)
+	{
+		global.vcpus[i].guest_vmcb.control.np_enable = 1;
+		global.vcpus[i].guest_vmcb.control.np = MmGetPhysicalAddress(plm4es).QuadPart;
 	}
 }
 
