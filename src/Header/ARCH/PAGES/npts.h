@@ -95,7 +95,7 @@ bool setup_allusive()
 			pdepes[j].usermode = 1;
 			pdepes[j].page_pa = MmGetPhysicalAddress(&pdes[j * 512]).QuadPart >> PAGE_SHIFT;
 
-			for (uint64_t k = 0; k < min(512, amount_pdes - j * 512); k++) 
+			for (uint64_t k = 0; k < min(512, amount_pdes - (j * 512) - (i * 512 * 512)); k++) 
 			{
 				pdes[k].present = 1;
 				pdes[k].write = 1;
