@@ -8,7 +8,7 @@ void hypercall_handler(vcpu_t* vcpu) {
 	switch (static_cast<hypercall_code>(vcpu->guest_stack_frame.rcx)) {
 	case hypercall_code::UNLOAD:
 	{
-		devirtualize();
+		vcpu->should_exit = true;
 		break;
 	}
 	case hypercall_code::PING:

@@ -49,7 +49,6 @@ extern "C" NTSTATUS DriverEntry(PDRIVER_OBJECT pDriverObject, PUNICODE_STRING pR
 void Unload(PDRIVER_OBJECT pDriverObject)
 {
 	UNREFERENCED_PARAMETER(pDriverObject);
-	devirtualize();
 
 	if (global.vcpus)
 		ExFreePoolWithTag(global.vcpus, 'sgma');

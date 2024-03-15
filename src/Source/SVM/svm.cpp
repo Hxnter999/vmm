@@ -3,8 +3,6 @@
 extern "C" void vmenter(uint64_t* guest_vmcb_pa);
 
 bool vmexit_handler(vcpu_t* vcpu) {
-	if (vcpu->should_exit) { return false; }; // do this check twice incase devirtualization occured from another vcpu, we dont need to handle exits
-
 	vcpu->guest_vmcb.save_state.rip = vcpu->guest_vmcb.control.nrip;
 	// guest rax overwriten by host after vmexit
 	vcpu->guest_stack_frame.rax = vcpu->guest_vmcb.save_state.rax;
@@ -20,7 +18,7 @@ bool vmexit_handler(vcpu_t* vcpu) {
 
 	case svm_exit_code::VMEXIT_INVALID:
 		print("INVALID GUEST STATE, EXITING...\n");
-		devirtualize();
+		vcpu->should_exit = true;
 		break;
 
 	default:
@@ -33,7 +31,12 @@ bool vmexit_handler(vcpu_t* vcpu) {
 
 	//true to continue
 	//false to devirt
-	if (vcpu->should_exit) { return false; };
+	if (vcpu->should_exit) {
+		devirtualize(vcpu); // devirtualize current vcpu and alert all others
+		return false;
+		
+	};
+
 	return true;
 }
 
@@ -126,32 +129,27 @@ bool virtualize(vcpu_t* vcpu) {
 	return false;
 }
 
-void devirtualize() {
+void devirtualize(vcpu_t* vcpu) {
 
-	for (uint32_t i = 0; i < global.vcpu_count; i++)
+	for (uint32_t i = 0; i < global.vcpu_count; i++) // alert all other vcpus
 	{
-		global.current_vcpu = &global.vcpus[i];
-
-		auto original_affinity = KeSetSystemAffinityThreadEx(1ll << i);
-
-		{
-			global.vcpus[i].should_exit = true;
-			// rcx -> nrip
-			// rbx -> rsp
-			global.vcpus[i].guest_stack_frame.rcx = global.vcpus[i].guest_vmcb.control.nrip;
-			global.vcpus[i].guest_stack_frame.rbx = global.vcpus[i].guest_vmcb.save_state.rsp;
-			
-			__svm_vmload(global.vcpus[i].guest_vmcb_pa);
-			
-			_disable();
-			__svm_stgi();
-			
-			MSR::EFER efer{}; efer.load(); efer.svme = 0; efer.store();
-			__writeeflags(global.vcpus[i].guest_vmcb.save_state.rflags);
-		}
-
-		KeRevertToUserAffinityThreadEx(original_affinity);
+		global.vcpus[i].should_exit = true;
 	}
+
+	// devirtualize current vcpu
+	// rcx -> nrip
+	// rbx -> rsp
+	vcpu->guest_stack_frame.rcx = vcpu->guest_vmcb.control.nrip;
+	vcpu->guest_stack_frame.rbx = vcpu->guest_vmcb.save_state.rsp;
+
+	__svm_vmload(vcpu->guest_vmcb_pa);
+
+	_disable();
+	__svm_stgi();
+
+	MSR::EFER efer{}; efer.load(); efer.svme = 0; efer.store();
+	__writeeflags(vcpu->guest_vmcb.save_state.rflags);
+
 }
 
 bool setup_msrpm() {
