@@ -28,26 +28,26 @@ bool setup_huge()
 	}
 	memset(buffer, 0, (amount_plm4es + amount_pdepes) * 8);
 
-	plm4es = reinterpret_cast<pml4e_t*>(buffer);
-	pdepes = reinterpret_cast<pdpe_t*>(buffer + amount_plm4es);
+	global.plm4es = reinterpret_cast<pml4e_t*>(buffer);
+	global.pdepes = reinterpret_cast<pdpe_t*>(buffer + amount_plm4es);
 
 
 	for (uint64_t i = 0; i < amount_plm4es; i++) {
 
-		plm4es[i].present = 1;
-		plm4es[i].write = 1;
-		plm4es[i].usermode = 1;
-		plm4es[i].page_pa = MmGetPhysicalAddress(&pdepes[i * 512]).QuadPart >> PAGE_SHIFT;
+		global.plm4es[i].present = 1;
+		global.plm4es[i].write = 1;
+		global.plm4es[i].usermode = 1;
+		global.plm4es[i].page_pa = MmGetPhysicalAddress(&global.pdepes[i * 512]).QuadPart >> PAGE_SHIFT;
 
 
 		for (uint64_t j = 0; j < min(512, amount_pdepes - i * 512); j++)
 		{
-			pdepes[j].present = 1;
-			pdepes[j].huge_page = 1;
-			pdepes[j].write = 1;
-			pdepes[j].usermode = 1;
+			global.pdepes[j].present = 1;
+			global.pdepes[j].huge_page = 1;
+			global.pdepes[j].write = 1;
+			global.pdepes[j].usermode = 1;
 
-			pdepes[j].uhuge_page.page_pa = (j * pdepe_address_range) + (i * plm4e_address_range); //this is wrong (needs to be shifted)
+			global.pdepes[j].uhuge_page.page_pa = (j * pdepe_address_range) + (i * plm4e_address_range); //this is wrong (needs to be shifted)
 		}
 	}
 
@@ -76,33 +76,33 @@ bool setup_allusive()
 	}
 	memset(buffer, 0, (amount_plm4es + amount_pdepes + amount_pdes) * 8);
 
-	plm4es = reinterpret_cast<pml4e_t*>(buffer);
-	pdepes = reinterpret_cast<pdpe_t*>(buffer + amount_plm4es);
-	pdes = reinterpret_cast<pde_t*>(buffer + amount_plm4es + amount_pdepes);
+	global.plm4es = reinterpret_cast<pml4e_t*>(buffer);
+	global.pdepes = reinterpret_cast<pdpe_t*>(buffer + amount_plm4es);
+	global.pdes = reinterpret_cast<pde_t*>(buffer + amount_plm4es + amount_pdepes);
 
 	for (uint64_t i = 0; i < amount_plm4es; i++) {
 
-		plm4es[i].present = 1;
-		plm4es[i].write = 1;
-		plm4es[i].usermode = 1;
-		plm4es[i].page_pa = MmGetPhysicalAddress(&pdepes[i * 512]).QuadPart >> PAGE_SHIFT;
+		global.plm4es[i].present = 1;
+		global.plm4es[i].write = 1;
+		global.plm4es[i].usermode = 1;
+		global.plm4es[i].page_pa = MmGetPhysicalAddress(&global.pdepes[i * 512]).QuadPart >> PAGE_SHIFT;
 
 
 		for (uint64_t j = 0; j < min(512, amount_pdepes - i * 512); j++)
 		{
-			pdepes[j].present = 1;
-			pdepes[j].write = 1;
-			pdepes[j].usermode = 1;
-			pdepes[j].page_pa = MmGetPhysicalAddress(&pdes[j * 512]).QuadPart >> PAGE_SHIFT;
+			global.pdepes[j].present = 1;
+			global.pdepes[j].write = 1;
+			global.pdepes[j].usermode = 1;
+			global.pdepes[j].page_pa = MmGetPhysicalAddress(&global.pdes[j * 512]).QuadPart >> PAGE_SHIFT;
 
 			for (uint64_t k = 0; k < min(512, amount_pdes - (j * 512) - (i * 512 * 512)); k++) 
 			{
-				pdes[k].present = 1;
-				pdes[k].write = 1;
-				pdes[k].usermode = 1;
-				pdes[k].large_page = 1;
+				global.pdes[k].present = 1;
+				global.pdes[k].write = 1;
+				global.pdes[k].usermode = 1;
+				global.pdes[k].large_page = 1;
 
-				pdes[k].ularge_page.page_pa = (k * pdes_address_range) + (j * pdepe_address_range) + (i * plm4e_address_range); //this is wrong (needs to be shifted)
+				global.pdes[k].ularge_page.page_pa = (k * pdes_address_range) + (j * pdepe_address_range) + (i * plm4e_address_range); //this is wrong (needs to be shifted)
 			}
 		}
 	}
@@ -137,17 +137,10 @@ void initnpts()
 		deletenpts();
 		return;
 	}
-
-	//set vmcb here
-	for (uint16_t i = 0; i < global.vcpu_count; i++)
-	{
-		global.vcpus[i].guest_vmcb.control.np_enable = 1;
-		global.vcpus[i].guest_vmcb.control.np = MmGetPhysicalAddress(plm4es).QuadPart;
-	}
 }
 
 void deletenpts() 
 {
-	if(plm4es)
-		MmFreeContiguousMemory(plm4es);
+	if(global.plm4es)
+		MmFreeContiguousMemory(global.plm4es);
 }

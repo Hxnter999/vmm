@@ -164,10 +164,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Header\ARCH\VMEXIT\handlers.h" />
-    <ClInclude Include="src\Header\ARCH\PAGES\PAGES.h" />
+    <ClInclude Include="src\Header\ARCH\PAGES\pages.h" />
     <ClInclude Include="src\Header\Hypercall\hypercall.h" />
     <ClInclude Include="src\Header\ARCH\CR\control_registers.h" />
-    <ClInclude Include="src\Header\npts.h" />
+    <ClInclude Include="src\Header\ARCH\PAGES\npts.h" />
     <ClInclude Include="src\Source\SVM\svm.h" />
     <ClInclude Include="src\Header\ARCH\VMEXIT\EXITINFO\exitinfo2.h" />
     <ClInclude Include="src\Header\Util\bitset.h" />

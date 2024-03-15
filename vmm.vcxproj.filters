@@ -118,6 +118,8 @@
     <ClInclude Include="src\Source\SVM\svm.h" />
     <ClInclude Include="src\Header\Hypercall\hypercall.h" />
     <ClInclude Include="src\Header\ARCH\VMEXIT\handlers.h" />
+    <ClInclude Include="src\Header\ARCH\PAGES\pages.h" />
+    <ClInclude Include="src\Header\ARCH\PAGES\npts.h" />
   </ItemGroup>
   <ItemGroup>
     <MASM Include="src\Source\asm\vmenter.asm">

@@ -71,6 +71,9 @@ void setup_vmcb(vcpu_t* vcpu, CONTEXT* ctx) //dis just a test
 	vcpu->guest_vmcb.control.msr_prot = 1; // enable this once msrpm and handler is fixed up
 	vcpu->guest_vmcb.control.guest_asid = 1; // Address space identifier "ASID [cannot be] equal to zero" 15.5.1 ASID 0 is for the host
 	vcpu->guest_vmcb.control.v_intr_masking = 1; // 15.21.1 & 15.22.2
+
+	vcpu->guest_vmcb.control.np_enable = 1;
+	vcpu->guest_vmcb.control.n_cr3 = MmGetPhysicalAddress(global.plm4es).QuadPart;
 	
 	// Set up the guest state
 	vcpu->guest_vmcb.save_state.cr0.value = __readcr0();
