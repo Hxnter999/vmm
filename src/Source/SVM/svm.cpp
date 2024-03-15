@@ -1,10 +1,12 @@
 #include "../../Header/commons.h"
 #include "svm.h"
 
-bool vmexit_handler(vcpu* vcpu) {
+bool vmexit_handler(vcpu_t* vcpu) {
 	UNREFERENCED_PARAMETER(vcpu);
 	//__debugbreak();
 
+	// guest rax overwriten by host after vmexit
+	vcpu->guest_stack_frame.rax = vcpu->guest_vmcb.save_state.rax;
 	switch (vcpu->guest_vmcb.control.exit_code) {
 
 	case svm_exit_code::VMEXIT_VMMCALL:
@@ -22,7 +24,6 @@ bool vmexit_handler(vcpu* vcpu) {
 	}
 	// just for the cpu, we already pop back rax in vmenter
 	vcpu->guest_vmcb.save_state.rax = vcpu->guest_stack_frame.rax;
-	print("rax: %p %p\n", vcpu->guest_vmcb.save_state.rax, vcpu->guest_stack_frame.rax);
 
 	//true to continue
 	//false to devirt
@@ -35,14 +36,14 @@ void setup_msrpm() {
 	// msrpm->set(msr, bit, value = true)
 	// bit is either 0 (read) or 1 (write)
 	
-	global.shared_msrpm->set(MSR::EFER::MSR_EFER, bit::read);
-	global.shared_msrpm->set(MSR::EFER::MSR_EFER, bit::write);
+	global.shared_msrpm->set(MSR::EFER::MSR_EFER, access::read);
+	global.shared_msrpm->set(MSR::EFER::MSR_EFER, access::write);
 
-	global.shared_msrpm->set(MSR::HSAVE_PA::MSR_VM_HSAVE_PA, bit::read);
-	global.shared_msrpm->set(MSR::HSAVE_PA::MSR_VM_HSAVE_PA, bit::write);
+	global.shared_msrpm->set(MSR::HSAVE_PA::MSR_VM_HSAVE_PA, access::read);
+	global.shared_msrpm->set(MSR::HSAVE_PA::MSR_VM_HSAVE_PA, access::write);
 }
 
-void setup_vmcb(vcpu* vcpu, CONTEXT* ctx) //dis just a test
+void setup_vmcb(vcpu_t* vcpu, CONTEXT* ctx) //dis just a test
 {
 	vcpu->is_virtualized = true;
 
@@ -53,23 +54,23 @@ void setup_vmcb(vcpu* vcpu, CONTEXT* ctx) //dis just a test
 	efer.store();
 
 	vcpu->guest_vmcb.control.msrpm_base_pa = MmGetPhysicalAddress(global.shared_msrpm).QuadPart;
-
+	
 	//Set up control area
 	//TODO: set interupts
 	vcpu->guest_vmcb.control.vmrun = 1; // VMRUN intercepts muse be enabled 15.5.1
 	vcpu->guest_vmcb.control.vmmcall = 1; // explicit vmexits back to host
 	vcpu->guest_vmcb.control.vmmload = 1;
 	vcpu->guest_vmcb.control.vmmsave = 1;
-	//vcpu->guest_vmcb.control.msr_prot = 1; // enable this once msrpm and handler is fixed up
-
+	vcpu->guest_vmcb.control.msr_prot = 1; // enable this once msrpm and handler is fixed up
 	vcpu->guest_vmcb.control.guest_asid = 1; // Address space identifier "ASID [cannot be] equal to zero" 15.5.1 ASID 0 is for the host
+	vcpu->guest_vmcb.control.v_intr_masking = 1; // 15.21.1 & 15.22.2
 	
 	// Set up the guest state
 	vcpu->guest_vmcb.save_state.cr0.value = __readcr0();
 	vcpu->guest_vmcb.save_state.cr2.value = __readcr2();
 	vcpu->guest_vmcb.save_state.cr3.value = __readcr3();
 	vcpu->guest_vmcb.save_state.cr4.value = __readcr4();
-	vcpu->guest_vmcb.save_state.efer = __readmsr(MSR::EFER::MSR_EFER);
+	efer.svme = 0; vcpu->guest_vmcb.save_state.efer = efer.bits;
 	vcpu->guest_vmcb.save_state.g_pat = __readmsr(MSR::PAT::MSR_PAT); // very sigma (kinda like MTRRs but for page tables)
 
 	SEGMENT::descriptor_table_register idtr{}, gdtr{}; __sidt(&idtr); _sgdt(&gdtr);
@@ -111,7 +112,7 @@ void setup_vmcb(vcpu* vcpu, CONTEXT* ctx) //dis just a test
 	hsave_pa.bits = MmGetPhysicalAddress(&vcpu->host_state_area).QuadPart;
 	hsave_pa.store();
 
-	__svm_vmsave(MmGetPhysicalAddress(&vcpu->host_vmcb).QuadPart); // idk about this
+	//__svm_vmsave(MmGetPhysicalAddress(&vcpu->host_vmcb).QuadPart); // idk about this
 }
 
 SVM_STATUS initialize() {

@@ -6,7 +6,7 @@
 
 namespace MSR {
 
-	enum class bit {
+	enum class access {
 		read = 0,
 		write = 1
 	};
@@ -27,7 +27,7 @@ namespace MSR {
 	};
 
 	// The MSRPM (MSR Permission Map) is a bitmap (2 bits per MSR [R,W], 1 == operation is intercepted) that determines the access permissions for each MSR.
-	struct alignas(0x1000) msrpm {
+	struct alignas(0x1000) msrpm_t {
 		union {
 			struct {
 				// 0x0 - 0x7FF
@@ -45,7 +45,7 @@ namespace MSR {
 			util::bitset<0x2000> vector;
 		};
 
-		void set(uint64_t msr, bit bit, bool value = true) {
+		void set(uint64_t msr, access access_bit, bool value = true) {
 			[[maybe_unused]] constexpr uint64_t vector1_start = 0x0000'0000, vector1_end = 0x0000'1FFF;
 			[[maybe_unused]] constexpr uint64_t vector2_start = 0xC000'0000, vector2_end = 0xC000'1FFF;
 			[[maybe_unused]] constexpr uint64_t vector3_start = 0xC001'0000, vector3_end = 0xC001'1FFF;
@@ -65,7 +65,7 @@ namespace MSR {
 				return;
 			}
 
-			target->set((msr & 0x7FF) * 2 + (bit == bit::read ? 0 : 1), value);
+			target->set((msr & 0x7FF) * 2 + static_cast<int>(access_bit), value);
 		}
 	};
 };
