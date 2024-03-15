@@ -49,6 +49,7 @@ extern "C" NTSTATUS DriverEntry(PDRIVER_OBJECT pDriverObject, PUNICODE_STRING pR
 void Unload(PDRIVER_OBJECT pDriverObject)
 {
 	UNREFERENCED_PARAMETER(pDriverObject);
+	devirtualize();
 
 	if (global.vcpus)
 		ExFreePoolWithTag(global.vcpus, 'sgma');
@@ -56,8 +57,6 @@ void Unload(PDRIVER_OBJECT pDriverObject)
 		MmFreeContiguousMemory(global.shared_msrpm);
 	if(global.npt)
 		MmFreeContiguousMemory(global.npt);
-
-	devirtualize();
 
 	print("---------\n\n");
 }
