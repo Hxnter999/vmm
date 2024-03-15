@@ -20,16 +20,16 @@ extern "C" NTSTATUS DriverEntry(PDRIVER_OBJECT pDriverObject, PUNICODE_STRING pR
 
 	// setup the vcpus
 	global.vcpu_count = KeQueryActiveProcessorCount(nullptr);
-	global.vcpus = reinterpret_cast<vcpu*>(ExAllocatePoolWithTag(NonPagedPool, global.vcpu_count * sizeof(vcpu), 'sgma'));
-	memset(global.vcpus, 0, global.vcpu_count * sizeof(vcpu));
+	global.vcpus = reinterpret_cast<vcpu_t*>(ExAllocatePoolWithTag(NonPagedPool, global.vcpu_count * sizeof(vcpu_t), 'sgma'));
+	memset(global.vcpus, 0, global.vcpu_count * sizeof(vcpu_t));
 
-	global.shared_msrpm = reinterpret_cast<MSR::msrpm*>(MmAllocateContiguousMemory(sizeof(MSR::msrpm), { .QuadPart = -1 }));
+	global.shared_msrpm = reinterpret_cast<MSR::msrpm_t*>(MmAllocateContiguousMemory(sizeof(MSR::msrpm_t), { .QuadPart = -1 }));
 	if (global.shared_msrpm == nullptr)
 	{
 		print("couldnt allocate msrpm\n");
 		return STATUS_INSUFFICIENT_RESOURCES;
 	}
-	memset(global.shared_msrpm, 0, sizeof(MSR::msrpm));
+	memset(global.shared_msrpm, 0, sizeof(MSR::msrpm_t));
 	setup_msrpm();
 
 	for (uint32_t i = 0; i < global.vcpu_count; i++)
@@ -46,7 +46,7 @@ extern "C" NTSTATUS DriverEntry(PDRIVER_OBJECT pDriverObject, PUNICODE_STRING pR
 		auto original_affinity = KeSetSystemAffinityThreadEx(1ll << i);
 		print("attempting to set up vcpu %d\n", KeGetCurrentProcessorIndex());
 
-		__debugbreak();
+		//__debugbreak();
 		setup_vmcb(&global.vcpus[i], ctx);
 		vmenter(&global.vcpus[i].guest_vmcb_pa);
 
@@ -55,7 +55,7 @@ extern "C" NTSTATUS DriverEntry(PDRIVER_OBJECT pDriverObject, PUNICODE_STRING pR
 	}
 	print("Virtualized\n");
 
-	//testcall();
+	//__debugbreak();
 
 	return STATUS_SUCCESS;
 }

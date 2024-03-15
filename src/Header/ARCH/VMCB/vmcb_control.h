@@ -238,21 +238,23 @@ struct vmcb_control {
 	union {
 		uint64_t value60;
 		struct {
-			uint64_t v_tpr : 8;		// this value is written back to the vmcb at #vmexit.
-			uint64_t v_irq : 1;		// this value is written back to the vmcb at #vmexit. this field is ignored on vmrun when avic is enabled
-			uint64_t vgif : 1;		// vgif value (0 – virtual interrupts are masked, 1 – virtual interrupts are unmasked)
-			uint64_t int_shadow : 1;
-			uint64_t v_nmi : 1;		// indicates whether a virtual nmi is pending in the guest. the processor will clear v_nmi once it takes the virtual nmi
-			uint64_t v_nmi_mask : 1;
-			uint64_t reserved13 : 3;
-			uint64_t v_ign_prio : 4;
-			uint64_t v_ign_tpr : 1;
-			uint64_t reserved21 : 5;
-			uint64_t v_nmi_enable : 1;
-			uint64_t reserved27 : 5;
-			uint64_t v_intr_vector : 8;
-			uint64_t reserved40 : 23;
-			uint64_t busy : 1;
+			uint64_t v_tpr : 8; // virtual tpr for guest cr8 operations
+			uint64_t v_irq : 1; // if set, virtual interrupt is pending
+			uint64_t v_gif : 1; // if set, virtual interrupts are unmasked 
+			uint64_t v_nmi : 1; // if set, nmi is pending
+			uint64_t v_nmi_mask : 1; // if set, v_nmi is masked
+			uint64_t reserved12 : 3;
+			uint64_t v_intr_prio : 4; // virtual interrupt priority
+			uint64_t v_ign_tpr : 1; // if set, the current virtual interrupt is ignores v_tpr
+			uint64_t reserved21 : 3;
+			uint64_t v_intr_masking : 1; // virtualize masking of INTR interrupts
+			uint64_t v_gif_enable : 1; // if set, virtual gif is enabled for the guest
+			uint64_t v_nmi_enable : 1; // nmi virtualization enabled
+			uint64_t reserved27 : 3;
+			uint64_t x2avic_enable : 1; // x2apic virtualization enabled
+			uint64_t avic_enable : 1; 
+			uint64_t v_intr_vector : 8; // vector to use for this interrupt
+			uint64_t reserved40 : 24;
 		};
 	};
 
