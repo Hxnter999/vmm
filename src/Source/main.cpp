@@ -65,6 +65,8 @@ void Unload(PDRIVER_OBJECT pDriverObject)
 		ExFreePoolWithTag(global.vcpus, 'sgma');
 	if (global.shared_msrpm)
 		MmFreeContiguousMemory(global.shared_msrpm);
+	if(global.npt)
+		MmFreeContiguousMemory(global.npt);
 
 	print("---------\n\n");
 }

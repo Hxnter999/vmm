@@ -28,29 +28,30 @@ bool setup_huge()
 	}
 	memset(buffer, 0, (amount_plm4es + amount_pdepes) * 8);
 
-	global.plm4es = reinterpret_cast<pml4e_t*>(buffer);
-	global.pdepes = reinterpret_cast<pdpe_t*>(buffer + amount_plm4es);
+	pml4e_t* plm4es = reinterpret_cast<pml4e_t*>(buffer);
+	pdpe_huge_t* pdepes = reinterpret_cast<pdpe_huge_t*>(buffer + amount_plm4es);
 
 
 	for (uint64_t i = 0; i < amount_plm4es; i++) {
 
-		global.plm4es[i].present = 1;
-		global.plm4es[i].write = 1;
-		global.plm4es[i].usermode = 1;
-		global.plm4es[i].page_pa = MmGetPhysicalAddress(&global.pdepes[i * 512]).QuadPart >> PAGE_SHIFT;
+		plm4es[i].present = 1;
+		plm4es[i].write = 1;
+		plm4es[i].usermode = 1;
+		plm4es[i].page_pa = MmGetPhysicalAddress(&pdepes[i * 512]).QuadPart >> PAGE_SHIFT;
 
 
 		for (uint64_t j = 0; j < min(512, amount_pdepes - i * 512); j++)
 		{
-			global.pdepes[j].present = 1;
-			global.pdepes[j].huge_page = 1;
-			global.pdepes[j].write = 1;
-			global.pdepes[j].usermode = 1;
+			pdepes[j].present = 1;
+			pdepes[j].huge_page = 1;
+			pdepes[j].write = 1;
+			pdepes[j].usermode = 1;
 
-			global.pdepes[j].uhuge_page.page_pa = (j * pdepe_address_range) + (i * plm4e_address_range); //this is wrong (needs to be shifted)
+			pdepes[j].page_pa = (j * pdepe_address_range) + (i * plm4e_address_range); //this is wrong (needs to be shifted)
 		}
 	}
 
+	global.npt = buffer;
 	return true;
 } 
 
@@ -76,39 +77,40 @@ bool setup_allusive()
 	}
 	memset(buffer, 0, (amount_plm4es + amount_pdepes + amount_pdes) * 8);
 
-	global.plm4es = reinterpret_cast<pml4e_t*>(buffer);
-	global.pdepes = reinterpret_cast<pdpe_t*>(buffer + amount_plm4es);
-	global.pdes = reinterpret_cast<pde_t*>(buffer + amount_plm4es + amount_pdepes);
+	pml4e_t* plm4es = reinterpret_cast<pml4e_t*>(buffer);
+	pdpe_t* pdepes = reinterpret_cast<pdpe_t*>(buffer + amount_plm4es);
+	pde_large_t* pdes = reinterpret_cast<pde_large_t*>(buffer + amount_plm4es + amount_pdepes);
 
 	for (uint64_t i = 0; i < amount_plm4es; i++) {
 
-		global.plm4es[i].present = 1;
-		global.plm4es[i].write = 1;
-		global.plm4es[i].usermode = 1;
-		global.plm4es[i].page_pa = MmGetPhysicalAddress(&global.pdepes[i * 512]).QuadPart >> PAGE_SHIFT;
+		plm4es[i].present = 1;
+		plm4es[i].write = 1;
+		plm4es[i].usermode = 1;
+		plm4es[i].page_pa = MmGetPhysicalAddress(&pdepes[i * 512]).QuadPart >> PAGE_SHIFT;
 
 
 		for (uint64_t j = 0; j < min(512, amount_pdepes - i * 512); j++)
 		{
-			global.pdepes[j].present = 1;
-			global.pdepes[j].write = 1;
-			global.pdepes[j].usermode = 1;
-			global.pdepes[j].page_pa = MmGetPhysicalAddress(&global.pdes[j * 512]).QuadPart >> PAGE_SHIFT;
+			pdepes[j].present = 1;
+			pdepes[j].write = 1;
+			pdepes[j].usermode = 1;
+			pdepes[j].page_pa = MmGetPhysicalAddress(&pdes[j * 512]).QuadPart >> PAGE_SHIFT;
 
 			for (uint64_t k = 0; k < min(512, amount_pdes - (j * 512) - (i * 512 * 512)); k++) 
 			{
-				global.pdes[k].present = 1;
-				global.pdes[k].write = 1;
-				global.pdes[k].usermode = 1;
-				global.pdes[k].large_page = 1;
+				pdes[k].present = 1;
+				pdes[k].write = 1;
+				pdes[k].usermode = 1;
+				pdes[k].large_page = 1;
 
-				global.pdes[k].ularge_page.page_pa = (k * pdes_address_range) + (j * pdepe_address_range) + (i * plm4e_address_range); //this is wrong (needs to be shifted)
+				pdes[k].page_pa = (k * pdes_address_range) + (j * pdepe_address_range) + (i * plm4e_address_range); //this is wrong (needs to be shifted)
 			}
 		}
 	}
+	global.npt = buffer;
 }
 
-void initnpts() 
+bool initnpts() 
 {
 	//EDX bit 26 as returned by CPUID function 8000_0001h indicates 1 - Gbyte page support.
 	//The EAX register as returned by CPUID function 8000_0019h reports the number of 1 - Gbyte L1 TLB entries supported
@@ -134,13 +136,7 @@ void initnpts()
 	if (!result) 
 	{
 		print("failed to setup npts\n");
-		deletenpts();
-		return;
 	}
-}
 
-void deletenpts() 
-{
-	if(global.plm4es)
-		MmFreeContiguousMemory(global.plm4es);
+	return result;
 }

@@ -63,9 +63,7 @@ struct shared {
 	vcpu_t* vcpus;
 	uint32_t vcpu_count;
 	MSR::msrpm_t* shared_msrpm;
-	pml4e_t* plm4es;
-	pdpe_t* pdepes;
-	pde_t* pdes;
+	uint64_t* npt;
 };
 
 inline shared global{};
