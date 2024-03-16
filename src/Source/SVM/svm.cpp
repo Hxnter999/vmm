@@ -53,6 +53,10 @@ void setup_vmcb(vcpu_t* vcpu, CONTEXT* ctx) //dis just a test
 	efer.svme = 1;
 	efer.store();
 
+	MSR::HSAVE_PA hsave_pa{};
+	hsave_pa.bits = MmGetPhysicalAddress(&vcpu->host_vmcb).QuadPart;
+	hsave_pa.store();
+
 	vcpu->guest_vmcb.control.msrpm_base_pa = MmGetPhysicalAddress(global.shared_msrpm).QuadPart;
 	
 	//Set up control area
@@ -110,13 +114,7 @@ void setup_vmcb(vcpu_t* vcpu, CONTEXT* ctx) //dis just a test
 	vcpu->guest_vmcb_pa = MmGetPhysicalAddress(&vcpu->guest_vmcb).QuadPart;
 	vcpu->self = vcpu;
 
-	__svm_vmsave(vcpu->guest_vmcb_pa);
-
-	MSR::HSAVE_PA hsave_pa{};
-	hsave_pa.bits = MmGetPhysicalAddress(&vcpu->host_state_area).QuadPart;
-	hsave_pa.store();
-
-	//__svm_vmsave(MmGetPhysicalAddress(&vcpu->host_vmcb).QuadPart); // idk about this
+	__svm_vmsave(vcpu->guest_vmcb_pa); // needed here cause the vmrun loop loads guest state before everything, if there isnt a guest saved already it wont work properly
 }
 
 bool virtualize(vcpu_t* vcpu) {

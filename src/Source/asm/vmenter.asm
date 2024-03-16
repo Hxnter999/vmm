@@ -11,7 +11,7 @@ extern vmexit_handler  : proc
 ; extern void vmenter(uint64_t* guest_vmcb_pa);
 vmenter PROC
 	mov rsp, rcx
-	sub rsp, 100h ; needed at first cause the loop always adds 60h from the start
+	sub rsp, 100h ; needed at first cause the loop always adds 100h from the start
 
 vmrun_loop:
     add rsp, 100h ; have to do it after the conditional jump since it will overwrite the zero flag

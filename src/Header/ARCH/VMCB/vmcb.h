@@ -82,11 +82,10 @@ struct alignas(0x1000) vcpu_t {
 			uint64_t should_exit;
 		};
 	};
-	vmcb_t host_vmcb;
+	vmcb_t host_vmcb; // on vmrun and exits processor saves/restores host state to/from this field, we can also directly manipulate it as long as its considered legal
 	vmcb_t guest_vmcb;
-	uint8_t host_state_area[0x1000]; //Do not modfiy (depends on chipset), just set phys (page alligned) to VM_HSAVE_PA
 };
-static_assert(sizeof(vcpu_t) == 0x9000, "vcpu size is not 0x9000");
+static_assert(sizeof(vcpu_t) == 0x8000, "vcpu size is not 0x8000");
 
 struct shared {
 	vcpu_t* current_vcpu;
