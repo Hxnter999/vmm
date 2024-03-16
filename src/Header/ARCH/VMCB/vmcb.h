@@ -56,6 +56,16 @@ struct stack_frame_t
 	M128A xmm3;
 	M128A xmm4;
 	M128A xmm5;
+	M128A xmm6;
+	M128A xmm7;
+	M128A xmm8;
+	M128A xmm9;
+	M128A xmm10;
+	M128A xmm11;
+	M128A xmm12;
+	M128A xmm13;
+	M128A xmm14;
+	M128A xmm15;
 };
 
 struct alignas(0x1000) vcpu_t {
