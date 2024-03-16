@@ -141,11 +141,9 @@ void devirtualize(vcpu_t* vcpu) {
 		if (&global.vcpus[i] == vcpu) print("Exiting [%d]...\n", i);
 	}
 
-	// devirtualize current vcpu
-	// rcx -> nrip
-	// rbx -> rsp
-	vcpu->guest_stack_frame.rcx.value = vcpu->guest_vmcb.control.nrip;
-	vcpu->guest_stack_frame.rbx.value = vcpu->guest_vmcb.save_state.rsp;
+	// devirtualize current vcpu, later in the vmrun loop we restore rsp and jump to guest_rip.
+	vcpu->guest_rip = vcpu->guest_vmcb.control.nrip;
+	vcpu->guest_rsp = vcpu->guest_vmcb.save_state.rsp;
 
 	__svm_vmload(vcpu->guest_vmcb_pa);
 

@@ -84,14 +84,15 @@ vmrun_loop:
 	jnz vmrun_loop
 
 devirtualize:
-	; rsp -> guest_vmcb_pa
-	add rsp, 60h
+	; rsp -> guest_rip
+	add rsp, 70h
 
-	; after the vmexit handler decides its time to devirtualize, it will pass the required information through the registers
-	; rcx -> nrip
-	; rbx -> rsp
-	mov rsp, rbx
-	jmp rcx
+	mov rax, [rsp]
+
+	; rsp + 8 -> guest_rsp
+	mov rsp, [rsp+8]
+	
+	jmp rax
 
 vmenter ENDP
 
