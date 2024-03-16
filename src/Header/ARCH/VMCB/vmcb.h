@@ -23,6 +23,14 @@ struct register_t {
 			uint32_t high;
 		};
 	};
+
+	inline bool operator==(uint64_t val) {
+		return value == val;
+	}
+	
+	inline bool operator!=(uint64_t val) {
+		return value != val;
+	}
 };
 
 struct stack_frame_t
