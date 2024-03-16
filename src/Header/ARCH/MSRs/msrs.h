@@ -26,6 +26,16 @@ namespace MSR {
 		}
 	};
 
+	struct msr_t { // return value of rdmsr instructions is split between RAX and RDX
+		union {
+			uint64_t value;
+			struct {
+				uint32_t eax;
+				uint32_t edx;
+			};
+		};
+	};
+
 	// The MSRPM (MSR Permission Map) is a bitmap (2 bits per MSR [R,W], 1 == operation is intercepted) that determines the access permissions for each MSR.
 	struct alignas(0x1000) msrpm_t {
 		union {

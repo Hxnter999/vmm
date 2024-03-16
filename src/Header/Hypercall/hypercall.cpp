@@ -3,7 +3,7 @@
 #include "../../Source/SVM/svm.h"
 
 void hypercall_handler(vcpu_t* vcpu) {
-	switch (static_cast<hypercall_code>(vcpu->guest_stack_frame.rcx)) {
+	switch (static_cast<hypercall_code>(vcpu->guest_stack_frame.rcx.value)) {
 	case hypercall_code::UNLOAD:
 	{
 		vcpu->should_exit = true;

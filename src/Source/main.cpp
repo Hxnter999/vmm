@@ -57,6 +57,7 @@ void Unload(PDRIVER_OBJECT pDriverObject)
 		auto original_affinity = KeSetSystemAffinityThreadEx(1ll << i);
 
 		testcall(hypercall_code::UNLOAD);
+		print("Am i being executed? %d\n", i);
 
 		KeRevertToUserAffinityThreadEx(original_affinity); // fix later
 	}

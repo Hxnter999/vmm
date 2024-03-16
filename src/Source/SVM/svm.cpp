@@ -6,7 +6,7 @@ bool vmexit_handler(vcpu_t* vcpu) {
 	vcpu->guest_vmcb.save_state.rip = vcpu->guest_vmcb.control.nrip;
 
 	// guest rax overwriten by host after vmexit
-	vcpu->guest_stack_frame.rax = vcpu->guest_vmcb.save_state.rax;
+	vcpu->guest_stack_frame.rax.value = vcpu->guest_vmcb.save_state.rax;
 	switch (vcpu->guest_vmcb.control.exit_code) {
 
 	case svm_exit_code::VMEXIT_VMMCALL:
@@ -22,13 +22,17 @@ bool vmexit_handler(vcpu_t* vcpu) {
 		vcpu->should_exit = true;
 		break;
 
+	case svm_exit_code::VMEXIT_NPF:
+		print("[NPF] Error code: %X\n", vcpu->guest_vmcb.control.exit_info_1.page_fault.error_code);
+		print("[NPF] Address: %p\n", vcpu->guest_vmcb.control.exit_info_2.page_fault.faulting_address);
+
 	default:
 		// event inject a gp/ud
 		print("Unhandled VMEXIT: %d\n", vcpu->guest_vmcb.control.exit_code);
 		break;
 	}
 	// the cpu handles guest rax for us
-	vcpu->guest_vmcb.save_state.rax = vcpu->guest_stack_frame.rax;
+	vcpu->guest_vmcb.save_state.rax = vcpu->guest_stack_frame.rax.value;
 
 	//true to continue
 	//false to devirt
@@ -62,8 +66,8 @@ void setup_vmcb(vcpu_t* vcpu, CONTEXT* ctx) //dis just a test
 	vcpu->guest_vmcb.control.guest_asid = 1; // Address space identifier "ASID [cannot be] equal to zero" 15.5.1 ASID 0 is for the host
 	vcpu->guest_vmcb.control.v_intr_masking = 1; // 15.21.1 & 15.22.2
 
-	//vcpu->guest_vmcb.control.np_enable = 1;
-	//vcpu->guest_vmcb.control.n_cr3 = MmGetPhysicalAddress(global.npt).QuadPart;
+	vcpu->guest_vmcb.control.np_enable = 1;
+	vcpu->guest_vmcb.control.n_cr3 = MmGetPhysicalAddress(global.npt).QuadPart;
 	
 	// Set up the guest state
 	vcpu->guest_vmcb.save_state.cr0.value = __readcr0();
@@ -139,8 +143,8 @@ void devirtualize(vcpu_t* vcpu) {
 	// devirtualize current vcpu
 	// rcx -> nrip
 	// rbx -> rsp
-	vcpu->guest_stack_frame.rcx = vcpu->guest_vmcb.control.nrip;
-	vcpu->guest_stack_frame.rbx = vcpu->guest_vmcb.save_state.rsp;
+	vcpu->guest_stack_frame.rcx.value = vcpu->guest_vmcb.control.nrip;
+	vcpu->guest_stack_frame.rbx.value = vcpu->guest_vmcb.save_state.rsp;
 
 	__svm_vmload(vcpu->guest_vmcb_pa);
 
@@ -154,20 +158,20 @@ void devirtualize(vcpu_t* vcpu) {
 bool setup_msrpm() {
 	using namespace MSR;
 
-	global.shared_msrpm = reinterpret_cast<MSR::msrpm_t*>(MmAllocateContiguousMemory(sizeof(MSR::msrpm_t), { .QuadPart = -1 }));
+	global.shared_msrpm = reinterpret_cast<msrpm_t*>(MmAllocateContiguousMemory(sizeof(msrpm_t), { .QuadPart = -1 }));
 	if (global.shared_msrpm == nullptr)
 		return false;
 
-	memset(global.shared_msrpm, 0, sizeof(MSR::msrpm_t));
+	memset(global.shared_msrpm, 0, sizeof(msrpm_t));
 
 	// msrpm->set(msr, bit, value = true)
 	// bit is either 0 (read) or 1 (write)
 
-	global.shared_msrpm->set(MSR::EFER::MSR_EFER, access::read);
-	global.shared_msrpm->set(MSR::EFER::MSR_EFER, access::write);
+	global.shared_msrpm->set(EFER::MSR_EFER, access::read);
+	global.shared_msrpm->set(EFER::MSR_EFER, access::write);
 
-	global.shared_msrpm->set(MSR::HSAVE_PA::MSR_VM_HSAVE_PA, access::read);
-	global.shared_msrpm->set(MSR::HSAVE_PA::MSR_VM_HSAVE_PA, access::write);
+	global.shared_msrpm->set(HSAVE_PA::MSR_VM_HSAVE_PA, access::read);
+	global.shared_msrpm->set(HSAVE_PA::MSR_VM_HSAVE_PA, access::write);
 	return true;
 }
 

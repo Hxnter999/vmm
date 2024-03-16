@@ -15,22 +15,32 @@ struct vmcb_t {
 };
 static_assert(sizeof(vmcb_t) == 0x1000, "vmcb size is not 0x1000");
 
+struct register_t {
+	union {
+		uint64_t value;
+		struct {
+			uint32_t low;
+			uint32_t high;
+		};
+	};
+};
+
 struct stack_frame_t
 {
-	uint64_t rax; // rax is in vmcb
-	uint64_t rcx;
-	uint64_t rbx;
-	uint64_t rdx;
-	uint64_t rsi;
-	uint64_t rdi;
-	uint64_t r8;
-	uint64_t r9;
-	uint64_t r10;
-	uint64_t r11;
-	uint64_t r12;
-	uint64_t r13;
-	uint64_t r14;
-	uint64_t r15;
+	register_t rax; // rax is in vmcb
+	register_t rcx;
+	register_t rbx;
+	register_t rdx;
+	register_t rsi;
+	register_t rdi;
+	register_t r8;
+	register_t r9;
+	register_t r10;
+	register_t r11;
+	register_t r12;
+	register_t r13;
+	register_t r14;
+	register_t r15;
 	
 	M128A xmm0;
 	M128A xmm1;
