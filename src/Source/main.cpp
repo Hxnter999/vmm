@@ -61,7 +61,7 @@ void Unload(PDRIVER_OBJECT pDriverObject)
 
 		testcall(hypercall_code::UNLOAD);
 
-		KeRevertToUserAffinityThreadEx(original_affinity); // fix later
+		KeRevertToUserAffinityThreadEx(original_affinity);
 	}
 
 	if (global.vcpus)
