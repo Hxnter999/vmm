@@ -15,7 +15,7 @@ bool setup_huge()
 
 	CPUID::fn_processor_capacity proc_cap{};
 	proc_cap.load();
-	const uint64_t guest_phys_addr_size = proc_cap.address_size_identifiers.guest_physical_address_size;
+	const uint64_t guest_phys_addr_size = proc_cap.address_size_identifiers.guest_physical_address_size > 0 ? proc_cap.address_size_identifiers.guest_physical_address_size : proc_cap.address_size_identifiers.physical_address_size; //When this field is zero, refer to the PhysAddrSiz
 	
 	const uint64_t amount_pdepes = (guest_phys_addr_size + pdepe_address_range - 1) / pdepe_address_range; //round up
 	const uint64_t amount_plm4es = (amount_pdepes + 511) / 512; //round up
