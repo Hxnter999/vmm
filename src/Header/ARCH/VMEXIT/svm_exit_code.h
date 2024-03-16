@@ -74,36 +74,85 @@ enum svm_exit_code : uint64_t {
 
     // Exception handling
     VMEXIT_EXCEPTION_0 = 0x40, // Exception vector 0–31, respectively.
+    VMEXIT_DE = 0x40, // divide by zero
+
     VMEXIT_EXCEPTION_1 = 0x41,
+    VMEXIT_DB = 0x41, // debug exception
+
     VMEXIT_EXCEPTION_2 = 0x42,
+    // VMEXIT_NMI = 0x42, interception of this vector isnt supported
+
     VMEXIT_EXCEPTION_3 = 0x43,
+    VMEXIT_BP = 0x43, // breakpoint
+
     VMEXIT_EXCEPTION_4 = 0x44,
+    VMEXIT_OF = 0x44, // overflow
+
     VMEXIT_EXCEPTION_5 = 0x45,
+    VMEXIT_BR = 0x45, // bound range exceeded
+
     VMEXIT_EXCEPTION_6 = 0x46,
+    VMEXIT_UD = 0x46, // invalid opcode
+
     VMEXIT_EXCEPTION_7 = 0x47,
+    VMEXIT_NM = 0x47, // device not available
+
     VMEXIT_EXCEPTION_8 = 0x48,
+    VMEXIT_DF = 0x48, // double fault
+
     VMEXIT_EXCEPTION_9 = 0x49,
+    VMEXIT_CSO = 0x49, // coprocessor segment overrun
+
     VMEXIT_EXCEPTION_10 = 0x4A,
+    VMEXIT_TS = 0x4A, // invalid TSS
+
     VMEXIT_EXCEPTION_11 = 0x4B,
+    VMEXIT_NP = 0x4B, // segment not present
+
     VMEXIT_EXCEPTION_12 = 0x4C,
+    VMEXIT_SS = 0x4C, // stack exception
+
     VMEXIT_EXCEPTION_13 = 0x4D,
+    VMEXIT_GP = 0x4D, // general protection
+
     VMEXIT_EXCEPTION_14 = 0x4E,
+    VMEXIT_PF = 0x4E, // page fault
+
     VMEXIT_EXCEPTION_15 = 0x4F,
+
     VMEXIT_EXCEPTION_16 = 0x50,
+    VMEXIT_MF = 0x50, // x87 FPU floating-point error
+
     VMEXIT_EXCEPTION_17 = 0x51,
+    VMEXIT_AC = 0x51, // alignment check
+
     VMEXIT_EXCEPTION_18 = 0x52,
+    VMEXIT_MC = 0x52, // machine check
+
     VMEXIT_EXCEPTION_19 = 0x53,
+    VMEXIT_XF = 0x53, // SIMD floating-point exception
+
     VMEXIT_EXCEPTION_20 = 0x54,
+
     VMEXIT_EXCEPTION_21 = 0x55,
+    VMEXIT_CP = 0x55, // control protection exception
+
     VMEXIT_EXCEPTION_22 = 0x56,
     VMEXIT_EXCEPTION_23 = 0x57,
     VMEXIT_EXCEPTION_24 = 0x58,
     VMEXIT_EXCEPTION_25 = 0x59,
     VMEXIT_EXCEPTION_26 = 0x5A,
     VMEXIT_EXCEPTION_27 = 0x5B,
+
     VMEXIT_EXCEPTION_28 = 0x5C,
+    VMEXIT_HV = 0x5C, // event injection exception
+
     VMEXIT_EXCEPTION_29 = 0x5D,
+    VMEXIT_VC = 0x5D, // vmm communication exception
+
     VMEXIT_EXCEPTION_30 = 0x5E,
+    VMEXIT_SX = 0x5E, // security exception
+
     VMEXIT_EXCEPTION_31 = 0x5F,
 
     // Physical interrupts
