@@ -120,7 +120,8 @@ void setup_vmcb(vcpu_t* vcpu, CONTEXT* ctx) //dis just a test
 }
 
 bool virtualize(vcpu_t* vcpu) {
-	CONTEXT* ctx = reinterpret_cast<CONTEXT*>(ExAllocatePoolWithTag(NonPagedPool, sizeof(CONTEXT), 'sgma')); memset(ctx, 0, sizeof(CONTEXT));
+	CONTEXT* ctx = reinterpret_cast<CONTEXT*>(ExAllocatePoolWithTag(NonPagedPool, sizeof(CONTEXT), 'sgma'));
+	memset(ctx, 0, sizeof(CONTEXT));
 	RtlCaptureContext(ctx);
 
 	if (global.current_vcpu->is_virtualized) {

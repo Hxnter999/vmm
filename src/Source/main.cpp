@@ -1,5 +1,6 @@
 #include "../Header/commons.h"
 #include "SVM/svm.h"
+#include "../Header/ARCH/PAGES/npts.h"
 
 extern "C" int64_t testcall(hypercall_code code);
 void Unload(PDRIVER_OBJECT pDriverObject);
@@ -16,6 +17,8 @@ extern "C" NTSTATUS DriverEntry(PDRIVER_OBJECT pDriverObject, PUNICODE_STRING pR
 		return STATUS_UNSUCCESSFUL;
 	}
 	print("SVM supported\n");
+
+	initnpts();
 
 	// setup the vcpus
 	global.vcpu_count = KeQueryActiveProcessorCount(nullptr);
