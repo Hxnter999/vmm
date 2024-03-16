@@ -80,7 +80,7 @@ enum svm_exit_code : uint64_t {
     VMEXIT_DB = 0x41, // debug exception
 
     VMEXIT_EXCEPTION_2 = 0x42,
-    // VMEXIT_NMI = 0x42, interception of this vector isnt supported
+    // VMEXIT_NMI = 0x42, interception of this vector isnt supported, refer to chapter 15.12
 
     VMEXIT_EXCEPTION_3 = 0x43,
     VMEXIT_BP = 0x43, // breakpoint
