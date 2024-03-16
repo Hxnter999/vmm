@@ -49,7 +49,7 @@ bool setup_huge()
 
 			const uint64_t value = (j * pdepe_address_range) + (i * plm4e_address_range);
 
-			constexpr uint64_t adjustedShift = 30;
+			constexpr uint64_t adjustedShift = 28;
 			const uint64_t shiftedValue = value >> adjustedShift;
 			const uint64_t mask = (1ULL << 22) - 1; // Mask for the 22-bit page_pa field
 			const uint64_t maskedValue = shiftedValue & mask;
@@ -142,7 +142,8 @@ bool initnpts()
 	}
 	else 
 	{
-		result = setup_allusive();
+		print("Failed (huge pages not supported)\n");
+		//result = setup_allusive();
 	}
 
 	if (!result) 
