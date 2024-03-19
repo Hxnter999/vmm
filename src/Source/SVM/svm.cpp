@@ -68,6 +68,7 @@ void setup_vmcb(vcpu_t* vcpu, CONTEXT* ctx) //dis just a test
 
 	vcpu->guest_vmcb.control.np_enable = 1;
 	vcpu->guest_vmcb.control.n_cr3 = MmGetPhysicalAddress(global.npt).QuadPart;
+	print("NPT: %p\n", MmGetPhysicalAddress(global.npt).QuadPart);
 	
 	// Set up the guest state
 	vcpu->guest_vmcb.save_state.cr0.value = __readcr0();

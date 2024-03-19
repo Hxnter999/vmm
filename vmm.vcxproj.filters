@@ -48,6 +48,7 @@
     </ClCompile>
     <ClCompile Include="src\Source\SVM\svm.cpp" />
     <ClCompile Include="src\Header\Hypercall\hypercall.cpp" />
+    <ClCompile Include="src\Source\smbios.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Header\commons.h">
@@ -120,6 +121,9 @@
     <ClInclude Include="src\Header\ARCH\VMEXIT\handlers.h" />
     <ClInclude Include="src\Header\ARCH\PAGES\pages.h" />
     <ClInclude Include="src\Header\ARCH\PAGES\npts.h" />
+    <ClInclude Include="src\Header\smbios\smbios.h" />
+    <ClInclude Include="src\Header\ARCH\VMCB\stack_frame_t.h" />
+    <ClInclude Include="src\Header\Hypervisor.h" />
   </ItemGroup>
   <ItemGroup>
     <MASM Include="src\Source\asm\vmenter.asm">

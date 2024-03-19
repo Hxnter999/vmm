@@ -18,7 +18,11 @@ extern "C" NTSTATUS DriverEntry(PDRIVER_OBJECT pDriverObject, PUNICODE_STRING pR
 	}
 	print("SVM supported\n");
 
-	initnpts();
+	if (!initnpts()) 
+	{
+		print("NPT failed\n");
+		return STATUS_UNSUCCESSFUL;
+	}
 
 	// setup the vcpus
 	global.vcpu_count = KeQueryActiveProcessorCount(nullptr);

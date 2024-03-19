@@ -120,7 +120,7 @@
       <SpecifyArchitecture>false</SpecifyArchitecture>
     </Inf>
     <ClCompile>
-      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile>
       <PrecompiledHeaderFile>commons.h</PrecompiledHeaderFile>
@@ -145,6 +145,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">../commons.h</PrecompiledHeaderFile>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">../commons.h</PrecompiledHeaderFile>
     </ClCompile>
+    <ClCompile Include="src\Source\smbios.cpp" />
     <ClCompile Include="src\Source\SVM\svm.cpp">
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">../../Header/commons.h</PrecompiledHeaderFile>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">../../Header/commons.h</PrecompiledHeaderFile>
@@ -164,11 +165,14 @@
     </MASM>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Header\ARCH\VMCB\stack_frame_t.h" />
     <ClInclude Include="src\Header\ARCH\VMEXIT\handlers.h" />
     <ClInclude Include="src\Header\ARCH\PAGES\pages.h" />
     <ClInclude Include="src\Header\Hypercall\hypercall.h" />
     <ClInclude Include="src\Header\ARCH\CR\control_registers.h" />
     <ClInclude Include="src\Header\ARCH\PAGES\npts.h" />
+    <ClInclude Include="src\Header\Hypervisor.h" />
+    <ClInclude Include="src\Header\smbios\smbios.h" />
     <ClInclude Include="src\Source\SVM\svm.h" />
     <ClInclude Include="src\Header\ARCH\VMEXIT\EXITINFO\exitinfo2.h" />
     <ClInclude Include="src\Header\Util\bitset.h" />
