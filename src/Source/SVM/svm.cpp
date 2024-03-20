@@ -1,5 +1,6 @@
 #include "../../Header/commons.h"
 #include "svm.h"
+#include "../../Header/Hypervisor.h"
 extern "C" void vmenter(uint64_t* guest_vmcb_pa);
 
 bool vmexit_handler(vcpu_t* vcpu) {
@@ -53,7 +54,11 @@ void setup_vmcb(vcpu_t* vcpu, CONTEXT* ctx) //dis just a test
 	efer.svme = 1;
 	efer.store();
 
-	vcpu->guest_vmcb.control.msrpm_base_pa = MmGetPhysicalAddress(global.shared_msrpm).QuadPart;
+	MSR::HSAVE_PA hsave_pa{};
+	hsave_pa.bits = MmGetPhysicalAddress(&vcpu->host_vmcb).QuadPart;
+	hsave_pa.store();
+
+	vcpu->guest_vmcb.control.msrpm_base_pa = MmGetPhysicalAddress(HV->shared_msrpm).QuadPart;
 	
 	//Set up control area
 	//TODO: set interupts
@@ -67,8 +72,13 @@ void setup_vmcb(vcpu_t* vcpu, CONTEXT* ctx) //dis just a test
 	vcpu->guest_vmcb.control.v_intr_masking = 1; // 15.21.1 & 15.22.2
 
 	vcpu->guest_vmcb.control.np_enable = 1;
+<<<<<<< Updated upstream
 	vcpu->guest_vmcb.control.n_cr3 = MmGetPhysicalAddress(global.npt).QuadPart;
 	print("NPT: %p\n", MmGetPhysicalAddress(global.npt).QuadPart);
+=======
+	vcpu->guest_vmcb.control.n_cr3 = MmGetPhysicalAddress(HV->npt).QuadPart;
+	print("NPT: %p\n", MmGetPhysicalAddress(HV->npt).QuadPart);
+>>>>>>> Stashed changes
 	
 	// Set up the guest state
 	vcpu->guest_vmcb.save_state.cr0.value = __readcr0();
@@ -111,13 +121,7 @@ void setup_vmcb(vcpu_t* vcpu, CONTEXT* ctx) //dis just a test
 	vcpu->guest_vmcb_pa = MmGetPhysicalAddress(&vcpu->guest_vmcb).QuadPart;
 	vcpu->self = vcpu;
 
-	__svm_vmsave(vcpu->guest_vmcb_pa);
-
-	MSR::HSAVE_PA hsave_pa{};
-	hsave_pa.bits = MmGetPhysicalAddress(&vcpu->host_state_area).QuadPart;
-	hsave_pa.store();
-
-	//__svm_vmsave(MmGetPhysicalAddress(&vcpu->host_vmcb).QuadPart); // idk about this
+	__svm_vmsave(vcpu->guest_vmcb_pa); // needed here cause the vmrun loop loads guest state before everything, if there isnt a guest saved already it wont work properly
 }
 
 bool virtualize(vcpu_t* vcpu) {
@@ -125,7 +129,7 @@ bool virtualize(vcpu_t* vcpu) {
 	memset(ctx, 0, sizeof(CONTEXT));
 	RtlCaptureContext(ctx);
 
-	if (global.current_vcpu->is_virtualized) {
+	if (HV->current_vcpu->is_virtualized) {
 		//__debugbreak();
 		return true;
 	}
@@ -136,17 +140,15 @@ bool virtualize(vcpu_t* vcpu) {
 
 void devirtualize(vcpu_t* vcpu) {
 
-	for (uint32_t i = 0; i < global.vcpu_count; i++) // alert all other vcpus
+	for (uint32_t i = 0; i < HV->vcpu_count; i++) // alert all other vcpus
 	{
-		global.vcpus[i].should_exit = true;
-		if (&global.vcpus[i] == vcpu) print("Exiting [%d]...\n", i);
+		HV->vcpus[i].should_exit = true;
+		if (&HV->vcpus[i] == vcpu) print("Exiting [%d]...\n", i);
 	}
 
-	// devirtualize current vcpu
-	// rcx -> nrip
-	// rbx -> rsp
-	vcpu->guest_stack_frame.rcx.value = vcpu->guest_vmcb.control.nrip;
-	vcpu->guest_stack_frame.rbx.value = vcpu->guest_vmcb.save_state.rsp;
+	// devirtualize current vcpu, later in the vmrun loop we restore rsp and jump to guest_rip.
+	vcpu->guest_rip = vcpu->guest_vmcb.control.nrip;
+	vcpu->guest_rsp = vcpu->guest_vmcb.save_state.rsp;
 
 	__svm_vmload(vcpu->guest_vmcb_pa);
 
@@ -160,20 +162,21 @@ void devirtualize(vcpu_t* vcpu) {
 bool setup_msrpm() {
 	using namespace MSR;
 
-	global.shared_msrpm = reinterpret_cast<msrpm_t*>(MmAllocateContiguousMemory(sizeof(msrpm_t), { .QuadPart = -1 }));
-	if (global.shared_msrpm == nullptr)
+	HV->shared_msrpm = reinterpret_cast<msrpm_t*>(MmAllocateContiguousMemory(sizeof(msrpm_t), { .QuadPart = -1 }));
+	if (HV->shared_msrpm == nullptr)
 		return false;
 
-	memset(global.shared_msrpm, 0, sizeof(msrpm_t));
+	//memset(global.shared_msrpm, 0, sizeof(msrpm_t));
+	//shouldnt be needed cause our class sets all bits to 0 by default
 
 	// msrpm->set(msr, bit, value = true)
 	// bit is either 0 (read) or 1 (write)
 
-	global.shared_msrpm->set(EFER::MSR_EFER, access::read);
-	global.shared_msrpm->set(EFER::MSR_EFER, access::write);
+	HV->shared_msrpm->set(EFER::MSR_EFER, access::read);
+	HV->shared_msrpm->set(EFER::MSR_EFER, access::write);
 
-	global.shared_msrpm->set(HSAVE_PA::MSR_VM_HSAVE_PA, access::read);
-	global.shared_msrpm->set(HSAVE_PA::MSR_VM_HSAVE_PA, access::write);
+	HV->shared_msrpm->set(HSAVE_PA::MSR_VM_HSAVE_PA, access::read);
+	HV->shared_msrpm->set(HSAVE_PA::MSR_VM_HSAVE_PA, access::write);
 	return true;
 }
 

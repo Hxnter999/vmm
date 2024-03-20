@@ -10,12 +10,11 @@ extern vmexit_handler  : proc
 
 ; extern void vmenter(uint64_t* guest_vmcb_pa);
 vmenter PROC
-	mov [rcx+10h], rsp ; preserve stack pointer
 	mov rsp, rcx
-	sub rsp, 60h ; needed at first cause the loop always adds 60h from the start
+	sub rsp, 100h ; needed at first cause the loop always adds 100h from the start
 
 vmrun_loop:
-    add rsp, 60h ; have to do it after the conditional jump since it will overwrite the zero flag
+    add rsp, 100h ; have to do it after the conditional jump since it will overwrite the zero flag
 
 	; rsp -> guest_vmcb_pa
 	mov rax, [rsp]
@@ -28,7 +27,7 @@ vmrun_loop:
 	; every push gets it closer to stack_contents
 
 	; cant push xmm directly so we simulate a push by subtracting and manually moving
-	sub rsp, 60h
+	sub rsp, 100h
 
 	; rsp -> xmm0
 	movaps xmmword ptr [rsp], xmm0
@@ -37,6 +36,16 @@ vmrun_loop:
 	movaps xmmword ptr [rsp+30h], xmm3
 	movaps xmmword ptr [rsp+40h], xmm4
 	movaps xmmword ptr [rsp+50h], xmm5
+	movaps xmmword ptr [rsp+60h], xmm6
+	movaps xmmword ptr [rsp+70h], xmm7
+	movaps xmmword ptr [rsp+80h], xmm8
+	movaps xmmword ptr [rsp+90h], xmm9
+	movaps xmmword ptr [rsp+0A0h], xmm10
+	movaps xmmword ptr [rsp+0B0h], xmm11
+	movaps xmmword ptr [rsp+0C0h], xmm12
+	movaps xmmword ptr [rsp+0D0h], xmm13
+	movaps xmmword ptr [rsp+0E0h], xmm14
+	movaps xmmword ptr [rsp+0F0h], xmm15
 
 	push r15
 	push r14
@@ -54,7 +63,7 @@ vmrun_loop:
 	push rax
 
 	; rsp -> stack_frame
-	mov rcx, [rsp + 0D8h] ; sizeof(stack_contents) + sizeof(uint64_t)
+	mov rcx, [rsp + 178h] ; sizeof(stack_contents) + sizeof(uint64_t)
 	call vmexit_handler
 	test al, al
 
@@ -80,18 +89,29 @@ vmrun_loop:
 	movaps xmm3, xmmword ptr [rsp+30h]
 	movaps xmm4, xmmword ptr [rsp+40h]
 	movaps xmm5, xmmword ptr [rsp+50h]
+	movaps xmm6, xmmword ptr [rsp+60h]
+	movaps xmm7, xmmword ptr [rsp+70h]
+	movaps xmm8, xmmword ptr [rsp+80h]
+	movaps xmm9, xmmword ptr [rsp+90h]
+	movaps xmm10, xmmword ptr [rsp+0A0h]
+	movaps xmm11, xmmword ptr [rsp+0B0h]
+	movaps xmm12, xmmword ptr [rsp+0C0h]
+	movaps xmm13, xmmword ptr [rsp+0D0h]
+	movaps xmm14, xmmword ptr [rsp+0E0h]
+	movaps xmm15, xmmword ptr [rsp+0F0h]
 
 	jnz vmrun_loop
 
 devirtualize:
-	; rsp -> guest_vmcb_pa
-	add rsp, 60h
+	; rsp -> guest_rip
+	add rsp, 110h ; 100h for xmm, 10h for guest_rip
 
-	; after the vmexit handler decides its time to devirtualize, it will pass the required information through the registers
-	; rcx -> nrip
-	; rbx -> rsp
-	mov rsp, rbx
-	jmp rcx
+	mov rax, [rsp]
+
+	; rsp + 8 -> guest_rsp
+	mov rsp, [rsp+8]
+	
+	jmp rax
 
 vmenter ENDP
 

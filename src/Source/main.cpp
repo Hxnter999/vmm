@@ -1,6 +1,7 @@
 #include "../Header/commons.h"
 #include "SVM/svm.h"
 #include "../Header/ARCH/PAGES/npts.h"
+#include "../Header/Hypervisor.h"
 
 extern "C" int64_t testcall(hypercall_code code);
 void Unload(PDRIVER_OBJECT pDriverObject);
@@ -25,23 +26,23 @@ extern "C" NTSTATUS DriverEntry(PDRIVER_OBJECT pDriverObject, PUNICODE_STRING pR
 	}
 
 	// setup the vcpus
-	global.vcpu_count = KeQueryActiveProcessorCount(nullptr);
-	global.vcpus = reinterpret_cast<vcpu_t*>(ExAllocatePoolWithTag(NonPagedPool, global.vcpu_count * sizeof(vcpu_t), 'sgma'));
-	memset(global.vcpus, 0, global.vcpu_count * sizeof(vcpu_t));
+	Hypervisor::Get()->vcpu_count = KeQueryActiveProcessorCount(nullptr);
+	Hypervisor::Get()->vcpus = reinterpret_cast<vcpu_t*>(ExAllocatePoolWithTag(NonPagedPool, Hypervisor::Get()->vcpu_count * sizeof(vcpu_t), 'sgma'));
+	memset(Hypervisor::Get()->vcpus, 0, Hypervisor::Get()->vcpu_count * sizeof(vcpu_t));
 
 	if (!setup_msrpm()) {
 		print("Failed to allocate msrpm\n");
 		return STATUS_INSUFFICIENT_RESOURCES;
 	}
 
-	for (uint32_t i = 0; i < global.vcpu_count; i++)
+	for (uint32_t i = 0; i < Hypervisor::Get()->vcpu_count; i++)
 	{
-		global.current_vcpu = &global.vcpus[i];
+		Hypervisor::Get()->current_vcpu = &Hypervisor::Get()->vcpus[i];
 		print("Virtualizing [%d]...\n", i);
 
 		auto original_affinity = KeSetSystemAffinityThreadEx(1ll << i);
 
-		if (!virtualize(&global.vcpus[i])) {
+		if (!virtualize(&Hypervisor::Get()->vcpus[i])) {
 			print("Failed to virtualize\n");
 			return STATUS_UNSUCCESSFUL;
 		}
@@ -58,23 +59,22 @@ void Unload(PDRIVER_OBJECT pDriverObject)
 {
 	UNREFERENCED_PARAMETER(pDriverObject);
 
-	for (uint32_t i = 0; i < global.vcpu_count; i++)
+	for (uint32_t i = 0; i < Hypervisor::Get()->vcpu_count; i++)
 	{
 		print("Devirtualizing [%d]...\n", i);
 		auto original_affinity = KeSetSystemAffinityThreadEx(1ll << i);
 
 		testcall(hypercall_code::UNLOAD);
-		print("Am i being executed? %d\n", i);
 
-		KeRevertToUserAffinityThreadEx(original_affinity); // fix later
+		KeRevertToUserAffinityThreadEx(original_affinity);
 	}
 
-	if (global.vcpus)
-		ExFreePoolWithTag(global.vcpus, 'sgma');
-	if (global.shared_msrpm)
-		MmFreeContiguousMemory(global.shared_msrpm);
-	if(global.npt)
-		MmFreeContiguousMemory(global.npt);
+	if (Hypervisor::Get()->vcpus)
+		ExFreePoolWithTag(Hypervisor::Get()->vcpus, 'sgma');
+	if (Hypervisor::Get()->shared_msrpm)
+		MmFreeContiguousMemory(Hypervisor::Get()->shared_msrpm);
+	if(Hypervisor::Get()->npt)
+		MmFreeContiguousMemory(Hypervisor::Get()->npt);
 
 	print("---------\n\n");
 }
