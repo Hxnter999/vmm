@@ -12,44 +12,12 @@ extern "C" NTSTATUS DriverEntry(PDRIVER_OBJECT pDriverObject, PUNICODE_STRING pR
 
 	pDriverObject->DriverUnload = Unload;
 
-	if (!initialize())
+	HV->Get();
+	if (!HV->isVaild())
 	{
-		print("SVM not supported\n");
+		print("Hypervisor failed to initialize\n");
 		return STATUS_UNSUCCESSFUL;
 	}
-	print("SVM supported\n");
-
-	if (!initnpts()) 
-	{
-		print("NPT failed\n");
-		return STATUS_UNSUCCESSFUL;
-	}
-
-	// setup the vcpus
-	HV->vcpu_count = KeQueryActiveProcessorCount(nullptr);
-	HV->vcpus = reinterpret_cast<vcpu_t*>(ExAllocatePoolWithTag(NonPagedPool, HV->vcpu_count * sizeof(vcpu_t), 'sgma'));
-	memset(HV->vcpus, 0, HV->vcpu_count * sizeof(vcpu_t));
-
-	if (!setup_msrpm()) {
-		print("Failed to allocate msrpm\n");
-		return STATUS_INSUFFICIENT_RESOURCES;
-	}
-
-	for (uint32_t i = 0; i < HV->vcpu_count; i++)
-	{
-		HV->current_vcpu = &HV->vcpus[i];
-		print("Virtualizing [%d]...\n", i);
-
-		auto original_affinity = KeSetSystemAffinityThreadEx(1ll << i);
-
-		if (!virtualize(&HV->vcpus[i])) {
-			print("Failed to virtualize\n");
-			return STATUS_UNSUCCESSFUL;
-		}
-
-		KeRevertToUserAffinityThreadEx(original_affinity);
-	}
-	print("Virtualized\n");
 
 	return STATUS_SUCCESS;
 }
@@ -69,12 +37,7 @@ void Unload(PDRIVER_OBJECT pDriverObject)
 		KeRevertToUserAffinityThreadEx(original_affinity);
 	}
 
-	if (HV->vcpus)
-		ExFreePoolWithTag(HV->vcpus, 'sgma');
-	if (HV->shared_msrpm)
-		MmFreeContiguousMemory(HV->shared_msrpm);
-	if(HV->npt)
-		MmFreeContiguousMemory(HV->npt);
+	HV->Unload();
 
 	print("---------\n\n");
 }

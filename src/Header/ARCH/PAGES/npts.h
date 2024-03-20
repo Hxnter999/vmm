@@ -5,7 +5,6 @@
 #include "../CPUID/Extended Features/fn_processor_capacity.h"
 #include "../VMCB/vmcb.h"
 #include "../../smbios/smbios.h"
-#include "../../Hypervisor.h"
 
 constexpr decltype(auto) roundup(auto&& var, auto&& num) {
 	return ((var) + (num) - 1) / (num);
@@ -15,25 +14,25 @@ constexpr uint64_t plm4e_address_range = 0x1000000000; //256GB
 constexpr uint64_t pdepe_address_range = 0x40000000; //1GB
 constexpr uint64_t pdes_address_range = 0x200000; //2MB
 
-bool setup_huge(const uint64_t guest_phys_addr_size)
-
-{	const uint64_t amount_plm4es = roundup(guest_phys_addr_size, plm4e_address_range);
+inline bool setup_huge(const uint64_t guest_phys_addr_size, uint64_t** buffer)
+{
+	const uint64_t amount_plm4es = roundup(guest_phys_addr_size, plm4e_address_range);
 	const uint64_t amount_pdepes = roundup(guest_phys_addr_size, pdepe_address_range);
 
 	print ("amount_plm4es: %u\n", amount_plm4es);
 	print ("amount_pdepes: %u\n", amount_pdepes);
 
 	const uint64_t bufsize = sizeof(pml4e_t) * 512 + sizeof(pdpe_huge_t) * amount_pdepes;
-	uint64_t* buffer = static_cast<uint64_t*>(MmAllocateContiguousMemory(bufsize, { .QuadPart = -1 }));
-	if (!buffer)
+	*buffer = static_cast<uint64_t*>(MmAllocateContiguousMemory(bufsize, { .QuadPart = -1 }));
+	if (!*buffer)
 	{
 		print("buffer failed to be allocated\n");
 		return false;
 	}
-	memset(buffer, 0, bufsize);
+	memset(*buffer, 0, bufsize);
 
-	pml4e_t* plm4es = reinterpret_cast<pml4e_t*>(buffer);
-	pdpe_huge_t* pdepes = reinterpret_cast<pdpe_huge_t*>(buffer + 512);
+	pml4e_t* plm4es = reinterpret_cast<pml4e_t*>(*buffer);
+	pdpe_huge_t* pdepes = reinterpret_cast<pdpe_huge_t*>(*buffer + 512);
 
 
 	for (uint64_t i = 0; i < amount_plm4es; i++) {
@@ -64,11 +63,10 @@ bool setup_huge(const uint64_t guest_phys_addr_size)
 		pdepes[i].page_pa = maskedValue;
 	}
 
-	HV->npt = buffer;
 	return true;
 }
 
-bool setup_allusive(const uint64_t guest_phys_addr_size) 
+inline bool setup_allusive(const uint64_t guest_phys_addr_size) 
 {
 	guest_phys_addr_size;
 //	const uint64_t amount_plm4es = roundup(guest_phys_addr_size, plm4e_address_range);
@@ -107,7 +105,7 @@ bool setup_allusive(const uint64_t guest_phys_addr_size)
 	return false;
 }
 
-bool initnpts() 
+inline bool initnpts(uint64_t** nptbuffer) 
 {
 	//EDX bit 26 as returned by CPUID function 8000_0001h indicates 1 - Gbyte page support.
 	//The EAX register as returned by CPUID function 8000_0019h reports the number of 1 - Gbyte L1 TLB entries supported
@@ -174,7 +172,7 @@ bool initnpts()
 
 	if (huge_page_supported)
 	{
-		result = setup_huge(guest_phys_addr_size);
+		result = setup_huge(guest_phys_addr_size, nptbuffer);
 	}
 	else 
 	{
