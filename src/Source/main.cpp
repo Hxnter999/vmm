@@ -26,23 +26,23 @@ extern "C" NTSTATUS DriverEntry(PDRIVER_OBJECT pDriverObject, PUNICODE_STRING pR
 	}
 
 	// setup the vcpus
-	Hypervisor::Get()->vcpu_count = KeQueryActiveProcessorCount(nullptr);
-	Hypervisor::Get()->vcpus = reinterpret_cast<vcpu_t*>(ExAllocatePoolWithTag(NonPagedPool, Hypervisor::Get()->vcpu_count * sizeof(vcpu_t), 'sgma'));
-	memset(Hypervisor::Get()->vcpus, 0, Hypervisor::Get()->vcpu_count * sizeof(vcpu_t));
+	HV->vcpu_count = KeQueryActiveProcessorCount(nullptr);
+	HV->vcpus = reinterpret_cast<vcpu_t*>(ExAllocatePoolWithTag(NonPagedPool, HV->vcpu_count * sizeof(vcpu_t), 'sgma'));
+	memset(HV->vcpus, 0, HV->vcpu_count * sizeof(vcpu_t));
 
 	if (!setup_msrpm()) {
 		print("Failed to allocate msrpm\n");
 		return STATUS_INSUFFICIENT_RESOURCES;
 	}
 
-	for (uint32_t i = 0; i < Hypervisor::Get()->vcpu_count; i++)
+	for (uint32_t i = 0; i < HV->vcpu_count; i++)
 	{
-		Hypervisor::Get()->current_vcpu = &Hypervisor::Get()->vcpus[i];
+		HV->current_vcpu = &HV->vcpus[i];
 		print("Virtualizing [%d]...\n", i);
 
 		auto original_affinity = KeSetSystemAffinityThreadEx(1ll << i);
 
-		if (!virtualize(&Hypervisor::Get()->vcpus[i])) {
+		if (!virtualize(&HV->vcpus[i])) {
 			print("Failed to virtualize\n");
 			return STATUS_UNSUCCESSFUL;
 		}
@@ -59,7 +59,7 @@ void Unload(PDRIVER_OBJECT pDriverObject)
 {
 	UNREFERENCED_PARAMETER(pDriverObject);
 
-	for (uint32_t i = 0; i < Hypervisor::Get()->vcpu_count; i++)
+	for (uint32_t i = 0; i < HV->vcpu_count; i++)
 	{
 		print("Devirtualizing [%d]...\n", i);
 		auto original_affinity = KeSetSystemAffinityThreadEx(1ll << i);
@@ -69,12 +69,12 @@ void Unload(PDRIVER_OBJECT pDriverObject)
 		KeRevertToUserAffinityThreadEx(original_affinity);
 	}
 
-	if (Hypervisor::Get()->vcpus)
-		ExFreePoolWithTag(Hypervisor::Get()->vcpus, 'sgma');
-	if (Hypervisor::Get()->shared_msrpm)
-		MmFreeContiguousMemory(Hypervisor::Get()->shared_msrpm);
-	if(Hypervisor::Get()->npt)
-		MmFreeContiguousMemory(Hypervisor::Get()->npt);
+	if (HV->vcpus)
+		ExFreePoolWithTag(HV->vcpus, 'sgma');
+	if (HV->shared_msrpm)
+		MmFreeContiguousMemory(HV->shared_msrpm);
+	if(HV->npt)
+		MmFreeContiguousMemory(HV->npt);
 
 	print("---------\n\n");
 }
