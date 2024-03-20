@@ -72,13 +72,8 @@ void setup_vmcb(vcpu_t* vcpu, CONTEXT* ctx) //dis just a test
 	vcpu->guest_vmcb.control.v_intr_masking = 1; // 15.21.1 & 15.22.2
 
 	vcpu->guest_vmcb.control.np_enable = 1;
-<<<<<<< Updated upstream
-	vcpu->guest_vmcb.control.n_cr3 = MmGetPhysicalAddress(global.npt).QuadPart;
-	print("NPT: %p\n", MmGetPhysicalAddress(global.npt).QuadPart);
-=======
 	vcpu->guest_vmcb.control.n_cr3 = MmGetPhysicalAddress(HV->npt).QuadPart;
 	print("NPT: %p\n", MmGetPhysicalAddress(HV->npt).QuadPart);
->>>>>>> Stashed changes
 	
 	// Set up the guest state
 	vcpu->guest_vmcb.save_state.cr0.value = __readcr0();

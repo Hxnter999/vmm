@@ -5,10 +5,7 @@
 #include "../CPUID/Extended Features/fn_processor_capacity.h"
 #include "../VMCB/vmcb.h"
 #include "../../smbios/smbios.h"
-<<<<<<< Updated upstream
-=======
 #include "../../Hypervisor.h"
->>>>>>> Stashed changes
 
 constexpr decltype(auto) roundup(auto&& var, auto&& num) {
 	return ((var) + (num) - 1) / (num);
@@ -67,12 +64,7 @@ bool setup_huge(const uint64_t guest_phys_addr_size)
 		pdepes[i].page_pa = maskedValue;
 	}
 
-
-<<<<<<< Updated upstream
-	global.npt = buffer;
-=======
 	HV->npt = buffer;
->>>>>>> Stashed changes
 	return true;
 }
 
