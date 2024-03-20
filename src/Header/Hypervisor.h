@@ -2,11 +2,24 @@
 #include "ARCH/VMCB/vmcb.h"
 #include "ARCH/PAGES/npts.h"
 
+extern "C" int64_t testcall(hypercall_code code);
+
 class Hypervisor
 {
 	static Hypervisor* instance;
 	
 protected:
+	bool runOnAllVCpus(bool(*func)(uint32_t, vcpu_t*)) 
+	{
+		for (uint32_t i = 0; i < vcpu_count; i++)
+		{
+			auto original_affinity = KeSetSystemAffinityThreadEx(1ll << i);
+			if(!func(i, &vcpus[i])) return false;
+			KeRevertToUserAffinityThreadEx(original_affinity);
+		}
+		return true;
+	}
+
 	void init()
 	{
 		//set all to members to 0
@@ -41,19 +54,18 @@ protected:
 			return;
 		}
 
-		for (uint32_t i = 0; i < vcpu_count; i++)
+		if (!
+			runOnAllVCpus([](uint32_t index, vcpu_t* vcpu) -> bool {
+				print("Virtualizing [%d]...\n", index);
+				if (!virtualize(vcpu))
+				{
+					print("Failed to virtualize\n");
+					return false;
+				}
+				return true;
+				}))
 		{
-			current_vcpu = &vcpus[i];
-			print("Virtualizing [%d]...\n", i);
-
-			auto original_affinity = KeSetSystemAffinityThreadEx(1ll << i);
-
-			if (!virtualize(&vcpus[i])) {
-				print("Failed to virtualize\n");
-				return;
-			}
-
-			KeRevertToUserAffinityThreadEx(original_affinity);
+			return;
 		}
 
 		print("Virtualized\n");
@@ -92,6 +104,15 @@ public:
 
 	void Unload() //this should only be called once (in Unload)
 	{
+		print("Unloading Hypervisor...\n");
+
+		runOnAllVCpus([](uint32_t index, vcpu_t* vcpu) -> bool {
+			UNREFERENCED_PARAMETER(vcpu);
+			print("Unvirtualizing [%d]...\n", index);
+			testcall(hypercall_code::UNLOAD);
+			return true;
+		});
+
 		if (vcpus)
 			ExFreePoolWithTag(vcpus, 'sgma');
 		if (shared_msrpm)
