@@ -72,28 +72,6 @@ class Hypervisor
 		vaild = true;
 	}
 
-	void devirtualize(uint32_t index) {
-
-		vcpu_t* vcpu = vcpus.get(index);
-		print("Exiting [%d]...\n", index);
-		
-		if(!vcpu->should_exit)
-			for (auto& cvcpu : vcpus) // alert all other vcpus
-				cvcpu.should_exit = true;
-
-		// devirtualize current vcpu, later in the vmrun loop we restore rsp and jump to guest_rip.
-		vcpu->guest_rip = vcpu->guest_vmcb.control.nrip;
-		vcpu->guest_rsp = vcpu->guest_vmcb.save_state.rsp;
-
-		__svm_vmload(vcpu->guest_vmcb_pa);
-
-		_disable();
-		__svm_stgi();
-
-		MSR::EFER efer{}; efer.load(); efer.svme = 0; efer.store();
-		__writeeflags(vcpu->guest_vmcb.save_state.rflags);
-	}
-
 	bool virtualize(uint32_t index) {
 		vcpu_t* vcpu = vcpus.get(index);
 		CONTEXT* ctx = reinterpret_cast<CONTEXT*>(ExAllocatePoolWithTag(NonPagedPool, sizeof(CONTEXT), 'sgma'));
@@ -109,6 +87,80 @@ class Hypervisor
 		return false;
 	}
 
+	inline void setup_vmcb(vcpu_t* vcpu, CONTEXT* ctx) //dis just a test
+	{
+		vcpu->is_virtualized = true;
+
+		MSR::EFER efer{};
+		efer.load();
+		efer.svme = 1;
+		efer.store();
+
+		MSR::HSAVE_PA hsave_pa{};
+		hsave_pa.bits = MmGetPhysicalAddress(&vcpu->host_vmcb).QuadPart;
+		hsave_pa.store();
+
+		vcpu->guest_vmcb.control.msrpm_base_pa = MmGetPhysicalAddress(shared_msrpm).QuadPart;
+
+		//Set up control area
+		//TODO: set interupts
+		vcpu->guest_vmcb.control.vmrun = 1; // VMRUN intercepts muse be enabled 15.5.1
+		vcpu->guest_vmcb.control.vmmcall = 1; // explicit vmexits back to host
+		vcpu->guest_vmcb.control.vmmload = 1;
+		vcpu->guest_vmcb.control.vmmsave = 1;
+		vcpu->guest_vmcb.control.msr_prot = 1; // enable this once msrpm and handler is fixed up
+
+		vcpu->guest_vmcb.control.guest_asid = 1; // Address space identifier "ASID [cannot be] equal to zero" 15.5.1 ASID 0 is for the host
+		vcpu->guest_vmcb.control.v_intr_masking = 1; // 15.21.1 & 15.22.2
+
+		vcpu->guest_vmcb.control.np_enable = 1;
+		vcpu->guest_vmcb.control.n_cr3 = MmGetPhysicalAddress(npt).QuadPart;
+		print("NPT: %p\n", MmGetPhysicalAddress(npt).QuadPart);
+
+		// Set up the guest state
+		vcpu->guest_vmcb.save_state.cr0.value = __readcr0();
+		vcpu->guest_vmcb.save_state.cr2.value = __readcr2();
+		vcpu->guest_vmcb.save_state.cr3.value = __readcr3();
+		vcpu->guest_vmcb.save_state.cr4.value = __readcr4();
+		vcpu->guest_vmcb.save_state.efer = efer.bits;
+		vcpu->guest_vmcb.save_state.g_pat = __readmsr(MSR::PAT::MSR_PAT); // very sigma (kinda like MTRRs but for page tables)
+
+		SEGMENT::descriptor_table_register idtr{}, gdtr{}; __sidt(&idtr); _sgdt(&gdtr);
+		vcpu->guest_vmcb.save_state.idtr.base = idtr.base;
+		vcpu->guest_vmcb.save_state.idtr.limit = idtr.limit;
+
+		vcpu->guest_vmcb.save_state.gdtr.base = gdtr.base;
+		vcpu->guest_vmcb.save_state.gdtr.limit = gdtr.limit;
+
+		//TODO: need to set RSP, RIP, and RFLAGS (This is where the guest will start executing)
+		vcpu->guest_vmcb.save_state.rsp = ctx->Rsp;
+		vcpu->guest_vmcb.save_state.rip = ctx->Rip;
+		vcpu->guest_vmcb.save_state.rflags = ctx->EFlags;
+
+		//vcpu->guest_vmcb.save_state.rax = ctx->Rax;
+
+		//Setup all the segment registers
+		vcpu->guest_vmcb.save_state.cs.limit = __segmentlimit(ctx->SegCs);
+		vcpu->guest_vmcb.save_state.ds.limit = __segmentlimit(ctx->SegDs);
+		vcpu->guest_vmcb.save_state.es.limit = __segmentlimit(ctx->SegEs);
+		vcpu->guest_vmcb.save_state.ss.limit = __segmentlimit(ctx->SegSs);
+
+		vcpu->guest_vmcb.save_state.cs.selector.value = ctx->SegCs;
+		vcpu->guest_vmcb.save_state.ds.selector.value = ctx->SegDs;
+		vcpu->guest_vmcb.save_state.es.selector.value = ctx->SegEs;
+		vcpu->guest_vmcb.save_state.ss.selector.value = ctx->SegSs;
+
+		vcpu->guest_vmcb.save_state.cs.get_attributes(gdtr.base);
+		vcpu->guest_vmcb.save_state.ds.get_attributes(gdtr.base);
+		vcpu->guest_vmcb.save_state.es.get_attributes(gdtr.base);
+		vcpu->guest_vmcb.save_state.ss.get_attributes(gdtr.base);
+
+		vcpu->guest_vmcb_pa = MmGetPhysicalAddress(&vcpu->guest_vmcb).QuadPart;
+		vcpu->self = vcpu;
+
+		__svm_vmsave(vcpu->guest_vmcb_pa); // needed here cause the vmrun loop loads guest state before everything, if there isnt a guest saved already it wont work properly
+	}
+
 	static SVM_STATUS init_check();
 
 	uint64_t* npt;
@@ -116,7 +168,6 @@ class Hypervisor
 	struct _vcpus {
 		_vcpus() : vcpu_count(0), buffer(nullptr) {}
 		_vcpus(uint32_t size) : vcpu_count(size) { buffer = reinterpret_cast<vcpu_t*>(ExAllocatePoolWithTag(NonPagedPool, size * sizeof(vcpu_t), 'sgma')); }
-		~_vcpus() { if(buffer) ExFreePool(buffer); }
 
 		vcpu_t* buffer;
 		uint32_t vcpu_count;
@@ -150,6 +201,27 @@ public:
 		return vaild;
 	}
 
+	void devirtualize(vcpu_t* vcpu) {
+
+		print("Exiting [%d]...\n", (vcpu - vcpus.begin()) / sizeof(vcpu_t*));
+
+		if (!vcpu->should_exit)
+			for (auto& cvcpu : vcpus) // alert all other vcpus
+				cvcpu.should_exit = true;
+
+		// devirtualize current vcpu, later in the vmrun loop we restore rsp and jump to guest_rip.
+		vcpu->guest_rip = vcpu->guest_vmcb.control.nrip;
+		vcpu->guest_rsp = vcpu->guest_vmcb.save_state.rsp;
+
+		__svm_vmload(vcpu->guest_vmcb_pa);
+
+		_disable();
+		__svm_stgi();
+
+		MSR::EFER efer{}; efer.load(); efer.svme = 0; efer.store();
+		__writeeflags(vcpu->guest_vmcb.save_state.rflags);
+	}
+
 	void Unload() //this should only be called once (in Unload)
 	{
 		if(instance == nullptr) return; //should never happen
@@ -162,7 +234,10 @@ public:
 			return true;
 		});
 
-		vcpus.~_vcpus();
+		if (vcpus.buffer) {
+			ExFreePoolWithTag(vcpus.buffer, 'hv');
+			vcpus.buffer = nullptr;
+		}
 		if (shared_msrpm) {
 			MmFreeContiguousMemory(shared_msrpm);
 			shared_msrpm = nullptr;

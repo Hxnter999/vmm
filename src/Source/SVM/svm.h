@@ -23,7 +23,3 @@
 
 extern "C" bool vmexit_handler(vcpu_t* vcpu);
 bool setup_msrpm();
-void setup_vmcb(vcpu_t* vcpu, CONTEXT* ctx);
-SVM_STATUS initialize();
-bool virtualize(vcpu_t* vcpu);
-void devirtualize(vcpu_t* vcpu);
