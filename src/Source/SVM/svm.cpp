@@ -1,7 +1,6 @@
 #include "../../Header/commons.h"
 #include "svm.h"
 #include "../../Header/Hypervisor.h"
-extern "C" void vmenter(uint64_t* guest_vmcb_pa);
 
 bool vmexit_handler(vcpu_t* vcpu) {
 	vcpu->guest_vmcb.save_state.rip = vcpu->guest_vmcb.control.nrip;
@@ -117,41 +116,6 @@ void setup_vmcb(vcpu_t* vcpu, CONTEXT* ctx) //dis just a test
 	vcpu->self = vcpu;
 
 	__svm_vmsave(vcpu->guest_vmcb_pa); // needed here cause the vmrun loop loads guest state before everything, if there isnt a guest saved already it wont work properly
-}
-
-bool virtualize(vcpu_t* vcpu) {
-	CONTEXT* ctx = reinterpret_cast<CONTEXT*>(ExAllocatePoolWithTag(NonPagedPool, sizeof(CONTEXT), 'sgma'));
-	memset(ctx, 0, sizeof(CONTEXT));
-	RtlCaptureContext(ctx);
-
-	if (HV->current_vcpu->is_virtualized) {
-		//__debugbreak();
-		return true;
-	}
-	setup_vmcb(vcpu, ctx);
-	vmenter(&vcpu->guest_vmcb_pa);
-	return false;
-}
-
-void devirtualize(vcpu_t* vcpu) {
-
-	for (uint32_t i = 0; i < HV->vcpu_count; i++) // alert all other vcpus
-	{
-		HV->vcpus[i].should_exit = true;
-		if (&HV->vcpus[i] == vcpu) print("Exiting [%d]...\n", i);
-	}
-
-	// devirtualize current vcpu, later in the vmrun loop we restore rsp and jump to guest_rip.
-	vcpu->guest_rip = vcpu->guest_vmcb.control.nrip;
-	vcpu->guest_rsp = vcpu->guest_vmcb.save_state.rsp;
-
-	__svm_vmload(vcpu->guest_vmcb_pa);
-
-	_disable();
-	__svm_stgi();
-
-	MSR::EFER efer{}; efer.load(); efer.svme = 0; efer.store();
-	__writeeflags(vcpu->guest_vmcb.save_state.rflags);
 }
 
 bool setup_msrpm() {

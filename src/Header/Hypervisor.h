@@ -3,29 +3,30 @@
 #include "ARCH/PAGES/npts.h"
 
 extern "C" int64_t testcall(hypercall_code code);
+extern "C" void vmenter(uint64_t * guest_vmcb_pa);
 
 class Hypervisor
 {
 	static Hypervisor* instance;
 	
-protected:
-	bool runOnAllVCpus(bool(*func)(uint32_t, vcpu_t*)) 
+	bool runOnAllVCpus(bool(*func)(uint32_t)) 
 	{
-		for (uint32_t i = 0; i < vcpu_count; i++)
+		for (uint32_t i = 0; i < vcpus.vcpu_count; i++)
 		{
 			auto original_affinity = KeSetSystemAffinityThreadEx(1ll << i);
-			if(!func(i, &vcpus[i])) return false;
+			if(!func(i)) return false;
 			KeRevertToUserAffinityThreadEx(original_affinity);
 		}
 		return true;
 	}
 
+	Hypervisor() = default;
+
 	void init()
 	{
 		//set all to members to 0
 		current_vcpu = nullptr;
-		vcpus = nullptr;
-		vcpu_count = 0;
+		vcpus = {};
 		shared_msrpm = nullptr;
 		npt = nullptr;
 		vaild = false;
@@ -44,9 +45,7 @@ protected:
 			return;
 		}
 
-		vcpu_count = KeQueryActiveProcessorCount(nullptr);
-		vcpus = reinterpret_cast<vcpu_t*>(ExAllocatePoolWithTag(NonPagedPool, vcpu_count * sizeof(vcpu_t), 'sgma'));
-		memset(vcpus, 0, vcpu_count * sizeof(vcpu_t));
+		vcpus = { KeQueryActiveProcessorCount(nullptr) };
 
 		//same comment as above
 		if (!setup_msrpm()) {
@@ -54,17 +53,18 @@ protected:
 			return;
 		}
 
-		if (!
-			runOnAllVCpus([](uint32_t index, vcpu_t* vcpu) -> bool {
+		//this is kinda scuffed (maybe should unvirt all the successful vcpus)
+		if (!runOnAllVCpus([](uint32_t index) -> bool {
 				print("Virtualizing [%d]...\n", index);
-				if (!virtualize(vcpu))
+				if (!Hypervisor::Get()->virtualize(index))
 				{
 					print("Failed to virtualize\n");
 					return false;
 				}
 				return true;
-				}))
+			}))
 		{
+			print("Failed to virtualize all vcpus\n");
 			return;
 		}
 
@@ -72,14 +72,62 @@ protected:
 		vaild = true;
 	}
 
+	void devirtualize(uint32_t index) {
+
+		vcpu_t* vcpu = vcpus.get(index);
+		print("Exiting [%d]...\n", index);
+		
+		if(!vcpu->should_exit)
+			for (auto& cvcpu : vcpus) // alert all other vcpus
+				cvcpu.should_exit = true;
+
+		// devirtualize current vcpu, later in the vmrun loop we restore rsp and jump to guest_rip.
+		vcpu->guest_rip = vcpu->guest_vmcb.control.nrip;
+		vcpu->guest_rsp = vcpu->guest_vmcb.save_state.rsp;
+
+		__svm_vmload(vcpu->guest_vmcb_pa);
+
+		_disable();
+		__svm_stgi();
+
+		MSR::EFER efer{}; efer.load(); efer.svme = 0; efer.store();
+		__writeeflags(vcpu->guest_vmcb.save_state.rflags);
+	}
+
+	bool virtualize(uint32_t index) {
+		vcpu_t* vcpu = vcpus.get(index);
+		CONTEXT* ctx = reinterpret_cast<CONTEXT*>(ExAllocatePoolWithTag(NonPagedPool, sizeof(CONTEXT), 'sgma'));
+		memset(ctx, 0, sizeof(CONTEXT));
+		RtlCaptureContext(ctx);
+
+		if (Hypervisor::Get()->current_vcpu->is_virtualized) { //hunter said he had a better way
+			//__debugbreak();
+			return true;
+		}
+		setup_vmcb(vcpu, ctx);
+		vmenter(&vcpu->guest_vmcb_pa);
+		return false;
+	}
+
 	static SVM_STATUS init_check();
 
-public:
-	vcpu_t* current_vcpu;
-	vcpu_t* vcpus;
-	uint32_t vcpu_count;
-	MSR::msrpm_t* shared_msrpm;
 	uint64_t* npt;
+	vcpu_t* current_vcpu;
+	struct _vcpus {
+		_vcpus() : vcpu_count(0), buffer(nullptr) {}
+		_vcpus(uint32_t size) : vcpu_count(size) { buffer = reinterpret_cast<vcpu_t*>(ExAllocatePoolWithTag(NonPagedPool, size * sizeof(vcpu_t), 'sgma')); }
+		~_vcpus() { if(buffer) ExFreePool(buffer); }
+
+		vcpu_t* buffer;
+		uint32_t vcpu_count;
+
+		vcpu_t* get(uint32_t i) { return buffer + i; }
+		vcpu_t* begin() { return buffer; }
+		vcpu_t* end() { return buffer + vcpu_count; }
+	} vcpus;
+public:
+	MSR::msrpm_t* shared_msrpm;
+
 
 	bool vaild;
 
@@ -104,27 +152,28 @@ public:
 
 	void Unload() //this should only be called once (in Unload)
 	{
+		if(instance == nullptr) return; //should never happen
+
 		print("Unloading Hypervisor...\n");
 
-		runOnAllVCpus([](uint32_t index, vcpu_t* vcpu) -> bool {
-			UNREFERENCED_PARAMETER(vcpu);
+		runOnAllVCpus([](uint32_t index) -> bool {
 			print("Unvirtualizing [%d]...\n", index);
 			testcall(hypercall_code::UNLOAD);
 			return true;
 		});
 
-		if (vcpus)
-			ExFreePoolWithTag(vcpus, 'sgma');
-		if (shared_msrpm)
+		vcpus.~_vcpus();
+		if (shared_msrpm) {
 			MmFreeContiguousMemory(shared_msrpm);
-		if (npt)
-			MmFreeContiguousMemory(npt);
-
-		if (instance != nullptr)
-		{
-			ExFreePoolWithTag(instance, 'hv');
-			instance = nullptr;
+			shared_msrpm = nullptr;
 		}
+		if (npt) {
+			MmFreeContiguousMemory(npt);
+			npt = nullptr;
+		}
+
+		ExFreePoolWithTag(instance, 'hv');
+		instance = nullptr;
 	}
 };
 
