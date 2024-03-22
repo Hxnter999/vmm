@@ -3,12 +3,6 @@
 
 #include "../../Header/ARCH/VMCB/vmcb.h"
 
-#include "../../Header/ARCH/MSRs/vm_cr.h"
-#include "../../Header/ARCH/VMCB/vmcb.h"
-#include "../../Header/ARCH/MSRs/pat.h"
-#include "../../Header/ARCH/MSRs/hsave_pa.h"
-#include "../../Header/ARCH/MSRs/efer.h"
-
 #include "../../Header/ARCH/CPUID/Extended Features/fn_identifiers.h"
 #include "../../Header/ARCH/CPUID/Extended Features/fn_processor_capacity.h"
 #include "../../Header/ARCH/CPUID/Extended Features/fn_svm_features.h"
@@ -22,4 +16,3 @@
 #include "../../Header/Util/bitset.h"
 
 extern "C" bool vmexit_handler(vcpu_t* vcpu);
-bool setup_msrpm();

@@ -49,6 +49,7 @@
     <ClCompile Include="src\Source\SVM\svm.cpp" />
     <ClCompile Include="src\Header\Hypercall\hypercall.cpp" />
     <ClCompile Include="src\Source\smbios.cpp" />
+    <ClCompile Include="src\Source\Hypervisor.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Header\commons.h">

@@ -1,5 +1,7 @@
 #pragma once
 #include "../VMCB/vmcb.h"
+#include "../MSRs/hsave_pa.h"
+#include "../MSRs/efer.h"
 
 inline void msr_handler(vcpu_t* vcpu) {
 	// MSR return value is split between 2 registers, we have to handle them both before passing it back into the guest.

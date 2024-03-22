@@ -5,6 +5,7 @@
 #include "../CPUID/Extended Features/fn_processor_capacity.h"
 #include "../VMCB/vmcb.h"
 #include "../../smbios/smbios.h"
+#include "../../Hypervisor.h"
 
 constexpr decltype(auto) roundup(auto&& var, auto&& num) {
 	return ((var) + (num) - 1) / (num);
