@@ -16,7 +16,7 @@ extern "C" void vmenter(uint64_t * guest_vmcb_pa);
 
 Hypervisor* Hypervisor::instance = nullptr;
 
-Hypervisor* Hypervisor::Get()
+Hypervisor* Hypervisor::get()
 {
 	//naive because we know when its first called
 	if (instance == nullptr)
@@ -46,17 +46,17 @@ void Hypervisor::devirtualize(vcpu_t* vcpu)
 	__svm_stgi();
 
 	MSR::EFER efer{}; efer.load(); efer.svme = 0; efer.store();
-	__writeeflags(vcpu->guest_vmcb.save_state.rflags);
+	__writeeflags(vcpu->guest_vmcb.save_state.rflags.value);
 }
 
-void Hypervisor::Unload()
+void Hypervisor::unload()
 {
 	if (instance == nullptr) return; //should never happen
 
 	print("Unloading Hypervisor...\n");
 
-	runOnAllVCpus([](uint32_t index) -> bool {
-		print("Unvirtualizing [%d]...\n", index);
+	execute_on_all_cpus([](uint32_t index) -> bool {
+		print("Devirtualizing [%d]...\n", index);
 		testcall(hypercall_code::UNLOAD);
 		return true;
 	});
@@ -80,8 +80,6 @@ void Hypervisor::Unload()
 
 void Hypervisor::init()
 {
-	//set all to members to 
-	current_vcpu = nullptr;
 	vcpus = {};
 	shared_msrpm = nullptr;
 	npt = nullptr;
@@ -97,7 +95,7 @@ void Hypervisor::init()
 
 	vcpus = { KeQueryActiveProcessorCount(nullptr) };
 
-	(shared_msrpm) = reinterpret_cast<MSR::msrpm_t*>(MmAllocateContiguousMemory(sizeof(MSR::msrpm_t), { .QuadPart = -1 }));
+	shared_msrpm = reinterpret_cast<MSR::msrpm_t*>(MmAllocateContiguousMemory(sizeof(MSR::msrpm_t), { .QuadPart = -1 }));
 	if (shared_msrpm == nullptr) {
 		print("Failed to allocate msrpm\n");
 		return;
@@ -109,17 +107,24 @@ void Hypervisor::init()
 
 bool Hypervisor::virtualize(uint32_t index)
 {
+	MSR::EFER efer{};
+	efer.load();
+	efer.svme = 1;
+	efer.store();
+
 	vcpu_t* vcpu = vcpus.get(index);
 	CONTEXT* ctx = reinterpret_cast<CONTEXT*>(ExAllocatePoolWithTag(NonPagedPool, sizeof(CONTEXT), 'sgma'));
 	memset(ctx, 0, sizeof(CONTEXT));
 	RtlCaptureContext(ctx);
 
-	if (Hypervisor::Get()->current_vcpu->is_virtualized) { //hunter said he had a better way
-		//__debugbreak();
-		return true;
-	}
+	// efer.svme will be 0 when we read it in a virtualized state, this is how we have the msr handler setup.
+	MSR::EFER guest_efer{}; guest_efer.load();
+	if (!guest_efer.svme) return true;
+
 	setup_vmcb(vcpu, ctx);
+	//__debugbreak();
 	vmenter(&vcpu->guest_vmcb_pa);
+	// shouldnt reach this point, if so something went wrong
 	return false;
 }
 
@@ -130,14 +135,14 @@ bool Hypervisor::setup_npts()
 
 bool Hypervisor::virtualize() 
 {
-	//this is kinda scuffed (maybe should unvirt all the successful vcpus)
-	if (!runOnAllVCpus([](uint32_t index) -> bool {
+	if (!execute_on_all_cpus([](uint32_t index) -> bool {
 		print("Virtualizing [%d]...\n", index);
-		if (!Hypervisor::Get()->virtualize(index))
+		if (!Hypervisor::get()->virtualize(index))
 		{
 			print("Failed to virtualize\n");
 			return false;
 		}
+		print("Virtualized [%d]\n", index);
 		return true;
 		}))
 	{
@@ -152,11 +157,6 @@ void Hypervisor::setup_vmcb(vcpu_t* vcpu, CONTEXT* ctx) //should make it a refer
 {
 	vcpu->is_virtualized = true;
 
-	MSR::EFER efer{};
-	efer.load();
-	efer.svme = 1;
-	efer.store();
-
 	MSR::HSAVE_PA hsave_pa{};
 	hsave_pa.bits = MmGetPhysicalAddress(&vcpu->host_vmcb).QuadPart;
 	hsave_pa.store();
@@ -167,8 +167,8 @@ void Hypervisor::setup_vmcb(vcpu_t* vcpu, CONTEXT* ctx) //should make it a refer
 	//TODO: set interupts
 	vcpu->guest_vmcb.control.vmrun = 1; // VMRUN intercepts muse be enabled 15.5.1
 	vcpu->guest_vmcb.control.vmmcall = 1; // explicit vmexits back to host
-	vcpu->guest_vmcb.control.vmmload = 1;
-	vcpu->guest_vmcb.control.vmmsave = 1;
+	vcpu->guest_vmcb.control.vmload = 1;
+	vcpu->guest_vmcb.control.vmsave = 1;
 	vcpu->guest_vmcb.control.msr_prot = 1; // enable this once msrpm and handler is fixed up
 
 	vcpu->guest_vmcb.control.guest_asid = 1; // Address space identifier "ASID [cannot be] equal to zero" 15.5.1 ASID 0 is for the host
@@ -185,7 +185,7 @@ void Hypervisor::setup_vmcb(vcpu_t* vcpu, CONTEXT* ctx) //should make it a refer
 	vcpu->guest_vmcb.save_state.cr2.value = __readcr2();
 	vcpu->guest_vmcb.save_state.cr3.value = __readcr3();
 	vcpu->guest_vmcb.save_state.cr4.value = __readcr4();
-	vcpu->guest_vmcb.save_state.efer = efer.bits;
+	vcpu->guest_vmcb.save_state.efer.bits = __readmsr(MSR::EFER::MSR_EFER);
 	vcpu->guest_vmcb.save_state.g_pat = __readmsr(MSR::PAT::MSR_PAT); // very sigma (kinda like MTRRs but for page tables)
 
 	SEGMENT::descriptor_table_register idtr{}, gdtr{}; __sidt(&idtr); _sgdt(&gdtr);
@@ -198,7 +198,7 @@ void Hypervisor::setup_vmcb(vcpu_t* vcpu, CONTEXT* ctx) //should make it a refer
 	//TODO: need to set RSP, RIP, and RFLAGS (This is where the guest will start executing)
 	vcpu->guest_vmcb.save_state.rsp = ctx->Rsp;
 	vcpu->guest_vmcb.save_state.rip = ctx->Rip;
-	vcpu->guest_vmcb.save_state.rflags = ctx->EFlags;
+	vcpu->guest_vmcb.save_state.rflags.value = ctx->EFlags;
 
 	//vcpu->guest_vmcb.save_state.rax = ctx->Rax;
 
@@ -219,8 +219,10 @@ void Hypervisor::setup_vmcb(vcpu_t* vcpu, CONTEXT* ctx) //should make it a refer
 	vcpu->guest_vmcb.save_state.ss.get_attributes(gdtr.base);
 
 	vcpu->guest_vmcb_pa = MmGetPhysicalAddress(&vcpu->guest_vmcb).QuadPart;
+	vcpu->host_vmcb_pa = MmGetPhysicalAddress(&vcpu->host_vmcb).QuadPart;
 	vcpu->self = vcpu;
 
+	__svm_vmsave(vcpu->host_vmcb_pa);
 	__svm_vmsave(vcpu->guest_vmcb_pa); // needed here cause the vmrun loop loads guest state before everything, if there isnt a guest saved already it wont work properly
 }
 

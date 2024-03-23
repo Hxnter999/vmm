@@ -2,7 +2,8 @@
 #include "svm.h"
 #include "../../Header/Hypervisor.h"
 
-bool vmexit_handler(vcpu_t* vcpu) {
+bool vmexit_handler(vcpu_t* const vcpu) {
+	__svm_vmload(vcpu->host_vmcb_pa);
 	vcpu->guest_vmcb.save_state.rip = vcpu->guest_vmcb.control.nrip;
 
 	// guest rax overwriten by host after vmexit
@@ -10,11 +11,11 @@ bool vmexit_handler(vcpu_t* vcpu) {
 	switch (vcpu->guest_vmcb.control.exit_code) {
 
 	case svm_exit_code::VMEXIT_VMMCALL:
-		hypercall_handler(vcpu);
+		hypercall_handler(*vcpu);
 		break;
 
 	case svm_exit_code::VMEXIT_MSR:
-		msr_handler(vcpu);
+		msr_handler(*vcpu);
 		break;
 
 	case svm_exit_code::VMEXIT_INVALID:
@@ -23,8 +24,8 @@ bool vmexit_handler(vcpu_t* vcpu) {
 		break;
 
 	case svm_exit_code::VMEXIT_NPF:
-		print("[NPF] Error code: %X\n", vcpu->guest_vmcb.control.exit_info_1.page_fault.error_code);
-		print("[NPF] Address: %p\n", vcpu->guest_vmcb.control.exit_info_2.page_fault.faulting_address);
+		print("[NPF] Error code: %p\n", vcpu->guest_vmcb.control.exit_info_1.page_fault.error_code);
+		print("[NPF] Address: %p | %p\n", vcpu->guest_vmcb.control.exit_info_2.page_fault.faulting_address, vcpu->guest_vmcb.control.exit_info_2.nested_page_fault.faulting_gpa);
 
 	default:
 		// event inject a gp/ud

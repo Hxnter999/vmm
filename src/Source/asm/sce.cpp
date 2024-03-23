@@ -3,7 +3,7 @@
 #include "../../Header/ARCH/MSRs/cstar.h"
 #include "../../Header/ARCH/MSRs/star.h"
 #include "../../Header/ARCH/MSRs/sfmask.h"
-#include "../../Header/ARCH/MSRs/u_set.h"
+#include "../../Header/ARCH/MSRs/u_cet.h"
 #include "../../Header/ARCH/MSRs/s_cet.h"
 #include "../../Header/ARCH/MSRs/efer.h"
 #include "../../Header/ARCH/MSRs/pl3_ssp.h"
@@ -13,14 +13,14 @@ inline void syscalllong(vcpu_t& vcpu);
 void syscalllegacy(vcpu_t& vcpu);
 
 //define SSTK_ENABLED = (CR4.CET) && (CR0.PE) && (!EFLAGS.VM)
-bool ShadowStacksEnabled(uint8_t privLevel, vcpu_t& vcpu)
+bool shadow_stack_enabled(uint8_t cpl, vcpu_t& vcpu)
 {
 	const bool SSTK_ENABLED = 
 		(vcpu.guest_vmcb.save_state.cr4.cet) && 
 		(vcpu.guest_vmcb.save_state.cr0.pe) && 
 		(!vcpu.guest_vmcb.save_state.rflags.VM);
 	
-	return SSTK_ENABLED && privLevel == 3 && vcpu.guest_vmcb.save_state.U_CET.sh_stk_en || privLevel < 3 && vcpu.guest_vmcb.save_state.s_cet.sh_stk_en;
+	return SSTK_ENABLED && cpl == 3 && vcpu.guest_vmcb.save_state.U_CET.sh_stk_en || cpl < 3 && vcpu.guest_vmcb.save_state.s_cet.sh_stk_en;
 }
 
 void syscall(vcpu_t& vcpu)
@@ -78,7 +78,7 @@ void syscalllong(vcpu_t& vcpu)
 
 	//CPL shit
 	uint8_t& cpl = save_state.cpl;
-	if (ShadowStacksEnabled(cpl, vcpu)) 
+	if (shadow_stack_enabled(cpl, vcpu)) 
 	{
 		MSR::PL3_SSP pl3_ssp{}; pl3_ssp.load();
 		pl3_ssp.ssp = save_state.ssp;
@@ -86,7 +86,7 @@ void syscalllong(vcpu_t& vcpu)
 
 	cpl = 0;
 
-	if (ShadowStacksEnabled(0, vcpu))
+	if (shadow_stack_enabled(0, vcpu))
 		save_state.ssp = 0;
 
 	save_state.rip = temp_RIP;

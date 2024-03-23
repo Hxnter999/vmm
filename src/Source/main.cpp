@@ -17,22 +17,30 @@ extern "C" NTSTATUS DriverEntry(PDRIVER_OBJECT pDriverObject, PUNICODE_STRING pR
 
 	pDriverObject->DriverUnload = Unload;
 
-	HV->Get();
-	if (!HV->isVaild())
+	if (!HV->isvalid())
 	{
 		print("Hypervisor failed to initialize\n");
 		return STATUS_UNSUCCESSFUL;
 	}
 
-	HV->setup_npts();
-	
+	if (!HV->setup_npts())
+	{
+		print("NPT setup failed\n");
+		return STATUS_UNSUCCESSFUL;
+	}
+
+	// Setup msrpm, this determines which msrs and their instructions get intercepted
 	HV->msrpm().set(MSR::EFER::MSR_EFER, MSR::access::read);
 	HV->msrpm().set(MSR::EFER::MSR_EFER, MSR::access::write);
 
 	HV->msrpm().set(MSR::HSAVE_PA::MSR_VM_HSAVE_PA, MSR::access::read);
 	HV->msrpm().set(MSR::HSAVE_PA::MSR_VM_HSAVE_PA, MSR::access::write);
 
-	HV->virtualize();
+	if (!HV->virtualize())
+	{
+		print("Virtualization failed\n");
+		return STATUS_UNSUCCESSFUL;
+	}
 
 	return STATUS_SUCCESS;
 }
@@ -42,7 +50,7 @@ void Unload(PDRIVER_OBJECT pDriverObject)
 {
 	UNREFERENCED_PARAMETER(pDriverObject);
 
-	HV->Unload();
+	HV->unload();
 
 	print("---------\n\n");
 }

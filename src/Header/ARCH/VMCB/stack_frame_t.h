@@ -1,5 +1,6 @@
 #pragma once
 #include "../../commons.h"
+
 struct register_t {
 	union {
 		uint64_t value;
@@ -27,8 +28,8 @@ struct stack_frame_t
 {
 	register_t rax; // rax is in vmcb
 	register_t rcx;
-	register_t rbx;
 	register_t rdx;
+	register_t rbx;
 	register_t rsi;
 	register_t rdi;
 	register_t r8;
@@ -46,4 +47,14 @@ struct stack_frame_t
 	M128A xmm3;
 	M128A xmm4;
 	M128A xmm5;
+	M128A xmm6;
+	M128A xmm7;
+	M128A xmm8;
+	M128A xmm9;
+	M128A xmm10;
+	M128A xmm11;
+	M128A xmm12;
+	M128A xmm13;
+	M128A xmm14;
+	M128A xmm15;
 };

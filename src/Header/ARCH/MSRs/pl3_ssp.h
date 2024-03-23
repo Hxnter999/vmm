@@ -4,7 +4,7 @@
 namespace MSR {
 	struct PL3_SSP : BASE_MSR {
 
-		static constexpr uint32_t MSR_PL3_SSP = 0x6A7;
+		static constexpr uint32_t MSR_PL3_SSP = 0x000006A7;
 
 		union {
 			struct {

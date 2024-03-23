@@ -85,7 +85,7 @@ namespace EXITINFO {
 			// #NM: EXITINFO1 & EXITINFO2 are undefined
 			// #DF: EXITINFO1 & EXITINFO2 are undefined. rIP is undefined
 			// Vector 9: Reserved and not implemented, use the #PF intercept instead. Effect of setting this bit is undefined
-			
+
 			// #TS : EXITINFO1 & EXITINFO2 are undefined. rIP may point to either the instruction causing the task switch or the first instruction of the incoming task
 			struct { // 15.14
 				uint64_t segment_selector : 16; // holds the segment selector identifying the incoming TSS.
@@ -111,6 +111,22 @@ namespace EXITINFO {
 			struct { // This intercept is tested before CR2 is written by the exception.
 				uint64_t error_code : 64; // The error code saved in EXITINFO1 is the same as would be pushed onto the stack by a non - intercepted #PF exception in protected mode.
 			} page_fault;
+
+			// #NPF
+			struct { // 15.25.6 (& 15.36.10 for SEV_SNP)
+				uint64_t present : 1; // 0 = not present | 1 = present
+				uint64_t rw : 1; // 1 = write access (e that host table walks for guest page tables are always treated as data writes.)
+				uint64_t us : 1; // 1 = user access (npt accesses by MMU are treated as user access)
+				uint64_t rsv : 1; // 1 = reserved bits were set
+				uint64_t id : 1; // 1 = code read access
+				uint64_t ss : 1; // 1 = shadow stack access 
+				uint64_t sev_snp_reserved : 26; // used when secure nested paging is enabled
+				uint64_t final_gpa_translation : 1; // 1 = occured while translating guest's final physical address
+				uint64_t gpt_translation : 1; // 1 = occured while translating guest's guest page table
+				uint64_t reserved34 : 3;
+				uint64_t sss_page : 1; // supervisor shadow stack page in the leaf node of npt and shadow stack check is enabled
+				uint64_t reserved38 : 26;
+			} nested_page_fault;
 
 			// #MF: This intercept is tested after the floating point status word has been written, as is the case for a normal FP exception.The EXITINFO1 and EXITINFO2 fields are undefined
 

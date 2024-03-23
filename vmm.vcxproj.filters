@@ -1,144 +1,59 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Header">
-      <UniqueIdentifier>{f5cc95d1-fbef-4713-8a10-7c46abaf72bb}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source">
-      <UniqueIdentifier>{8E41214B-6785-4CFE-B992-037D68949A14}</UniqueIdentifier>
-      <Extensions>inf;inv;inx;mof;mc;</Extensions>
-    </Filter>
-    <Filter Include="Header\ARCH">
-      <UniqueIdentifier>{0b39962d-d10a-4a97-8d57-f500cfbd7575}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header\ARCH\MSRs">
-      <UniqueIdentifier>{25642eee-b80d-4f40-8415-75b1b1f321af}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header\ARCH\CPUID">
-      <UniqueIdentifier>{4d1009e2-b736-4186-8f2a-757b4960f65a}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header\ARCH\CPUID\Standard Features">
-      <UniqueIdentifier>{badbdb5c-f1f2-4669-9b40-96f365e18008}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header\ARCH\CPUID\Extended Features">
-      <UniqueIdentifier>{2f2d0fb1-e1b1-40a7-9520-aed24fa92114}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header\ARCH\VMCB">
-      <UniqueIdentifier>{e85b1ddb-3860-4e23-96ef-f706c304a95a}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header\ARCH\SEGMENT">
-      <UniqueIdentifier>{4c0f7e37-831b-4152-af62-46c4b74d9428}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Utils">
-      <UniqueIdentifier>{7e1a3dfc-3f3a-46d5-b748-a9dafa8a8d41}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header\ARCH\VMEXIT">
-      <UniqueIdentifier>{6db64755-65ef-4286-9e65-0a76db58fbc2}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header\ARCH\VMEXIT\EXITINFO">
-      <UniqueIdentifier>{6401ec87-0ad4-4fc4-a437-b7fe8d7e144c}</UniqueIdentifier>
-    </Filter>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="src\Source\main.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Source\commons.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Source\SVM\svm.cpp" />
+    <ClCompile Include="src\Header\ARCH\VMEXIT\HANDLERS\cpuid.cpp" />
+    <ClCompile Include="src\Header\ARCH\VMEXIT\HANDLERS\msr.cpp" />
     <ClCompile Include="src\Header\Hypercall\hypercall.cpp" />
-    <ClCompile Include="src\Source\smbios.cpp" />
-    <ClCompile Include="src\Source\Hypervisor.cpp" />
     <ClCompile Include="src\Source\asm\sce.cpp" />
+    <ClCompile Include="src\Source\Hypervisor.cpp" />
+    <ClCompile Include="src\Header\smbios\smbios.cpp" />
+    <ClCompile Include="src\Source\SVM\svm.cpp" />
+    <ClCompile Include="src\Source\commons.cpp" />
+    <ClCompile Include="src\Source\main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\Header\commons.h">
-      <Filter>Header</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Header\SVM_STATUS.h">
-      <Filter>Header</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Header\ARCH\CPUID\cpuid_t.h">
-      <Filter>Header\ARCH\CPUID</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Header\datatypes.h">
-      <Filter>Header</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Header\ARCH\CPUID\Extended Features\fn_identifiers.h">
-      <Filter>Header\ARCH\CPUID\Extended Features</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Header\ARCH\MSRs\efer.h">
-      <Filter>Header\ARCH\MSRs</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Header\ARCH\MSRs\vm_cr.h">
-      <Filter>Header\ARCH\MSRs</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Header\ARCH\CPUID\Extended Features\fn_svm_features.h">
-      <Filter>Header\ARCH\CPUID\Extended Features</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Header\ARCH\MSRs\msrs.h">
-      <Filter>Header\ARCH\MSRs</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Header\ARCH\VMCB\vmcb.h">
-      <Filter>Header\ARCH\VMCB</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Header\ARCH\VMCB\vmcb_state_save.h">
-      <Filter>Header\ARCH\VMCB</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Header\ARCH\SEGMENT\segment.h">
-      <Filter>Header\ARCH\SEGMENT</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Header\ARCH\CPUID\Extended Features\fn_processor_capacity.h">
-      <Filter>Header\ARCH\CPUID\Extended Features</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Header\Util\bitset.h">
-      <Filter>Source\Utils</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Header\ARCH\MSRs\hsave_pa.h">
-      <Filter>Header\ARCH\MSRs</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Header\ARCH\MSRs\pat.h">
-      <Filter>Header\ARCH\MSRs</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Header\ARCH\VMCB\vmcb_control.h">
-      <Filter>Header\ARCH\VMCB</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Header\ARCH\VMEXIT\exit_int_info.h">
-      <Filter>Header\ARCH\VMEXIT</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Header\ARCH\VMEXIT\svm_exit_code.h">
-      <Filter>Header\ARCH\VMEXIT</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Header\ARCH\VMEXIT\EXITINFO\exitinfo1.h">
-      <Filter>Header\ARCH\VMEXIT\EXITINFO</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Header\ARCH\CPUID\Standard Features\fn_vendor.h">
-      <Filter>Header\ARCH\CPUID\Extended Features</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Header\ARCH\VMEXIT\EXITINFO\exitinfo2.h" />
-    <ClInclude Include="src\Header\ARCH\CR\control_registers.h" />
-    <ClInclude Include="src\Source\SVM\svm.h" />
-    <ClInclude Include="src\Header\Hypercall\hypercall.h" />
+    <ClInclude Include="src\Header\ARCH\MSRs\cstar.h" />
+    <ClInclude Include="src\Header\ARCH\MSRs\lstar.h" />
+    <ClInclude Include="src\Header\ARCH\MSRs\pl3_ssp.h" />
+    <ClInclude Include="src\Header\ARCH\MSRs\sfmask.h" />
+    <ClInclude Include="src\Header\ARCH\MSRs\star.h" />
+    <ClInclude Include="src\Header\ARCH\MSRs\s_cet.h" />
+    <ClInclude Include="src\Header\ARCH\MSRs\u_cet.h" />
+    <ClInclude Include="src\Header\ARCH\rflags.h" />
+    <ClInclude Include="src\Header\ARCH\VMCB\stack_frame_t.h" />
     <ClInclude Include="src\Header\ARCH\VMEXIT\handlers.h" />
     <ClInclude Include="src\Header\ARCH\PAGES\pages.h" />
+    <ClInclude Include="src\Header\Hypercall\hypercall.h" />
+    <ClInclude Include="src\Header\ARCH\CR\control_registers.h" />
     <ClInclude Include="src\Header\ARCH\PAGES\npts.h" />
-    <ClInclude Include="src\Header\smbios\smbios.h" />
-    <ClInclude Include="src\Header\ARCH\VMCB\stack_frame_t.h" />
     <ClInclude Include="src\Header\Hypervisor.h" />
+    <ClInclude Include="src\Header\smbios\smbios.h" />
     <ClInclude Include="src\Source\asm\sce.h" />
-    <ClInclude Include="src\Header\ARCH\MSRs\lstar.h" />
-    <ClInclude Include="src\Header\ARCH\MSRs\cstar.h" />
-    <ClInclude Include="src\Header\ARCH\MSRs\star.h" />
-    <ClInclude Include="src\Header\ARCH\MSRs\sfmask.h" />
-    <ClInclude Include="src\Header\ARCH\rflags.h" />
-    <ClInclude Include="src\Header\ARCH\MSRs\s_cet.h" />
-    <ClInclude Include="src\Header\ARCH\MSRs\u_set.h" />
-    <ClInclude Include="src\Header\ARCH\MSRs\pl3_ssp.h" />
+    <ClInclude Include="src\Source\SVM\svm.h" />
+    <ClInclude Include="src\Header\ARCH\VMEXIT\EXITINFO\exitinfo2.h" />
+    <ClInclude Include="src\Header\Util\bitset.h" />
+    <ClInclude Include="src\Header\commons.h" />
+    <ClInclude Include="src\Header\ARCH\CPUID\cpuid_t.h" />
+    <ClInclude Include="src\Header\datatypes.h" />
+    <ClInclude Include="src\Header\ARCH\MSRs\efer.h" />
+    <ClInclude Include="src\Header\ARCH\VMEXIT\exit_int_info.h" />
+    <ClInclude Include="src\Header\ARCH\CPUID\Extended Features\fn_identifiers.h" />
+    <ClInclude Include="src\Header\ARCH\CPUID\Extended Features\fn_processor_capacity.h" />
+    <ClInclude Include="src\Header\ARCH\CPUID\Extended Features\fn_svm_features.h" />
+    <ClInclude Include="src\Header\ARCH\CPUID\Standard Features\fn_vendor.h" />
+    <ClInclude Include="src\Header\ARCH\MSRs\hsave_pa.h" />
+    <ClInclude Include="src\Header\ARCH\VMEXIT\EXITINFO\exitinfo1.h" />
+    <ClInclude Include="src\Header\ARCH\MSRs\msrs.h" />
+    <ClInclude Include="src\Header\ARCH\MSRs\pat.h" />
+    <ClInclude Include="src\Header\ARCH\SEGMENT\segment.h" />
+    <ClInclude Include="src\Header\ARCH\VMEXIT\svm_exit_code.h" />
+    <ClInclude Include="src\Header\SVM_STATUS.h" />
+    <ClInclude Include="src\Header\ARCH\VMCB\vmcb.h" />
+    <ClInclude Include="src\Header\ARCH\VMCB\vmcb_control.h" />
+    <ClInclude Include="src\Header\ARCH\VMCB\vmcb_state_save.h" />
+    <ClInclude Include="src\Header\ARCH\MSRs\vm_cr.h" />
   </ItemGroup>
   <ItemGroup>
-    <MASM Include="src\Source\asm\vmenter.asm">
-      <Filter>Source</Filter>
-    </MASM>
+    <MASM Include="src\Source\asm\vmenter.asm" />
   </ItemGroup>
 </Project>

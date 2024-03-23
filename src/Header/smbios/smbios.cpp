@@ -1,4 +1,4 @@
-#include "../Header/smbios/smbios.h"
+#include "smbios.h"
 #define DMI_READ_8U    *ptr_++
 #define DMI_READ_16U   *((uint16_t*)ptr_), ptr_ += 2
 #define DMI_READ_32U   *((uint32_t*)ptr_), ptr_ += 4

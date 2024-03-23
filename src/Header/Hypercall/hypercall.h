@@ -8,4 +8,4 @@ enum class hypercall_code : uint64_t
 	PING
 };
 
-void hypercall_handler(vcpu_t* vcpu);
+void hypercall_handler(vcpu_t& vcpu);

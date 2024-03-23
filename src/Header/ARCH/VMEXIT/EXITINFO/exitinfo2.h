@@ -25,10 +25,17 @@ namespace EXITINFO {
 				uint64_t reserved49 : 15;
 			} task_switch;
 
-			// #NP
+			// #NP	EXITINFO2 field is undefined
+
+			// #PF
 			struct {
-				uint64_t faulting_address : 64; 
+				uint64_t faulting_address : 64;
 			} page_fault;
+
+			// #NPF
+			struct { // 15.25.6
+				uint64_t faulting_gpa : 64; // The faulting guest physical address is saved in the VMCB's EXITINFO2 field
+			} nested_page_fault;
 
 			// Interrupt intercepts
 			// If the SMI wasn't asserted during an I/O instruction, the extra EXITINFO1 and EXITINFO2 bits are undefined

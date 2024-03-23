@@ -57,20 +57,20 @@ vmrun_loop:
 	push r8
 	push rdi
 	push rsi
-	push rdx
 	push rbx
+	push rdx
 	push rcx
 	push rax
 
 	; rsp -> stack_frame
-	mov rcx, [rsp + 178h] ; sizeof(stack_contents) + sizeof(uint64_t)
+	mov rcx, [rsp + 180h] ; sizeof(stack_contents) + sizeof(uint64_t) * 2
 	call vmexit_handler
 	test al, al
 
 	pop rax
 	pop rcx
-	pop rbx
 	pop rdx
+	pop rbx
 	pop rsi
 	pop rdi
 	pop r8
@@ -104,7 +104,7 @@ vmrun_loop:
 
 devirtualize:
 	; rsp -> guest_rip
-	add rsp, 110h ; 100h for xmm, 10h for guest_rip
+	add rsp, 118h ; 100h for xmm + sizeof(uint64_t) * 3
 
 	mov rax, [rsp]
 

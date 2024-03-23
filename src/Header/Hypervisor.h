@@ -7,13 +7,14 @@ class Hypervisor
 {
 	static Hypervisor* instance;
 	
-	inline bool runOnAllVCpus(bool(*func)(uint32_t)) //this is cancer!
+	inline bool execute_on_all_cpus(bool(*func)(uint32_t)) //this is cancer!
 	{
 		for (uint32_t i = 0; i < vcpus.vcpu_count; i++)
 		{
 			auto original_affinity = KeSetSystemAffinityThreadEx(1ll << i);
-			if(!func(i)) return false;
+			bool result = func(i);
 			KeRevertToUserAffinityThreadEx(original_affinity);
+			if (!result) return false;
 		}
 		return true;
 	}
@@ -30,7 +31,7 @@ class Hypervisor
 
 	bool vaild;
 	uint64_t* npt;
-	vcpu_t* current_vcpu;
+	MSR::msrpm_t* shared_msrpm;
 
 	struct vcpus_t {
 		vcpus_t() : vcpu_count(0), buffer(nullptr) {}
@@ -43,16 +44,16 @@ class Hypervisor
 		vcpu_t* begin() { return buffer; }
 		vcpu_t* end() { return buffer + vcpu_count; }
 	} vcpus;
-	MSR::msrpm_t* shared_msrpm;
-public:
-	MSR::msrpm_t& msrpm() { return *shared_msrpm; }
 
+public:
 	Hypervisor(Hypervisor&) = delete;
 	void operator=(const Hypervisor&) = delete;
 
-	static Hypervisor* Get();
+	MSR::msrpm_t& msrpm() { return *shared_msrpm; }
 
-	bool isVaild() { return vaild; }
+	static Hypervisor* get();
+
+	bool isvalid() { return vaild; }
 
 	bool virtualize();
 
@@ -60,7 +61,7 @@ public:
 
 	void devirtualize(vcpu_t* vcpu);
 
-	void Unload(); //this should only be called once (in Unload)
+	void unload(); //this should only be called once (in Unload)
 };
 
-#define HV Hypervisor::Get()
+#define HV Hypervisor::get()

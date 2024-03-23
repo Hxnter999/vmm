@@ -4,7 +4,7 @@
 namespace MSR {
 	struct S_CET : BASE_MSR
 	{
-		static constexpr uint32_t MSR_S_CET = 0x6A2;
+		static constexpr uint32_t MSR_S_CET = 0x000006A2;
 
 		union {
 			struct {
