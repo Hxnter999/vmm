@@ -50,18 +50,7 @@ inline bool setup_huge(const uint64_t guest_phys_addr_size, uint64_t** buffer)
 		pdepes[i].huge_page = 1;
 		pdepes[i].write = 1;
 		pdepes[i].usermode = 1;
-
-		const uint64_t value = (i * pdepe_address_range);
-
-		constexpr uint64_t adjustedShift = 30;
-		constexpr uint64_t mask = (1ULL << 22) - 1; // Mask for the 22-bit page_pa field
-
-		const uint64_t shiftedValue = value >> adjustedShift;
-		const uint64_t maskedValue = shiftedValue & mask;
-
-		print("value %u %u: %llx, %llx\n", i, value, maskedValue);
-
-		pdepes[i].page_pa = maskedValue;
+		pdepes[i].page_pa = i;
 	}
 
 	return true;
