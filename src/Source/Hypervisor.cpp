@@ -148,7 +148,7 @@ bool Hypervisor::virtualize()
 	return true;
 }
 
-void Hypervisor::setup_vmcb(vcpu_t* vcpu, CONTEXT* ctx)
+void Hypervisor::setup_vmcb(vcpu_t* vcpu, CONTEXT* ctx) //should make it a reference
 {
 	vcpu->is_virtualized = true;
 

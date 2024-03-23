@@ -16,6 +16,11 @@ struct register_t {
 	inline bool operator!=(uint64_t val) {
 		return value != val;
 	}
+
+	inline register_t& operator=(uint64_t val) {
+		value = val;
+		return *this;
+	}
 };
 
 struct stack_frame_t

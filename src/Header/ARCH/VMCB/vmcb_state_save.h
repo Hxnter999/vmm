@@ -2,6 +2,13 @@
 #include "../../datatypes.h"
 #include "../SEGMENT/segment.h"
 #include "../CR/control_registers.h"
+#include "../rflags.h"
+#include "../MSRs/s_cet.h"
+#include "../MSRs/efer.h"
+#include "../MSRs/star.h"
+#include "../MSRs/lstar.h"
+#include "../MSRs/cstar.h"
+#include "../MSRs/sfmask.h"
 
 struct vmcb_state_save {
 	// 000h
@@ -44,7 +51,7 @@ struct vmcb_state_save {
 	uint32_t reservedcc;
 
 	// 0d0h
-	uint64_t efer;
+	MSR::EFER efer;
 
 	// 0d8h
 	uint8_t reservedd8[0x70];
@@ -65,7 +72,7 @@ struct vmcb_state_save {
 	uint64_t dr6;
 
 	// 170h
-	uint64_t rflags;
+	RFLAGS rflags;
 
 	// 178h
 	uint64_t rip;
@@ -77,7 +84,7 @@ struct vmcb_state_save {
 	uint64_t rsp;
 
 	// 1e0h
-	uint64_t s_cet;
+	MSR::S_CET s_cet;
 
 	// 1e8h
 	uint64_t ssp;
@@ -89,16 +96,16 @@ struct vmcb_state_save {
 	uint64_t rax;
 
 	// 200h
-	uint64_t star;
+	MSR::STAR star;
 
 	// 208h
-	uint64_t lstar;
+	MSR::LSTAR lstar;
 
 	// 210h
-	uint64_t cstar;
+	MSR::CSTAR cstar;
 
 	// 218h
-	uint64_t sfmask;
+	MSR::SFMASK sfmask;
 
 	// 220h
 	uint64_t kernel_gs_base;

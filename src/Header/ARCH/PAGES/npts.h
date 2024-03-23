@@ -106,13 +106,10 @@ inline bool setup_allusive(const uint64_t guest_phys_addr_size)
 	return false;
 }
 
-inline bool initnpts(uint64_t** nptbuffer) 
+inline bool initnpts(uint64_t** nptbuffer)  //TODO: add support for IO devices (dynamiclly add pages)
 {
-	//EDX bit 26 as returned by CPUID function 8000_0001h indicates 1 - Gbyte page support.
-	//The EAX register as returned by CPUID function 8000_0019h reports the number of 1 - Gbyte L1 TLB entries supported
-	// and EBX reports the number of 1 - Gbyte L2 TLB entries.
 
-	//maybe want to check the amount of supported and decide if its worth using hugepages (even if they are allowed)
+	//maybe want to check the amount of supported TLB shittery and decide if its worth using hugepages (even if they are allowed)
 
 	CPUID::fn_identifiers ident{};
 	ident.load();
