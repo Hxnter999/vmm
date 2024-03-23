@@ -20,7 +20,7 @@
     <ClInclude Include="src\Header\ARCH\MSRs\s_cet.h" />
     <ClInclude Include="src\Header\ARCH\MSRs\u_cet.h" />
     <ClInclude Include="src\Header\ARCH\rflags.h" />
-    <ClInclude Include="src\Header\ARCH\VMCB\stack_frame_t.h" />
+    <ClInclude Include="src\Header\ARCH\VMCB\stack_frame.h" />
     <ClInclude Include="src\Header\ARCH\VMEXIT\handlers.h" />
     <ClInclude Include="src\Header\ARCH\PAGES\pages.h" />
     <ClInclude Include="src\Header\Hypercall\hypercall.h" />

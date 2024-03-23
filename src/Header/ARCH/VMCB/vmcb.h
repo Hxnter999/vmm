@@ -3,7 +3,7 @@
 #include "vmcb_state_save.h"
 #include "../MSRs/msrs.h"
 #include "../PAGES/pages.h"
-#include "stack_frame_t.h"
+#include "stack_frame.h"
 
 struct vmcb_t {
 	// table b-1 (control area)

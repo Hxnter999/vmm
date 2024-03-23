@@ -8,9 +8,9 @@ namespace MSR {
 
 		union {
 			struct {
-				uint64_t syscall_target_eip : 32; // 0 : 31
-				uint64_t syscall_cs_ss : 16; // 32 : 47
-				uint64_t sysret_cc_ss : 16; // 48 : 63
+				uint32_t syscall_target_eip : 32; // 0 : 31
+				uint16_t syscall_cs_ss : 16; // 32 : 47
+				uint16_t sysret_cc_ss : 16; // 48 : 63
 			};
 			uint64_t bits;
 		};

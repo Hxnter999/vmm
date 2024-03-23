@@ -8,7 +8,7 @@ namespace MSR {
 
 		union {
 			struct {
-				uint64_t ssp;
+				uint64_t ssp : 64;
 			};
 			uint64_t bits;
 		};

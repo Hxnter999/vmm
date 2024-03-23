@@ -17,9 +17,13 @@ void msr_handler(vcpu_t& vcpu) {
 		}
 		else {
 			efer.bits = result.value;
-			if (!efer.svme) { // we cant disable svme.
-				vcpu.guest_vmcb.save_state.efer = result.value;
-			}
+			//if (!efer.svme) { // we cant disable svme.
+			//	vcpu.guest_vmcb.save_state.efer.bits = result.value;
+			//}
+			
+			// allternatively, write the msr anyway but flip svme, incase the guest is trying to enable/disable multiple things at once we dont want to discard everything.
+			efer.svme = 1;
+			vcpu.guest_vmcb.save_state.efer.bits = efer.bits;
 		}
 	}
 	else if (msr == MSR::HSAVE_PA::MSR_VM_HSAVE_PA) {

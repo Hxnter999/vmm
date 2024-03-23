@@ -10,8 +10,8 @@ namespace MSR {
 
 		union {
 			struct {
-				uint64_t syscall_flag_mask : 32;
-				uint64_t reserved : 32;
+				uint32_t syscall_flag_mask : 32;
+				uint32_t reserved : 32;
 			};
 			uint64_t bits;
 		};
