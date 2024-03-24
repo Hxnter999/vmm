@@ -1,0 +1,3 @@
+[submodule "windows-defs"]
+	path = windows-defs
+	url = https://github.com/TDC0471/windows-defs

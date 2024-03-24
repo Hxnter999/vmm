@@ -148,7 +148,7 @@ class npts_t
 	}
 
 public:
-	npts_t(const uint64_t guest_phys_addr_size)
+	void identitymap(const uint64_t guest_phys_addr_size)
 	{
 		CPUID::fn_identifiers ident{};
 		ident.load();
