@@ -1776,6 +1776,8 @@
     <ClInclude Include="windows-defs\structs\__m128.h" />
     <ClInclude Include="windows-defs\structs\__WIL__WNF_STATE_NAME.h" />
     <ClInclude Include="windows-defs\structs\__WIL__WNF_TYPE_ID.h" />
+    <ClInclude Include="windows-defs\structs\_RTL_PROCESS_MODULE_INFORMATION.h" />
+    <ClInclude Include="windows-defs\structs\_RTL_PROCESS_MODULES.h" />
   </ItemGroup>
   <ItemGroup>
     <MASM Include="src\Source\asm\vmenter.asm" />

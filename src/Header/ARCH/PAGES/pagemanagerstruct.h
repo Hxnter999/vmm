@@ -2,6 +2,7 @@
 #include "../PAGES/PAGES.h"
 #include "npts.h"
 #include "../CR/control_registers.h"
+#include <_EPROCESS.h>"
 
 class custom_cr3_t 
 {

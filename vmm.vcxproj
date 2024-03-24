@@ -85,6 +85,7 @@
     <EnableMicrosoftCodeAnalysis>false</EnableMicrosoftCodeAnalysis>
     <ApiValidator_Enable>false</ApiValidator_Enable>
     <ExternalIncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath)</ExternalIncludePath>
+    <IncludePath>windows-defs\structs;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
     <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
@@ -1654,6 +1655,8 @@
     <ClInclude Include="windows-defs\structs\_RTL_HP_VS_CONFIG.h" />
     <ClInclude Include="windows-defs\structs\_RTL_LOOKASIDE.h" />
     <ClInclude Include="windows-defs\structs\_RTL_MEMORY_TYPE.h" />
+    <ClInclude Include="windows-defs\structs\_RTL_PROCESS_MODULES.h" />
+    <ClInclude Include="windows-defs\structs\_RTL_PROCESS_MODULE_INFORMATION.h" />
     <ClInclude Include="windows-defs\structs\_RTL_QUERY_REGISTRY_TABLE.h" />
     <ClInclude Include="windows-defs\structs\_RTL_RANGE.h" />
     <ClInclude Include="windows-defs\structs\_RTL_RANGE_LIST.h" />
