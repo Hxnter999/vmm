@@ -159,7 +159,7 @@ void Hypervisor::inject_event(vcpu_t& vcpu)
 	auto& ei = vcpu.guest_vmcb.control.event_injection;
 	ei.valid = 1;
 	ei.type = interrupt_type::HARDWARE_EXCEPTION;
-	ei.vector = exception;
+	ei.evector = exception;
 }
 
 void Hypervisor::setup_vmcb(vcpu_t* vcpu, CONTEXT* ctx) //should make it a reference

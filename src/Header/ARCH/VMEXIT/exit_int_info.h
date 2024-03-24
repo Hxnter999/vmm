@@ -54,13 +54,28 @@ struct exit_int_info_t
 		struct 
 		{
 
-			//NMI doesnt use this field (alpha)
-			exception_vector vector : 8; //it can be other stuff but for now guh
-			interrupt_type type : 3;
-			uint64_t ev : 1;
-			uint64_t reserved : 19;
-			uint64_t valid : 1;
-			uint64_t error_code : 32;
+
+			union {
+				struct {
+					//NMI doesnt use this field (alpha)
+					exception_vector evector : 8; //it can be other stuff but for now guh
+					interrupt_type type : 3;
+					uint64_t ev : 1;
+					uint64_t reserved : 19;
+					uint64_t valid : 1;
+					uint64_t error_code : 32;
+				};
+
+				struct {
+					//NMI doesnt use this field (alpha)
+					uint64_t vector : 8; //it can be other stuff but for now guh
+					interrupt_type type : 3;
+					uint64_t ev : 1;
+					uint64_t reserved : 19;
+					uint64_t valid : 1;
+					uint64_t error_code : 32;
+				};
+			};
 		};
 		uint64_t bits;
 	};
