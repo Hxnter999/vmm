@@ -22,6 +22,11 @@ struct register_t {
 		value = val;
 		return *this;
 	}
+
+	operator uint64_t() 
+	{
+		return value;
+	}
 };
 
 struct stack_frame_t

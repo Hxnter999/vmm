@@ -2,7 +2,7 @@
 
 void cpuid_handler(vcpu_t& vcpu) {
 
-	CPUID::cpuid_t result;
+	CPUID::cpuid_t result{};
 	__cpuidex(reinterpret_cast<int*>(&result.cpu_info), vcpu.guest_stack_frame.rax.low, vcpu.guest_stack_frame.rcx.low);
 
 	//print("CPUID: %X %X\n", vcpu.guest_stack_frame.rax.low, vcpu.guest_stack_frame.rcx.low);

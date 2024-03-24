@@ -15,7 +15,7 @@ constexpr uint64_t plm4e_address_range = 0x1000000000; //256GB
 constexpr uint64_t pdepe_address_range = 0x40000000; //1GB
 constexpr uint64_t pdes_address_range = 0x200000; //2MB
 
-inline bool setup_huge(const uint64_t guest_phys_addr_size, uint64_t** buffer)
+inline bool setup_huge(const uint64_t guest_phys_addr_size, uint64_t*& buffer)
 {
 	const uint64_t amount_plm4es = roundup(guest_phys_addr_size, plm4e_address_range);
 	const uint64_t amount_pdepes = roundup(guest_phys_addr_size, pdepe_address_range);
@@ -24,16 +24,16 @@ inline bool setup_huge(const uint64_t guest_phys_addr_size, uint64_t** buffer)
 	print ("amount_pdepes: %u\n", amount_pdepes);
 
 	const uint64_t bufsize = sizeof(pml4e_t) * 512 + sizeof(pdpe_huge_t) * amount_pdepes;
-	*buffer = static_cast<uint64_t*>(MmAllocateContiguousMemory(bufsize, { .QuadPart = -1 }));
-	if (!*buffer)
+	buffer = static_cast<uint64_t*>(MmAllocateContiguousMemory(bufsize, { .QuadPart = -1 }));
+	if (!buffer)
 	{
 		print("buffer failed to be allocated\n");
 		return false;
 	}
-	memset(*buffer, 0, bufsize);
+	memset(buffer, 0, bufsize);
 
-	pml4e_t* plm4es = reinterpret_cast<pml4e_t*>(*buffer);
-	pdpe_huge_t* pdepes = reinterpret_cast<pdpe_huge_t*>(*buffer + 512);
+	pml4e_t* plm4es = reinterpret_cast<pml4e_t*>(buffer);
+	pdpe_huge_t* pdepes = reinterpret_cast<pdpe_huge_t*>(buffer + 512);
 
 
 	for (uint64_t i = 0; i < amount_plm4es; i++) {
@@ -56,54 +56,63 @@ inline bool setup_huge(const uint64_t guest_phys_addr_size, uint64_t** buffer)
 	return true;
 }
 
-inline bool setup_allusive(const uint64_t guest_phys_addr_size) 
+inline bool setup_allusive(const uint64_t guest_phys_addr_size, uint64_t*& buffer)
 {
-	guest_phys_addr_size;
-//	const uint64_t amount_plm4es = roundup(guest_phys_addr_size, plm4e_address_range);
-//	const uint64_t amount_pdepes = roundup(guest_phys_addr_size, pdepe_address_range);
-//	const uint64_t amount_pdes = roundup(guest_phys_addr_size, pdes_address_range);
-//
-//	const uint64_t bufsize = sizeof(pml4e_t) * 512 + roundup(sizeof(pdpe_t) * amount_pdepes, 512) + sizeof(pde_t) * amount_pdes;
-//	uint64_t* buffer = static_cast<uint64_t*>(MmAllocateContiguousMemory(bufsize, { .QuadPart = -1 }));
-//	if (!buffer)
-//	{
-//		print("buffer failed to be allocated\n");
-//		return false;
-//	}
-//	memset(buffer, 0, bufsize);
-//
-//	pml4e_t* plm4es = reinterpret_cast<pml4e_t*>(buffer);
-//	pdpe_t* pdepes = reinterpret_cast<pdpe_t*>(buffer + sizeof(pml4e_t) * 512);
-//	pde_t* pdes = reinterpret_cast<pde_t*>(buffer + sizeof(pml4e_t) * 512 + roundup(sizeof(pdpe_t) * amount_pdepes, 512));
-//
-//	for (uint64_t i = 0; i < amount_plm4es; i++) 
-//	{
-//		plm4es[i].present = 1;
-//		plm4es[i].write = 1;
-//		plm4es[i].usermode = 1;
-//		plm4es[i].page_pa = MmGetPhysicalAddress(&pdepes[i * 512]).QuadPart >> PAGE_SHIFT;
-//
-//		for (uint64_t j = 0; j < amount_pdepes; j++)
-//		{
-//			pdepes[j].present = 1;
-//			pdepes[j].write = 1;
-//			pdepes[j].usermode = 1;
-//
-//			pdepes[j];
-//		}
-//	}
-	return false;
+	const uint64_t amount_plm4es = roundup(guest_phys_addr_size, plm4e_address_range);
+	const uint64_t amount_pdepes = roundup(guest_phys_addr_size, pdepe_address_range);
+	const uint64_t amount_pdes   = roundup(guest_phys_addr_size, pdes_address_range);
+
+	print("amount_plm4es: %u\n", amount_plm4es);
+	print("amount_pdepes: %u\n", amount_pdepes);
+	print("amount_pdes: %u\n", amount_pdes);
+
+	//this is odd maybe make better later if i get a complaint
+	const uint64_t real_pdepes_size = sizeof(pdpe_t) * roundup(amount_pdepes, 512) * 512; //used because pdes must be page alligned
+	const uint64_t bufsize = sizeof(pml4e_t) * 512 + sizeof(pdpe_t) * real_pdepes_size + sizeof(pde_large_t) * amount_pdes;
+	buffer = static_cast<uint64_t*>(MmAllocateContiguousMemory(bufsize, { .QuadPart = -1 }));
+	if (!buffer)
+	{
+		print("buffer failed to be allocated\n");
+		return false;
+	}
+	memset(buffer, 0, bufsize);
+
+	pml4e_t* plm4es = reinterpret_cast<pml4e_t*>(buffer);
+	pdpe_t* pdepes = reinterpret_cast<pdpe_t*>(buffer + sizeof(pml4e_t) * 512);
+	pde_large_t* pdes = reinterpret_cast<pde_large_t*>(buffer + sizeof(pml4e_t) * 512 + real_pdepes_size);
+
+	for (uint64_t i = 0; i < amount_plm4es; i++) {
+
+		plm4es[i].present = 1;
+		plm4es[i].write = 1;
+		plm4es[i].usermode = 1;
+		plm4es[i].page_pa = MmGetPhysicalAddress(&pdepes[i * 512]).QuadPart >> PAGE_SHIFT;
+	}
+
+	for (uint64_t i = 0; i < amount_pdepes; i++) 
+	{
+		pdepes[i].present = 1;
+		pdepes[i].write = 1;
+		pdepes[i].usermode = 1;
+		pdepes[i].page_pa = MmGetPhysicalAddress(&pdes[i * 512]).QuadPart >> PAGE_SHIFT;
+	}
+
+	for (uint64_t i = 0; i < amount_pdes; i++) 
+	{
+		pdes[i].present = 1;
+		pdes[i].large_page = 1;
+		pdes[i].write = 1;
+		pdes[i].usermode = 1;
+		pdes[i].page_pa = i; // should working tion, need to testingtion
+	}
+
+	return true;
 }
 
-inline bool initnpts(uint64_t** nptbuffer)  //TODO: add support for IO devices (dynamiclly add pages)
+inline bool initnpts(uint64_t*& nptbuffer)  //TODO: add support for IO devices (dynamiclly add pages)
 {
 
 	//maybe want to check the amount of supported TLB shittery and decide if its worth using hugepages (even if they are allowed)
-
-	CPUID::fn_identifiers ident{};
-	ident.load();
-
-	bool huge_page_supported = ident.feature_identifiers_ext.page_1gb;
 
 	uint32_t size = GetSystemFirmwareTable('RSMB', 0, nullptr, 0);
 	if (size == 0)
@@ -147,6 +156,11 @@ inline bool initnpts(uint64_t** nptbuffer)  //TODO: add support for IO devices (
 	}
 
 	bool result{};
+	CPUID::fn_identifiers ident{};
+	ident.load();
+
+	bool huge_page_supported = ident.feature_identifiers_ext.page_1gb;
+
 
 	if (guest_phys_addr_size < plm4e_address_range) guest_phys_addr_size = plm4e_address_range;
 	if (guest_phys_addr_size > plm4e_address_range * 512) 
@@ -157,6 +171,8 @@ inline bool initnpts(uint64_t** nptbuffer)  //TODO: add support for IO devices (
 	}
 	print("guest_phys_addr_size %p\n", guest_phys_addr_size);
 
+
+
 	if (huge_page_supported)
 	{
 		result = setup_huge(guest_phys_addr_size, nptbuffer);
@@ -164,7 +180,7 @@ inline bool initnpts(uint64_t** nptbuffer)  //TODO: add support for IO devices (
 	else 
 	{
 		print("cuh");
-		//result = setup_allusive(guest_phys_addr_size);
+		result = setup_allusive(guest_phys_addr_size, nptbuffer);
 	}
 
 

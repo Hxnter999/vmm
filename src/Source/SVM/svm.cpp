@@ -18,6 +18,10 @@ bool vmexit_handler(vcpu_t* const vcpu) {
 		msr_handler(*vcpu);
 		break;
 
+	case svm_exit_code::VMEXIT_CPUID:
+		cpuid_handler(*vcpu);
+		break;
+
 	case svm_exit_code::VMEXIT_INVALID:
 		print("INVALID GUEST STATE, EXITING...\n");
 		vcpu->should_exit = true;
@@ -26,7 +30,9 @@ bool vmexit_handler(vcpu_t* const vcpu) {
 	case svm_exit_code::VMEXIT_NPF:
 		print("[NPF] Error code: %p\n", vcpu->guest_vmcb.control.exit_info_1.page_fault.error_code);
 		print("[NPF] Address: %p | %p\n", vcpu->guest_vmcb.control.exit_info_2.page_fault.faulting_address, vcpu->guest_vmcb.control.exit_info_2.nested_page_fault.faulting_gpa);
-
+		npf_handler(*vcpu);
+		break;
+	
 	default:
 		// event inject a gp/ud
 		print("Unhandled VMEXIT: %d\n", vcpu->guest_vmcb.control.exit_code);

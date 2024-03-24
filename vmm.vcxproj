@@ -144,6 +144,7 @@
   <ItemGroup>
     <ClCompile Include="src\Header\ARCH\VMEXIT\HANDLERS\cpuid.cpp" />
     <ClCompile Include="src\Header\ARCH\VMEXIT\HANDLERS\msr.cpp" />
+    <ClCompile Include="src\Header\ARCH\VMEXIT\HANDLERS\npf.cpp" />
     <ClCompile Include="src\Header\Hypercall\hypercall.cpp">
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">../commons.h</PrecompiledHeaderFile>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">../commons.h</PrecompiledHeaderFile>
@@ -177,6 +178,7 @@
     <ClInclude Include="src\Header\ARCH\MSRs\star.h" />
     <ClInclude Include="src\Header\ARCH\MSRs\s_cet.h" />
     <ClInclude Include="src\Header\ARCH\MSRs\u_cet.h" />
+    <ClInclude Include="src\Header\ARCH\PAGES\nptssruct.h" />
     <ClInclude Include="src\Header\ARCH\rflags.h" />
     <ClInclude Include="src\Header\ARCH\VMCB\stack_frame.h" />
     <ClInclude Include="src\Header\ARCH\VMEXIT\handlers.h" />

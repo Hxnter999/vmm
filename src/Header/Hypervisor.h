@@ -59,6 +59,9 @@ public:
 
 	bool setup_npts();
 
+	template<exception_vector exception>
+	void inject_event(vcpu_t& vcpu);
+
 	void devirtualize(vcpu_t* vcpu);
 
 	void unload(); //this should only be called once (in Unload)

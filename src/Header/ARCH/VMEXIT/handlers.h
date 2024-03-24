@@ -7,3 +7,5 @@
 void msr_handler(vcpu_t& vcpu);
 
 void cpuid_handler(vcpu_t& vcpu);
+
+void npf_handler(vcpu_t& vcpu);

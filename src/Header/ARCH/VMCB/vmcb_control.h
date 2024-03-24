@@ -5,6 +5,7 @@
 #include "../VMEXIT/EXITINFO/exitinfo2.h"
 #include "../MSRs/msrs.h"
 #include "../VMEXIT/svm_exit_code.h"
+#include "../VMEXIT/exit_int_info.h"
 
 enum class tlb_control_id : uint64_t {
 	do_nothing = 0,
@@ -282,7 +283,7 @@ struct vmcb_control {
 	EXITINFO::exitinfo2 exit_info_2;
 
 	// 088h
-	exit_int_info exit_int_info;
+	exit_int_info_t exit_int_info;
 
 	// 090h
 	union {
@@ -313,7 +314,7 @@ struct vmcb_control {
 	uint64_t gpa_of_ghcb;
 
 	// 0a8h
-	uint64_t event_injection;
+	exit_int_info_t event_injection;
 
 	// 0b0h
 	uint64_t n_cr3; // nested page table cr3 to use for nested paging

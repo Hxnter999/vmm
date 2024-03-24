@@ -12,18 +12,52 @@ enum class interrupt_type : uint64_t
 	SOFTWARE_INTERRUPT = 4, //INT
 };
 
+//https://wiki.osdev.org/Exceptions
+enum class exception_vector : uint64_t
+{
+	DE = 0,
+	DB = 1,
+	NMI = 2,
+	BP = 3,
+	OF = 4,
+	BR = 5,
+	UD = 6,
+	NM = 7,
+	DF = 8,
+	CSO = 9,
+	TS = 10,
+	NP = 11,
+	SS = 12,
+	GP = 13,
+	PF = 14,
+	MF = 16,
+	AC = 17,
+	MC = 18,
+	XM = 19,
+	XF = 19,
+	VE = 20,
+	CP = 21,
+	HV = 28,
+	VC = 29,
+	SX = 30
+};
+
 // "When an exception triggers an intercept, the EXITCODE, and optionally EXITINFO1 and
 // EXITINFO2, fields always reflect the intercepted exception, while EXITINTINFO, if marked valid,
 // indicates the prior (not our VMEXIT) exception the guest was attempting to deliver when the intercept occurred."
 // This is EXITINTINFO
-struct exit_int_info 
+
+struct exit_int_info_t 
 {
 	union 
 	{
 		struct 
 		{
-			uint64_t vector : 8;
+
+			//NMI doesnt use this field (alpha)
+			exception_vector vector : 8; //it can be other stuff but for now guh
 			interrupt_type type : 3;
+			uint64_t ev : 1;
 			uint64_t reserved : 19;
 			uint64_t valid : 1;
 			uint64_t error_code : 32;
