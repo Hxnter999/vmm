@@ -1,13 +1,13 @@
-#include "../Header/commons.h"
-#include "SVM/svm.h"
-#include "../Header/ARCH/PAGES/npts.h"
-#include "../Header/Hypervisor.h"
-
-#include "../Header/ARCH/MSRs/vm_cr.h"
-#include "..//Header/ARCH/VMCB/vmcb.h"
-#include "../Header/ARCH/MSRs/pat.h"
-#include "../Header/ARCH/MSRs/hsave_pa.h"
-#include "../Header/ARCH/MSRs/efer.h"
+#include <commons.h>
+#include "svm/svm.h"
+#include <pages/npts.h>
+#include <hypervisor.h>
+		 
+#include <vmcb/vmcb.h>
+#include <msrs/vm_cr.h>
+#include <msrs/pat.h>
+#include <msrs/hsave_pa.h>
+#include <msrs/efer.h>
 
 void Unload(PDRIVER_OBJECT pDriverObject);
 
