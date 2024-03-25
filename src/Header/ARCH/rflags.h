@@ -1,7 +1,7 @@
 #pragma once
-#include "../commons.h"
+#include <commons.h>
 
-struct RFLAGS 
+struct rflags_t 
 {
 	union {
 		struct {

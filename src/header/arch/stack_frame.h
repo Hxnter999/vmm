@@ -1,5 +1,5 @@
 #pragma once
-#include "../../commons.h"
+#include <commons.h>
 
 struct register_t {
 	union {

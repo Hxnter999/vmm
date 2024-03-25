@@ -1,5 +1,5 @@
 #pragma once
-#include "../commons.h"
+#include <commons.h>
 
 #define SMBIOS_STRING(name)  uint8_t name##_; const char * name
 

@@ -1,5 +1,5 @@
 #pragma once
-#include "msrs.h"
+#include <msrs/msrs.h>
 
 namespace MSR {
 	struct PAT : BASE_MSR // Page-Attribute Table Mechanism (7.8)

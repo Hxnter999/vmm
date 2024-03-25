@@ -1,5 +1,5 @@
 #pragma once
-#include "msrs.h"
+#include <msrs/msrs.h>
 
 //The VM_CR MSR controls certain global aspects of SVM
 //The following bits are defined in the AMD64 Architecture Programmer's Manual Volume 2: System Programming

@@ -1,6 +1,6 @@
-#include "../handlers.h"
+#include <arch/vmexit/handlers.h>
 
-void npf_handler(vcpu_t& vcpu) 
+void npf_handler(vcpu_t&) 
 {
 	
 }

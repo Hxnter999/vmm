@@ -1,13 +1,13 @@
 #include "sce.h"
-#include "../../Header/ARCH/MSRs/lstar.h"
-#include "../../Header/ARCH/MSRs/cstar.h"
-#include "../../Header/ARCH/MSRs/star.h"
-#include "../../Header/ARCH/MSRs/sfmask.h"
-#include "../../Header/ARCH/MSRs/u_cet.h"
-#include "../../Header/ARCH/MSRs/s_cet.h"
-#include "../../Header/ARCH/MSRs/efer.h"
-#include "../../Header/ARCH/MSRs/pl3_ssp.h"
-#include "../../Header/ARCH/CR/control_registers.h"
+#include <msrs/lstar.h>
+#include <msrs/cstar.h>
+#include <msrs/star.h>
+#include <msrs/sfmask.h>
+#include <msrs/u_cet.h>
+#include <msrs/s_cet.h>
+#include <msrs/efer.h>
+#include <msrs/pl3_ssp.h>
+#include <cr/control_registers.h>
 
 inline void syscalllong(vcpu_t& vcpu);
 void syscalllegacy(vcpu_t& vcpu);
@@ -104,13 +104,13 @@ void syscalllegacy(vcpu_t& vcpu)
 
 	temp_RIP = save_state.star.syscall_target_eip;
 
-	SEGMENT::segment_register& cs = save_state.cs;
+	segment_register_t& cs = save_state.cs;
 	cs.selector.value = save_state.star.syscall_cs_ss & 0xFFFC;
 	cs.attributes.dpl = 0; //= 32-bit code,dpl0 // Always switch to 32-bit mode in legacy mode.
 	cs.base = 0;
 	cs.limit = 0xFFFFFFFF;
 
-	SEGMENT::segment_register& ss = save_state.ss;
+	segment_register_t& ss = save_state.ss;
 	ss.selector.value = save_state.star.syscall_cs_ss + 8;
 	ss.attributes.dpl = 0; //= 32-bit code,dpl0 // Always switch to 32-bit mode in legacy mode. 
 	cs.base = 0;
@@ -133,7 +133,7 @@ void sysret(vcpu_t& vcpu)
 {
 	auto& save_state = vcpu.guest_vmcb.save_state;
 
-	CR::cr0 cr0 = { __readcr0() };
+	CR0 cr0 = { __readcr0() };
 	bool PROTECTED_MODE = cr0.pe && !save_state.rflags.VM;
 
 	if (!PROTECTED_MODE || save_state.cpl) {}//inject exception in this case #GP(0)
@@ -158,7 +158,7 @@ void sysret64(vcpu_t& vcpu)
 	// Instruction prefixes can be used to override the operand size or address size, or both.
 
 	const MSR::STAR star = save_state.star;
-	SEGMENT::segment_register& cs = save_state.cs;
+	segment_register_t& cs = save_state.cs;
 	uint8_t OPERAND_SIZE = 64;//8, 16, 32, 64;
 	if (OPERAND_SIZE == 64) 
 	{
@@ -177,7 +177,7 @@ void sysret64(vcpu_t& vcpu)
 	cs.base = 0;
 	cs.limit = 0xFFFFFFFF;
 
-	SEGMENT::segment_register& ss = save_state.ss;
+	segment_register_t& ss = save_state.ss;
 	ss.selector.value = star.sysret_cc_ss + 8;
 
 	save_state.rflags.value = vcpu.guest_stack_frame.r11;
@@ -193,14 +193,14 @@ void sysretnon64(vcpu_t& vcpu)
 {
 	auto& save_state = vcpu.guest_vmcb.save_state;
 	const MSR::STAR star = save_state.star;
-	SEGMENT::segment_register& cs = save_state.cs;
+	segment_register_t& cs = save_state.cs;
 
 	cs.selector.value = star.sysret_cc_ss | 3;
 	cs.base = 0;
 	cs.limit = 0xFFFFFFFF;
 	cs.attributes.dpl = 3; // 32-bit code,dpl3
 
-	SEGMENT::segment_register& ss = save_state.ss;
+	segment_register_t& ss = save_state.ss;
 	ss.selector.value = star.sysret_cc_ss + 8;
 
 	save_state.rflags.IF = 1;

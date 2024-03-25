@@ -1,18 +1,18 @@
 #pragma once
-#include "../../Header/commons.h"
+#include <commons.h>
 
-#include "../../Header/ARCH/VMCB/vmcb.h"
+#include <arch/vmcb/vmcb.h>
 
-#include "../../Header/ARCH/CPUID/Extended Features/fn_identifiers.h"
-#include "../../Header/ARCH/CPUID/Extended Features/fn_processor_capacity.h"
-#include "../../Header/ARCH/CPUID/Extended Features/fn_svm_features.h"
-#include "../../Header/ARCH/CPUID/Standard Features/fn_vendor.h"
+#include <cpuid/extended-features/fn_identifiers.h>
+#include <cpuid/extended-features/fn_processor_capacity.h>
+#include <cpuid/extended-features/fn_svm_features.h>
+#include <cpuid/standard-features/fn_vendor.h>
 
-#include "../../Header/SVM_STATUS.h"
+#include <svm_status.h>
 
-#include "../../Header/Hypercall/hypercall.h"
-#include "../../Header/ARCH/VMEXIT/handlers.h"
-
-#include "../../Header/Util/bitset.h"
+#include <hypercall/hypercall.h>
+#include <arch/vmexit/handlers.h>
+		 
+#include <util/bitset.h>
 
 extern "C" bool vmexit_handler(vcpu_t* vcpu);

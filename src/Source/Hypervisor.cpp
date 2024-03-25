@@ -1,15 +1,14 @@
-#include "../Header/Hypervisor.h"
+#include "Hypervisor.h"
 
-#include "../Header/ARCH/CPUID/Standard Features/fn_vendor.h"
-
-#include "../Header/ARCH/MSRs/msrs.h"
-#include "../Header/Hypercall/hypercall.h"
-#include "../Header/ARCH/MSRs/hsave_pa.h"
-#include "../Header/ARCH/MSRs/pat.h"
-#include "../Header/ARCH/CPUID/Extended Features/fn_identifiers.h"
-#include "../Header/ARCH/CPUID/Extended Features/fn_svm_features.h"
-#include "../Header/ARCH/MSRs/vm_cr.h"
-#include "../Header/ARCH/PAGES/npts.h"
+#include <cpuid/standard-features/fn_vendor.h>
+#include <cpuid/extended-features/fn_identifiers.h>
+#include <cpuid/extended-features/fn_svm_features.h>
+#include <msrs/msrs.h>
+#include <msrs/hsave_pa.h>
+#include <msrs/pat.h>
+#include <msrs/vm_cr.h>
+#include <hypercall/hypercall.h>
+#include <pages/npts.h>
 
 extern "C" int64_t testcall(hypercall_code code);
 extern "C" void vmenter(uint64_t * guest_vmcb_pa);
@@ -27,9 +26,8 @@ Hypervisor* Hypervisor::get()
 	return instance;
 }
 
-void Hypervisor::devirtualize(vcpu_t* vcpu)
+void Hypervisor::devirtualize(vcpu_t* const vcpu)
 {
-
 	print("Exiting [%d]...\n", (vcpu - vcpus.begin()) / sizeof(vcpu_t*));
 
 	if (!vcpu->should_exit)
@@ -178,6 +176,7 @@ void Hypervisor::setup_vmcb(vcpu_t* vcpu, CONTEXT* ctx) //should make it a refer
 	vcpu->guest_vmcb.control.vmmcall = 1; // explicit vmexits back to host
 	vcpu->guest_vmcb.control.vmload = 1;
 	vcpu->guest_vmcb.control.vmsave = 1;
+	vcpu->guest_vmcb.control.clgi = 1;
 	vcpu->guest_vmcb.control.msr_prot = 1; // enable this once msrpm and handler is fixed up
 
 	vcpu->guest_vmcb.control.guest_asid = 1; // Address space identifier "ASID [cannot be] equal to zero" 15.5.1 ASID 0 is for the host
@@ -197,7 +196,7 @@ void Hypervisor::setup_vmcb(vcpu_t* vcpu, CONTEXT* ctx) //should make it a refer
 	vcpu->guest_vmcb.save_state.efer.bits = __readmsr(MSR::EFER::MSR_EFER);
 	vcpu->guest_vmcb.save_state.g_pat = __readmsr(MSR::PAT::MSR_PAT); // very sigma (kinda like MTRRs but for page tables)
 
-	SEGMENT::descriptor_table_register idtr{}, gdtr{}; __sidt(&idtr); _sgdt(&gdtr);
+	descriptor_table_register idtr{}, gdtr{}; __sidt(&idtr); _sgdt(&gdtr);
 	vcpu->guest_vmcb.save_state.idtr.base = idtr.base;
 	vcpu->guest_vmcb.save_state.idtr.limit = idtr.limit;
 
@@ -235,7 +234,7 @@ void Hypervisor::setup_vmcb(vcpu_t* vcpu, CONTEXT* ctx) //should make it a refer
 	__svm_vmsave(vcpu->guest_vmcb_pa); // needed here cause the vmrun loop loads guest state before everything, if there isnt a guest saved already it wont work properly
 }
 
-SVM_STATUS Hypervisor::init_check()
+svm_status Hypervisor::init_check()
 {
 	CPUID::fn_vendor vendor_check{};
 	vendor_check.load();
@@ -243,7 +242,7 @@ SVM_STATUS Hypervisor::init_check()
 	if (!vendor_check.is_amd_vendor())
 	{
 		print("Vendor check failed... get off intel nerd\n");
-		return SVM_STATUS::SVM_WRONG_VENDOR;
+		return svm_status::SVM_WRONG_VENDOR;
 	}
 
 	print("Vendor check passed\n");
@@ -254,7 +253,7 @@ SVM_STATUS Hypervisor::init_check()
 	if (!id.feature_identifiers.svm)
 	{
 		print("SVM not supported\n");
-		return SVM_STATUS::SVM_IS_NOT_SUPPORTED_BY_CPU;
+		return svm_status::SVM_IS_NOT_SUPPORTED_BY_CPU;
 	}
 
 	CPUID::fn_svm_features svm_rev{};
@@ -263,13 +262,13 @@ SVM_STATUS Hypervisor::init_check()
 	if (!svm_rev.svm_feature_identification.nested_paging)
 	{
 		print("Nested paging not supported\n");
-		return SVM_STATUS::SVM_NESTED_PAGING_NOT_SUPPORTED;
+		return svm_status::SVM_NESTED_PAGING_NOT_SUPPORTED;
 	}
 
 	if (!svm_rev.svm_feature_identification.n_rip) // necessary otherwise we have to emulate it which is a pain
 	{
 		print("Uh oh! Next RIP not supported\n");
-		return SVM_STATUS::SVM_NEXT_RIP_NOT_SUPPORTED;
+		return svm_status::SVM_NEXT_RIP_NOT_SUPPORTED;
 	}
 
 	MSR::VM_CR vm_cr{};
@@ -278,15 +277,15 @@ SVM_STATUS Hypervisor::init_check()
 	if (!vm_cr.svmdis)
 	{
 		print("SVM not enabled but can be (;\n");
-		return SVM_STATUS::SVM_IS_CAPABLE_OF_BEING_ENABLE; // Yippe!
+		return svm_status::SVM_IS_CAPABLE_OF_BEING_ENABLE; // Yippe!
 	}
 
 	if (!svm_rev.svm_feature_identification.svm_lock)
 	{
 		print("SVM lock bit not set, disabled by BIOS...\n");
-		return SVM_STATUS::SVM_DISABLED_AT_BIOS_NOT_UNLOCKABLE;
+		return svm_status::SVM_DISABLED_AT_BIOS_NOT_UNLOCKABLE;
 	}
 
 	print("SVM lock bit set, disabled\n");
-	return SVM_STATUS::SVM_DISABLED_WITH_KEY;
+	return svm_status::SVM_DISABLED_WITH_KEY;
 }

@@ -1,6 +1,7 @@
 #pragma once
-#include "../PAGES/PAGES.h"
-#include "npts.h"
+#include <pages/pages.h>
+#include <pages/npts.h>
+
 
 class npts_t
 {

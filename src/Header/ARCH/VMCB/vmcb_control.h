@@ -1,11 +1,11 @@
 #pragma once
-#include "../../datatypes.h"
-#include "../VMEXIT/exit_int_info.h"
-#include "../VMEXIT/EXITINFO/exitinfo1.h"
-#include "../VMEXIT/EXITINFO/exitinfo2.h"
-#include "../MSRs/msrs.h"
-#include "../VMEXIT/svm_exit_code.h"
-#include "../VMEXIT/exit_int_info.h"
+#include <commons.h>
+#include <vmexit/exit_int_info.h>
+#include <vmexit/exitinfo1.h>
+#include <vmexit/exitinfo2.h>
+#include <msrs/msrs.h>
+#include <vmexit/svm_exit_code.h>
+#include <vmexit/exit_int_info.h>
 
 enum class tlb_control_id : uint64_t {
 	do_nothing = 0,
@@ -277,10 +277,10 @@ struct vmcb_control {
 	svm_exit_code exit_code;
 
 	// 078h
-	EXITINFO::exitinfo1 exit_info_1;
+	exitinfo1_t exit_info_1;
 
 	// 080h
-	EXITINFO::exitinfo2 exit_info_2;
+	exitinfo2_t exit_info_2;
 
 	// 088h
 	exit_int_info_t exit_int_info;

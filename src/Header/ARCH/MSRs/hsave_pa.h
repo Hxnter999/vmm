@@ -1,6 +1,5 @@
 #pragma once
-#include "msrs.h"
-
+#include <msrs/msrs.h>
 
 namespace MSR {
 	// VM_HSAVE_PA holds page alligned physical address of the host save area

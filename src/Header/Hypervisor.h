@@ -1,7 +1,7 @@
 #pragma once
-#include "commons.h"
-#include "SVM_STATUS.h"
-#include "ARCH/VMCB/vmcb.h"
+#include <commons.h>
+#include <svm_status.h>
+#include <vmcb/vmcb.h>
 
 class Hypervisor
 {
@@ -27,7 +27,7 @@ class Hypervisor
 
 	void setup_vmcb(vcpu_t* vcpu, CONTEXT* ctx);
 
-	static SVM_STATUS init_check();
+	static svm_status init_check();
 
 	bool vaild;
 	uint64_t* npt;
@@ -62,7 +62,7 @@ public:
 	template<exception_vector exception>
 	void inject_event(vcpu_t& vcpu);
 
-	void devirtualize(vcpu_t* vcpu);
+	void devirtualize(vcpu_t* const vcpu);
 
 	void unload(); //this should only be called once (in Unload)
 };

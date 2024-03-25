@@ -1,11 +1,11 @@
 #pragma once
-#include "../../commons.h"
-#include "../CPUID/Extended Features/fn_identifiers.h"
-#include "../PAGES/PAGES.h"
-#include "../CPUID/Extended Features/fn_processor_capacity.h"
-#include "../VMCB/vmcb.h"
-#include "../../smbios/smbios.h"
-#include "../../Hypervisor.h"
+#include <commons.h>
+#include <cpuid/extended-features/fn_identifiers.h>
+#include <cpuid/extended-features/fn_processor_capacity.h>
+#include <pages/pages.h>
+#include <vmcb/vmcb.h>
+#include <smbios/smbios.h>
+#include <hypervisor.h>
 
 constexpr decltype(auto) roundup(auto&& var, auto&& num) {
 	return ((var) + (num) - 1) / (num);

@@ -1,8 +1,8 @@
 #pragma once
-#include "../VMCB/vmcb.h"
-#include "../MSRs/hsave_pa.h"
-#include "../MSRs/efer.h"
-#include "../CPUID/cpuid_t.h"
+#include "../vmcb/vmcb.h"
+#include "../msrs/hsave_pa.h"
+#include "../msrs/efer.h"
+#include "../cpuid/cpuid_t.h"
 
 void msr_handler(vcpu_t& vcpu);
 

@@ -1,6 +1,5 @@
 #pragma once
-#include "../../datatypes.h"
-#include <intrin.h>
+#include <commons.h>
 
 // Standard Features: 0x0000_0000 - 0x0000_FFFF
 // Software Reserved: 0x4000_0000 - 0x4000_00FF 255

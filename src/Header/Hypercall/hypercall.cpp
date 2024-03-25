@@ -1,5 +1,5 @@
-#include "../commons.h"
-#include "hypercall.h"
+#include <commons.h>
+#include <hypercall/hypercall.h>
 #include "../../Source/SVM/svm.h"
 
 void hypercall_handler(vcpu_t& vcpu) {
