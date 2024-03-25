@@ -38,7 +38,7 @@ bool vmexit_handler(vcpu_t* const vcpu) {
 		vcpu->guest_vmcb.control.event_injection.bits = 0; // reset to avoid infinite loop
 		break;
 
-	case svm_exit_code::VMEXIT_VMLOAD:
+	/*case svm_exit_code::VMEXIT_VMLOAD:
 		HV->inject_event<exception_vector::UD>(*vcpu);
 		break;
 
@@ -52,7 +52,7 @@ bool vmexit_handler(vcpu_t* const vcpu) {
 
 	case svm_exit_code::VMEXIT_CLGI:
 		HV->inject_event<exception_vector::UD>(*vcpu);
-		break;
+		break;*/
 
 	default:
 		print("UNHANDLED EXIT CODE: %-4X || INFO1: %p | INFO2: %p\n", vcpu->guest_vmcb.control.exit_code, vcpu->guest_vmcb.control.exit_info_1.info, vcpu->guest_vmcb.control.exit_info_2.info);
@@ -62,8 +62,6 @@ bool vmexit_handler(vcpu_t* const vcpu) {
 	vcpu->guest_vmcb.save_state.rax = vcpu->guest_stack_frame.rax.value;
 
 	if (vcpu->should_exit) {
-		vcpu->should_exit = false; // check devirtualize routine, if statement.
-
 		HV->devirtualize(vcpu); // devirtualize current vcpu and alert all others
 		return false; 
 	};

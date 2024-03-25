@@ -30,9 +30,8 @@ void Hypervisor::devirtualize(vcpu_t* const vcpu)
 {
 	print("Exiting [%d]...\n", (vcpu - vcpus.begin()) / sizeof(vcpu_t*));
 
-	if (!vcpu->should_exit)
-		for (auto& cvcpu : vcpus) // alert all other vcpus
-			cvcpu.should_exit = true;
+	for (auto& cvcpu : vcpus) // alert all other vcpus
+		cvcpu.should_exit = true;
 
 	// devirtualize current vcpu, later in the vmrun loop we restore rsp and jump to guest_rip.
 	vcpu->guest_rip = vcpu->guest_vmcb.control.nrip;
@@ -114,13 +113,13 @@ bool Hypervisor::virtualize(uint32_t index)
 	CONTEXT* ctx = reinterpret_cast<CONTEXT*>(ExAllocatePoolWithTag(NonPagedPool, sizeof(CONTEXT), 'sgma'));
 	memset(ctx, 0, sizeof(CONTEXT));
 	RtlCaptureContext(ctx);
+	__debugbreak();
 
 	// efer.svme will be 0 when we read it in a virtualized state, this is how we have the msr handler setup.
 	MSR::EFER guest_efer{}; guest_efer.load();
 	if (!guest_efer.svme) return true;
 
 	setup_vmcb(vcpu, ctx);
-	//__debugbreak();
 	vmenter(&vcpu->guest_vmcb_pa);
 	// shouldnt reach this point, if so something went wrong
 	return false;
@@ -207,8 +206,6 @@ void Hypervisor::setup_vmcb(vcpu_t* vcpu, CONTEXT* ctx) //should make it a refer
 	vcpu->guest_vmcb.save_state.rsp = ctx->Rsp;
 	vcpu->guest_vmcb.save_state.rip = ctx->Rip;
 	vcpu->guest_vmcb.save_state.rflags.value = ctx->EFlags;
-
-	//vcpu->guest_vmcb.save_state.rax = ctx->Rax;
 
 	//Setup all the segment registers
 	vcpu->guest_vmcb.save_state.cs.limit = __segmentlimit(ctx->SegCs);
