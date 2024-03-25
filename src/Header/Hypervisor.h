@@ -60,7 +60,13 @@ public:
 	bool setup_npts();
 
 	template<exception_vector exception>
-	void inject_event(vcpu_t& vcpu);
+	void inject_event(vcpu_t& vcpu)
+	{
+		auto& ei = vcpu.guest_vmcb.control.event_injection;
+		ei.valid = 1;
+		ei.type = interrupt_type::HARDWARE_EXCEPTION;
+		ei.evector = exception;
+	}
 
 	void devirtualize(vcpu_t* const vcpu);
 

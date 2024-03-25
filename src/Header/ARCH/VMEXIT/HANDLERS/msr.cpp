@@ -1,8 +1,9 @@
 #include <arch/vmexit/handlers.h>
 
 void msr_handler(vcpu_t& vcpu) {
-	// MSR return value is split between 2 registers, we have to handle them both before passing it back into the guest.
+	vcpu.guest_vmcb.save_state.rip = vcpu.guest_vmcb.control.nrip;
 
+	// MSR return value is split between 2 registers, we have to handle them both before passing it back into the guest.
 	register_t result{};
 	uint32_t msr = vcpu.guest_stack_frame.rcx.low;
 	bool read = vcpu.guest_vmcb.control.exit_info_1.msr.is_read();

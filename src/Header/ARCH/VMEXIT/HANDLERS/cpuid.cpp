@@ -1,6 +1,7 @@
 #include <arch/vmexit/handlers.h>
 
 void cpuid_handler(vcpu_t& vcpu) {
+	vcpu.guest_vmcb.save_state.rip = vcpu.guest_vmcb.control.nrip;
 
 	CPUID::cpuid_t result{};
 	__cpuidex(reinterpret_cast<int*>(&result.cpu_info), vcpu.guest_stack_frame.rax.low, vcpu.guest_stack_frame.rcx.low);

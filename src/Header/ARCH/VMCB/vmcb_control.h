@@ -355,7 +355,7 @@ struct vmcb_control {
 	};
 
 	// 0c8h
-	uint64_t nrip; // nrip—next sequential instruction pointer
+	uint64_t nrip; // nrip—next sequential instruction pointer, only provided on INSTRUCTION intercepts
 
 	// 0d0h
 	// 0:7 number of bytes fetched. 8:127 intruction bytes, only used in when theres a #NPF
