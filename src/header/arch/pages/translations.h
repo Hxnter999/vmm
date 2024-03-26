@@ -10,14 +10,12 @@ inline uint64_t gva_to_gpa(vcpu_t& vcpu, uint64_t address, uint64_t& modifiable_
 	auto base = host_pt_t::host_pa_base;
 	uint64_t offset{};
 
-	auto pml4 = reinterpret_cast<pml4e_t*>(base + (guest_cr3.pml4 << 12));
-	auto pml4e = pml4[va.pml4_index];
+	auto pml4e = reinterpret_cast<pml4e_t*>(base + (guest_cr3.pml4 << 12))[va.pml4_index];
 	if (!pml4e.present) {
 		return 0;
 	}
 
-	auto pdpt = reinterpret_cast<pdpe_t*>(base + (pml4e.page_pa << 12));
-	auto pdpte = pdpt[va.pdpt_index];
+	auto pdpte = reinterpret_cast<pdpe_t*>(base + (pml4e.page_pa << 12))[va.pdpt_index];
 	if (!pdpte.present) {
 		return 0;
 	}
@@ -54,9 +52,9 @@ inline uint64_t gva_to_gpa(vcpu_t& vcpu, uint64_t address, uint64_t& modifiable_
 
 inline uint64_t gva_to_hva(vcpu_t& vcpu, uint64_t address, uint64_t& modifiable_size) {
 	uint64_t gpa = gva_to_gpa(vcpu, address, modifiable_size);
-	if (!gpa) {
+	if (!gpa) 
 		return 0;
-	}
+	
 
 	return gpa + host_pt_t::host_pa_base;
 }
