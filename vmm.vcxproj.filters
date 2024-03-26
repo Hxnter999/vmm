@@ -1786,6 +1786,7 @@
     <ClInclude Include="windows-defs-2021h20\structs\_ACPI_CACHED_TABLE.h" />
     <ClInclude Include="windows-defs-2021h20\structs\_ACPI_METHOD_ARGUMENT_V1.h" />
     <ClInclude Include="src\header\arch\msrs\tsc_ratio.h" />
+    <ClInclude Include="src\header\arch\pages\translations.h" />
   </ItemGroup>
   <ItemGroup>
     <MASM Include="src\source\asm\vmenter.asm" />

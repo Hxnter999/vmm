@@ -12,13 +12,14 @@ constexpr decltype(auto) roundup(auto&& var, auto&& num) {
 }
 
 constexpr uint64_t plm4e_address_range = 0x1000000000; //256GB
-constexpr uint64_t pdepe_address_range = 0x40000000; //1GB
+constexpr uint64_t pdpes_address_range = 0x40000000; //1GB
 constexpr uint64_t pdes_address_range = 0x200000; //2MB
+constexpr uint64_t ptes_address_range = 0x1000; //4KB
 
 inline bool setup_huge(const uint64_t guest_phys_addr_size, uint64_t*& buffer)
 {
 	const uint64_t amount_plm4es = roundup(guest_phys_addr_size, plm4e_address_range);
-	const uint64_t amount_pdepes = roundup(guest_phys_addr_size, pdepe_address_range);
+	const uint64_t amount_pdepes = roundup(guest_phys_addr_size, pdpes_address_range);
 
 	print ("amount_plm4es: %u\n", amount_plm4es);
 	print ("amount_pdepes: %u\n", amount_pdepes);
@@ -59,7 +60,7 @@ inline bool setup_huge(const uint64_t guest_phys_addr_size, uint64_t*& buffer)
 inline bool setup_allusive(const uint64_t guest_phys_addr_size, uint64_t*& buffer)
 {
 	const uint64_t amount_plm4es = roundup(guest_phys_addr_size, plm4e_address_range);
-	const uint64_t amount_pdepes = roundup(guest_phys_addr_size, pdepe_address_range);
+	const uint64_t amount_pdepes = roundup(guest_phys_addr_size, pdpes_address_range);
 	const uint64_t amount_pdes   = roundup(guest_phys_addr_size, pdes_address_range);
 
 	print("amount_plm4es: %u\n", amount_plm4es);

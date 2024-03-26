@@ -98,6 +98,8 @@ void Hypervisor::init()
 		return;
 	}
 
+	setup_host_pt();
+
 	print("Setup\n");
 	vaild = true;
 }
@@ -114,6 +116,7 @@ bool Hypervisor::virtualize(uint32_t index)
 	memset(ctx, 0, sizeof(CONTEXT));
 	RtlCaptureContext(ctx);
 
+	__debugbreak();
 	// efer.svme will be 0 when we read it in a virtualized state, this is how we have the msr handler setup.
 	MSR::EFER guest_efer{}; guest_efer.load();
 	if (!guest_efer.svme) return true;
@@ -175,7 +178,7 @@ void Hypervisor::setup_vmcb(vcpu_t* vcpu, CONTEXT* ctx) //should make it a refer
 		vcpu->guest_vmcb.control.n_cr3 = MmGetPhysicalAddress(npt).QuadPart;
 		print("NPT: %p\n", MmGetPhysicalAddress(npt).QuadPart);
 	}
-
+	
 	// Set up the guest state
 	vcpu->guest_vmcb.save_state.cr0.value = __readcr0();
 	vcpu->guest_vmcb.save_state.cr2.value = __readcr2();
@@ -232,7 +235,7 @@ void Hypervisor::setup_host_pt() {
 	pml4e.write = 1;
 	pml4e.page_pa = MmGetPhysicalAddress(&shared_host_pt.pdpt).QuadPart >> 12;
 
-	for (int i = 0; i < 512; i++) {
+	for (int i = 0; i < 64; i++) {
 		auto& pdpte = shared_host_pt.pdpt[i];
 		pdpte.present = 1;
 		pdpte.write = 1;
@@ -246,13 +249,13 @@ void Hypervisor::setup_host_pt() {
 			pde.page_pa = i * 512 + j;
 		}
 	}
-
 	// cant be bothered to deal with the structure errors rn...
 	//auto system_process = reinterpret_cast<_EPROCESS*>(PsInitialSystemProcess);
 	//cr3_t system_cr3{ system_process->Pcb.DirectoryTableBase };
 
 	auto system_process = reinterpret_cast<uintptr_t>(PsInitialSystemProcess);
 	cr3_t system_cr3{ *reinterpret_cast<uintptr_t*>(system_process + 0x28) };
+	print("%p\n", system_cr3.value);
 	auto system_pml4 = reinterpret_cast<pml4e_t*>(MmGetVirtualForPhysical({ .QuadPart = static_cast<int64_t>(system_cr3.pml4 << 12) }));
 
 	memcpy(&shared_host_pt.pml4[256], &system_pml4[256], sizeof(pml4e_t) * 256);

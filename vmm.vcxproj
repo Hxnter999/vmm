@@ -177,6 +177,7 @@
     <ClInclude Include="src\header\arch\msrs\u_cet.h" />
     <ClInclude Include="src\header\arch\pages\nptssruct.h" />
     <ClInclude Include="src\header\arch\pages\pagemanagerstruct.h" />
+    <ClInclude Include="src\header\arch\pages\translations.h" />
     <ClInclude Include="src\header\arch\rflags.h" />
     <ClInclude Include="src\header\arch\stack_frame.h" />
     <ClInclude Include="src\header\arch\vmexit\handlers.h" />
