@@ -57,13 +57,13 @@ struct vmcb_state_save {
 	uint8_t reservedd8[0x70];
 
 	// 148h
-	CR4 cr4;
+	cr4_t cr4;
 
 	// 150h
-	CR3 cr3;
+	cr3_t cr3;
 
 	// 158h
-	CR0 cr0;
+	cr0_t cr0;
 
 	// 160h
 	uint64_t dr7;
@@ -120,7 +120,7 @@ struct vmcb_state_save {
 	uint64_t sysenter_eip;
 
 	// 240h
-	CR2 cr2;
+	cr2_t cr2;
 
 	// 248h 
 	uint8_t reserved248[0x20];

@@ -1,7 +1,7 @@
 #pragma once
 #include <commons.h>
 
-struct CR0 {
+struct cr0_t {
 	union {
 		uint64_t value; 
 		struct {
@@ -24,7 +24,7 @@ struct CR0 {
 	};
 };
 
-struct CR2 {
+struct cr2_t {
 	union { 
 		uint64_t value;
 		struct {
@@ -33,7 +33,7 @@ struct CR2 {
 	};
 };
 
-struct CR3 {
+struct cr3_t {
 	union {
 		uint64_t value; // depends on cr4.pcide, if set, use pcide_on
 		union {
@@ -54,7 +54,7 @@ struct CR3 {
 	};
 };
 
-struct CR4 {
+struct cr4_t {
 	union {
 		uint64_t value;
 		struct {
@@ -85,7 +85,7 @@ struct CR4 {
 	};
 };
 
-struct CR8 {
+struct cr8_t {
 	union {
 		uint64_t value;
 		struct {

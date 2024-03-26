@@ -133,7 +133,7 @@ void sysret(vcpu_t& vcpu)
 {
 	auto& save_state = vcpu.guest_vmcb.save_state;
 
-	CR0 cr0 = { __readcr0() };
+	cr0_t cr0 = { __readcr0() };
 	bool PROTECTED_MODE = cr0.pe && !save_state.rflags.VM;
 
 	if (!PROTECTED_MODE || save_state.cpl) {}//inject exception in this case #GP(0)

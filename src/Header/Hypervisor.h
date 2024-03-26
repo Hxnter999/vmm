@@ -27,11 +27,14 @@ class Hypervisor
 
 	void setup_vmcb(vcpu_t* vcpu, CONTEXT* ctx);
 
+	void setup_host_pt();
+
 	static svm_status init_check();
 
 	bool vaild;
 	uint64_t* npt;
 	MSR::msrpm_t* shared_msrpm;
+	host_pt_t shared_host_pt;
 
 	struct vcpus_t {
 		vcpus_t() : vcpu_count(0), buffer(nullptr) {}

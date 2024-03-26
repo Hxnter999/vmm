@@ -113,7 +113,6 @@ bool Hypervisor::virtualize(uint32_t index)
 	CONTEXT* ctx = reinterpret_cast<CONTEXT*>(ExAllocatePoolWithTag(NonPagedPool, sizeof(CONTEXT), 'sgma'));
 	memset(ctx, 0, sizeof(CONTEXT));
 	RtlCaptureContext(ctx);
-	__debugbreak();
 
 	// efer.svme will be 0 when we read it in a virtualized state, this is how we have the msr handler setup.
 	MSR::EFER guest_efer{}; guest_efer.load();
@@ -150,8 +149,6 @@ bool Hypervisor::virtualize()
 	return true;
 }
 
-
-
 void Hypervisor::setup_vmcb(vcpu_t* vcpu, CONTEXT* ctx) //should make it a reference
 {
 	vcpu->is_virtualized = true;
@@ -162,8 +159,7 @@ void Hypervisor::setup_vmcb(vcpu_t* vcpu, CONTEXT* ctx) //should make it a refer
 
 	vcpu->guest_vmcb.control.msrpm_base_pa = MmGetPhysicalAddress(shared_msrpm).QuadPart;
 
-	//Set up control area
-	//TODO: set interupts
+	// ------------------- Setup guest state -------------------
 	vcpu->guest_vmcb.control.vmrun = 1; // VMRUN intercepts muse be enabled 15.5.1
 	vcpu->guest_vmcb.control.vmmcall = 1; // explicit vmexits back to host
 	vcpu->guest_vmcb.control.vmload = 1;
@@ -220,8 +216,46 @@ void Hypervisor::setup_vmcb(vcpu_t* vcpu, CONTEXT* ctx) //should make it a refer
 	vcpu->host_vmcb_pa = MmGetPhysicalAddress(&vcpu->host_vmcb).QuadPart;
 	vcpu->self = vcpu;
 
+	// ------------------- Setup host state -------------------
+	auto& host_cr3 = vcpu->host_vmcb.save_state.cr3;
+	host_cr3.pwt = 0;
+	host_cr3.pcd = 0;
+	host_cr3.pml4 = MmGetPhysicalAddress(&shared_host_pt.pml4).QuadPart >> PAGE_SHIFT;
+
 	__svm_vmsave(vcpu->host_vmcb_pa);
 	__svm_vmsave(vcpu->guest_vmcb_pa); // needed here cause the vmrun loop loads guest state before everything, if there isnt a guest saved already it wont work properly
+}
+
+void Hypervisor::setup_host_pt() {
+	auto& pml4e = shared_host_pt.pml4[shared_host_pt.host_pml4e];
+	pml4e.present = 1;
+	pml4e.write = 1;
+	pml4e.page_pa = MmGetPhysicalAddress(&shared_host_pt.pdpt).QuadPart >> PAGE_SHIFT;
+
+	for (int i = 0; i < 512; i++) {
+		auto& pdpte = shared_host_pt.pdpt[i];
+		pdpte.present = 1;
+		pdpte.write = 1;
+		pdpte.page_pa = MmGetPhysicalAddress(&shared_host_pt.pd[i]).QuadPart >> PAGE_SHIFT;
+
+		for (int j = 0; j < 512; j++) {
+			auto& pde = shared_host_pt.pd[i][j];
+			pde.present = 1;
+			pde.write = 1;
+			pde.large_page = 1;
+			pde.page_pa = i * 512 + j;
+		}
+	}
+
+	// cant be bothered to deal with the structure errors rn...
+	//auto system_process = reinterpret_cast<_EPROCESS*>(PsInitialSystemProcess);
+	//cr3_t system_cr3{ system_process->Pcb.DirectoryTableBase };
+
+	auto system_process = reinterpret_cast<uintptr_t>(PsInitialSystemProcess);
+	cr3_t system_cr3{ *reinterpret_cast<uintptr_t*>(system_process + 0x28) };
+	auto system_pml4 = reinterpret_cast<pml4e_t*>(MmGetVirtualForPhysical({ .QuadPart = static_cast<int64_t>(system_cr3.pml4 << PAGE_SHIFT) }));
+
+	memcpy(&shared_host_pt.pml4[256], &system_pml4[256], sizeof(pml4e_t) * 256);
 }
 
 svm_status Hypervisor::init_check()

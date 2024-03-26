@@ -109,3 +109,12 @@ struct pte_t
 	uint64_t mpk : 4;
 	uint64_t no_execute : 1;
 };
+
+struct alignas(0x1000) host_pt_t {
+	pml4e_t pml4[512];
+	pdpe_t pdpt[512];
+	pde_t pd[64][512];
+	
+	static constexpr uint64_t host_pml4e = 255;
+	static constexpr uint64_t host_pa_base = host_pml4e << 39;
+};
