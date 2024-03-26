@@ -116,5 +116,17 @@ struct alignas(0x1000) host_pt_t {
 	pde_t pd[64][512];
 	
 	static constexpr uint64_t host_pml4e = 255;
-	static constexpr uint64_t host_pa_base = host_pml4e << 39;
+	static constexpr uint64_t host_pa_base = host_pml4e << (12 + 9 + 9 + 9);
+};
+
+union virtual_address_t {
+	uint64_t address;
+	struct {
+		uint64_t offset : 12;
+		uint64_t pt_index : 9;
+		uint64_t pd_index : 9;
+		uint64_t pdpt_index : 9;
+		uint64_t pml4_index : 9;
+		uint64_t reserved : 16;
+	};
 };

@@ -220,7 +220,7 @@ void Hypervisor::setup_vmcb(vcpu_t* vcpu, CONTEXT* ctx) //should make it a refer
 	auto& host_cr3 = vcpu->host_vmcb.save_state.cr3;
 	host_cr3.pwt = 0;
 	host_cr3.pcd = 0;
-	host_cr3.pml4 = MmGetPhysicalAddress(&shared_host_pt.pml4).QuadPart >> PAGE_SHIFT;
+	host_cr3.pml4 = MmGetPhysicalAddress(&shared_host_pt.pml4).QuadPart >> 12;
 
 	__svm_vmsave(vcpu->host_vmcb_pa);
 	__svm_vmsave(vcpu->guest_vmcb_pa); // needed here cause the vmrun loop loads guest state before everything, if there isnt a guest saved already it wont work properly
@@ -230,13 +230,13 @@ void Hypervisor::setup_host_pt() {
 	auto& pml4e = shared_host_pt.pml4[shared_host_pt.host_pml4e];
 	pml4e.present = 1;
 	pml4e.write = 1;
-	pml4e.page_pa = MmGetPhysicalAddress(&shared_host_pt.pdpt).QuadPart >> PAGE_SHIFT;
+	pml4e.page_pa = MmGetPhysicalAddress(&shared_host_pt.pdpt).QuadPart >> 12;
 
 	for (int i = 0; i < 512; i++) {
 		auto& pdpte = shared_host_pt.pdpt[i];
 		pdpte.present = 1;
 		pdpte.write = 1;
-		pdpte.page_pa = MmGetPhysicalAddress(&shared_host_pt.pd[i]).QuadPart >> PAGE_SHIFT;
+		pdpte.page_pa = MmGetPhysicalAddress(&shared_host_pt.pd[i]).QuadPart >> 12;
 
 		for (int j = 0; j < 512; j++) {
 			auto& pde = shared_host_pt.pd[i][j];
@@ -253,7 +253,7 @@ void Hypervisor::setup_host_pt() {
 
 	auto system_process = reinterpret_cast<uintptr_t>(PsInitialSystemProcess);
 	cr3_t system_cr3{ *reinterpret_cast<uintptr_t*>(system_process + 0x28) };
-	auto system_pml4 = reinterpret_cast<pml4e_t*>(MmGetVirtualForPhysical({ .QuadPart = static_cast<int64_t>(system_cr3.pml4 << PAGE_SHIFT) }));
+	auto system_pml4 = reinterpret_cast<pml4e_t*>(MmGetVirtualForPhysical({ .QuadPart = static_cast<int64_t>(system_cr3.pml4 << 12) }));
 
 	memcpy(&shared_host_pt.pml4[256], &system_pml4[256], sizeof(pml4e_t) * 256);
 }

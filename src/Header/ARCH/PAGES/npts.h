@@ -41,7 +41,7 @@ inline bool setup_huge(const uint64_t guest_phys_addr_size, uint64_t*& buffer)
 		plm4es[i].present = 1;
 		plm4es[i].write = 1;
 		plm4es[i].usermode = 1;
-		plm4es[i].page_pa = MmGetPhysicalAddress(&pdepes[i * 512]).QuadPart >> PAGE_SHIFT;
+		plm4es[i].page_pa = MmGetPhysicalAddress(&pdepes[i * 512]).QuadPart >> 12;
 	}
 
 	for (uint64_t i = 0; i < amount_pdepes; i++)
@@ -86,7 +86,7 @@ inline bool setup_allusive(const uint64_t guest_phys_addr_size, uint64_t*& buffe
 		plm4es[i].present = 1;
 		plm4es[i].write = 1;
 		plm4es[i].usermode = 1;
-		plm4es[i].page_pa = MmGetPhysicalAddress(&pdepes[i * 512]).QuadPart >> PAGE_SHIFT;
+		plm4es[i].page_pa = MmGetPhysicalAddress(&pdepes[i * 512]).QuadPart >> 12;
 	}
 
 	for (uint64_t i = 0; i < amount_pdepes; i++) 
@@ -94,7 +94,7 @@ inline bool setup_allusive(const uint64_t guest_phys_addr_size, uint64_t*& buffe
 		pdepes[i].present = 1;
 		pdepes[i].write = 1;
 		pdepes[i].usermode = 1;
-		pdepes[i].page_pa = MmGetPhysicalAddress(&pdes[i * 512]).QuadPart >> PAGE_SHIFT;
+		pdepes[i].page_pa = MmGetPhysicalAddress(&pdes[i * 512]).QuadPart >> 12;
 	}
 
 	for (uint64_t i = 0; i < amount_pdes; i++) 

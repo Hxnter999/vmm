@@ -2,7 +2,6 @@
 #include <pages/pages.h>
 #include <pages/npts.h>
 
-
 class npts_t
 {
 	static constexpr uint64_t plm4e_address_range = 0x1000000000; //256GB
@@ -48,7 +47,7 @@ class npts_t
 			pdepes_huge[i].present = 1;
 			pdepes_huge[i].write = 1;
 			pdepes_huge[i].usermode = 1;
-			pdepes_huge[i].page_pa = MmGetPhysicalAddress(&pdepes_huge[i * 512]).QuadPart >> PAGE_SHIFT;
+			pdepes_huge[i].page_pa = MmGetPhysicalAddress(&pdepes_huge[i * 512]).QuadPart >> 12;
 		}
 
 		for (uint64_t i = 0; i < amount_pdepes; i++)
@@ -87,7 +86,7 @@ class npts_t
 			plm4es[i].present = 1;
 			plm4es[i].write = 1;
 			plm4es[i].usermode = 1;
-			plm4es[i].page_pa = MmGetPhysicalAddress(&pdepes[i * 512]).QuadPart >> PAGE_SHIFT;
+			plm4es[i].page_pa = MmGetPhysicalAddress(&pdepes[i * 512]).QuadPart >> 12;
 		}
 
 		for (uint64_t i = 0; i < amount_pdepes; i++)
@@ -95,7 +94,7 @@ class npts_t
 			pdepes[i].present = 1;
 			pdepes[i].write = 1;
 			pdepes[i].usermode = 1;
-			pdepes[i].page_pa = MmGetPhysicalAddress(&pdes[i * 512]).QuadPart >> PAGE_SHIFT;
+			pdepes[i].page_pa = MmGetPhysicalAddress(&pdes[i * 512]).QuadPart >> 12;
 		}
 
 		for (uint64_t i = 0; i < amount_pdes; i++)
