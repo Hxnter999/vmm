@@ -227,9 +227,11 @@ void Hypervisor::setup_vmcb(vcpu_t* vcpu, CONTEXT* ctx) //should make it a refer
 	auto& host_cr3 = vcpu->host_vmcb.save_state.cr3;
 	host_cr3.value = 0;
 	host_cr3.pml4 = MmGetPhysicalAddress(&shared_host_pt.pml4).QuadPart >> 12;
+
 	print("Writing host cr3: %zX\n", host_cr3.value);
 	__writecr3(host_cr3.value);
 	__svm_vmsave(vcpu->host_vmcb_pa);
+
 
 	__svm_vmsave(vcpu->guest_vmcb_pa); // needed here cause the vmrun loop loads guest state before everything, if there isnt a guest saved already it wont work properly
 }
