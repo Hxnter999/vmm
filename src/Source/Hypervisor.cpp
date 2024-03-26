@@ -116,13 +116,17 @@ bool Hypervisor::virtualize(uint32_t index)
 	memset(ctx, 0, sizeof(CONTEXT));
 	RtlCaptureContext(ctx);
 
-	__debugbreak();
+	print("Checking efer\n");
 	// efer.svme will be 0 when we read it in a virtualized state, this is how we have the msr handler setup.
 	MSR::EFER guest_efer{}; guest_efer.load();
 	if (!guest_efer.svme) return true;
 
+	print("Setting up vmcb\n");
 	setup_vmcb(vcpu, ctx);
+
+	print("Entering vm\n");
 	vmenter(&vcpu->guest_vmcb_pa);
+
 	// shouldnt reach this point, if so something went wrong
 	return false;
 }
@@ -168,7 +172,7 @@ void Hypervisor::setup_vmcb(vcpu_t* vcpu, CONTEXT* ctx) //should make it a refer
 	vcpu->guest_vmcb.control.vmload = 1;
 	vcpu->guest_vmcb.control.vmsave = 1;
 	vcpu->guest_vmcb.control.clgi = 1;
-	vcpu->guest_vmcb.control.msr_prot = 1; // enable this once msrpm and handler is fixed up
+	vcpu->guest_vmcb.control.msr_prot = 1; 
 
 	vcpu->guest_vmcb.control.guest_asid = 1; // Address space identifier "ASID [cannot be] equal to zero" 15.5.1 ASID 0 is for the host
 	vcpu->guest_vmcb.control.v_intr_masking = 1; // 15.21.1 & 15.22.2
@@ -223,6 +227,7 @@ void Hypervisor::setup_vmcb(vcpu_t* vcpu, CONTEXT* ctx) //should make it a refer
 	auto& host_cr3 = vcpu->host_vmcb.save_state.cr3;
 	host_cr3.value = 0;
 	host_cr3.pml4 = MmGetPhysicalAddress(&shared_host_pt.pml4).QuadPart >> 12;
+	print("Writing host cr3: %zX\n", host_cr3.value);
 	__writecr3(host_cr3.value);
 	__svm_vmsave(vcpu->host_vmcb_pa);
 
@@ -230,6 +235,7 @@ void Hypervisor::setup_vmcb(vcpu_t* vcpu, CONTEXT* ctx) //should make it a refer
 }
 
 void Hypervisor::setup_host_pt() {
+	print("Setting up host page tables\n");
 	// map all the physical memory and share it between the hosts to be able to access it directly.
 	auto& pml4e = shared_host_pt.pml4[shared_host_pt.host_pml4e];
 	pml4e.present = 1;
