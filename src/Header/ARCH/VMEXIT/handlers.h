@@ -1,4 +1,5 @@
 #pragma once
+#include <commons.h>
 #include "../vmcb/vmcb.h"
 #include "../msrs/hsave_pa.h"
 #include "../msrs/efer.h"
