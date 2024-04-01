@@ -27,8 +27,6 @@ bool vmexit_handler(vcpu_t* const vcpu) {
 		break;
 
 	case svm_exit_code::VMEXIT_NPF:
-		print("[NPF] %zX\n", vcpu->guest_vmcb.control.exit_info_1.info);
-		print("[NPF] %zX\n", vcpu->guest_vmcb.control.exit_info_2.nested_page_fault.faulting_gpa);
 		npf_handler(*vcpu);
 		break;
 
@@ -37,18 +35,19 @@ bool vmexit_handler(vcpu_t* const vcpu) {
 		vcpu->guest_vmcb.control.event_injection.bits = 0; // reset to avoid infinite loop
 		break;
 
-	case svm_exit_code::VMEXIT_VMLOAD:
-		HV->inject_event<exception_vector::UD>(*vcpu);
+	case svm_exit_code::VMEXIT_IDTR_READ:
+	case svm_exit_code::VMEXIT_GDTR_READ:
+		dtr_load_handler(*vcpu);
 		break;
 
-	case svm_exit_code::VMEXIT_VMSAVE:
-		HV->inject_event<exception_vector::UD>(*vcpu);
+	case svm_exit_code::VMEXIT_IDTR_WRITE:
+	case svm_exit_code::VMEXIT_GDTR_WRITE:
+		dtr_save_handler(*vcpu);
 		break;
 
 	case svm_exit_code::VMEXIT_VMRUN:
-		HV->inject_event<exception_vector::UD>(*vcpu);
-		break;
-
+	case svm_exit_code::VMEXIT_VMLOAD:
+	case svm_exit_code::VMEXIT_VMSAVE:
 	case svm_exit_code::VMEXIT_CLGI:
 		HV->inject_event<exception_vector::UD>(*vcpu);
 		break;

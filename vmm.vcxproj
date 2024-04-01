@@ -145,13 +145,14 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\header\arch\vmexit\handlers\cpuid.cpp" />
+    <ClCompile Include="src\Header\ARCH\VMEXIT\HANDLERS\dtr.cpp" />
     <ClCompile Include="src\header\arch\vmexit\handlers\msr.cpp" />
     <ClCompile Include="src\header\arch\vmexit\handlers\npf.cpp" />
     <ClCompile Include="src\header\hypercall\hypercall.cpp">
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">../commons.h</PrecompiledHeaderFile>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">../commons.h</PrecompiledHeaderFile>
     </ClCompile>
-    <ClCompile Include="src\source\asm\sce.cpp" />
+    <ClCompile Include="src\Header\ARCH\VMEXIT\HANDLERS\sce.cpp" />
     <ClCompile Include="src\source\hypervisor.cpp" />
     <ClCompile Include="src\header\smbios\smbios.cpp" />
     <ClCompile Include="src\source\svm\svm.cpp">
@@ -167,6 +168,7 @@
     </MASM>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Header\ARCH\mod_rm.h" />
     <ClInclude Include="src\header\arch\msrs\cstar.h" />
     <ClInclude Include="src\header\arch\msrs\lstar.h" />
     <ClInclude Include="src\header\arch\msrs\pl3_ssp.h" />
@@ -182,12 +184,12 @@
     <ClInclude Include="src\header\arch\stack_frame.h" />
     <ClInclude Include="src\header\arch\vmexit\handlers.h" />
     <ClInclude Include="src\header\arch\pages\pages.h" />
+    <ClInclude Include="src\Header\ARCH\VMEXIT\handlercommon.h" />
     <ClInclude Include="src\header\hypercall\hypercall.h" />
     <ClInclude Include="src\header\arch\cr\control_registers.h" />
     <ClInclude Include="src\header\arch\pages\npts.h" />
     <ClInclude Include="src\header\hypervisor.h" />
     <ClInclude Include="src\header\smbios\smbios.h" />
-    <ClInclude Include="src\source\asm\sce.h" />
     <ClInclude Include="src\source\svm\svm.h" />
     <ClInclude Include="src\header\arch\vmexit\exitinfo2.h" />
     <ClInclude Include="src\header\util\bitset.h" />
