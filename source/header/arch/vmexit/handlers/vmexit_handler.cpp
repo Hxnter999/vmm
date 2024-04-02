@@ -1,6 +1,4 @@
-#include <commons.h>
-#include "svm.h"
-#include "hypervisor.h"
+#include <vmexit/handlers.h>
 
 bool vmexit_handler(vcpu_t* const vcpu) {
 	__svm_vmload(vcpu->host_vmcb_pa);
@@ -62,8 +60,8 @@ bool vmexit_handler(vcpu_t* const vcpu) {
 
 	if (vcpu->should_exit) {
 		HV->devirtualize(vcpu); // devirtualize current vcpu and alert all others
-		return false; 
+		return false;
 	};
 
-	return true; // true to continue looping
+	return true; // continue looping
 };

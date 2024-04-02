@@ -6,7 +6,7 @@
 #include <vmcb/vmcb.h>
 #include <msrs/vm_cr.h>
 #include <msrs/pat.h>
-#include <msrs/hsave_pa.h>
+#include <msrs/hsave.h>
 #include <msrs/efer.h>
 
 void Unload(PDRIVER_OBJECT pDriverObject);
@@ -16,8 +16,9 @@ extern "C" NTSTATUS DriverEntry(PDRIVER_OBJECT pDriverObject, PUNICODE_STRING pR
 	UNREFERENCED_PARAMETER(pRegistryPath);
 
 	pDriverObject->DriverUnload = Unload;
+	Hypervisor::instance = static_cast<Hypervisor*>(ExAllocatePoolWithTag(NonPagedPool, sizeof(Hypervisor), 'hv'));
 
-	if (!HV->isvalid())
+	if (!HV->init())
 	{
 		print("Hypervisor failed to initialize\n");
 		return STATUS_UNSUCCESSFUL;

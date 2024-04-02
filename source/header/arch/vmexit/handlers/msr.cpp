@@ -1,4 +1,4 @@
-#include <arch/vmexit/handlers.h>
+#include <vmexit/handlers.h>
 
 void msr_handler(vcpu_t& vcpu) {
 	vcpu.guest_vmcb.save_state.rip = vcpu.guest_vmcb.control.nrip;

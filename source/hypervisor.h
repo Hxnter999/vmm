@@ -5,14 +5,13 @@
 
 class Hypervisor
 {
-	static Hypervisor* instance;
-
-	inline bool execute_on_all_cpus(bool(*func)(uint32_t)) //this is cancer!
+	using per_cpu_callback_t = bool(*)(uint32_t);
+	inline bool execute_on_all_cpus(per_cpu_callback_t callback) //this is cancer!
 	{
 		for (uint32_t i = 0; i < vcpus.vcpu_count; i++)
 		{
 			auto original_affinity = KeSetSystemAffinityThreadEx(1ll << i);
-			bool result = func(i);
+			bool result = callback(i);
 			KeRevertToUserAffinityThreadEx(original_affinity);
 			if (!result) return false;
 		}
@@ -21,7 +20,6 @@ class Hypervisor
 
 	Hypervisor() = default;
 
-	void init();
 
 	bool virtualize(uint32_t index);
 
@@ -33,7 +31,6 @@ class Hypervisor
 
 	static svm_status init_check();
 
-	bool vaild;
 	uint64_t* npt;
 	MSR::msrpm_t* shared_msrpm;
 	host_pt_t shared_host_pt;
@@ -52,14 +49,16 @@ class Hypervisor
 	} vcpus;
 
 public:
+	static Hypervisor* instance;
+
 	Hypervisor(Hypervisor&) = delete;
 	void operator=(const Hypervisor&) = delete;
 
 	MSR::msrpm_t& msrpm() { return *shared_msrpm; }
 
-	static Hypervisor* get();
+	//static Hypervisor* get();
 
-	bool isvalid() { return vaild; }
+	bool init();
 
 	bool virtualize();
 
@@ -79,4 +78,4 @@ public:
 	void unload(); //this should only be called once (in Unload)
 };
 
-#define HV Hypervisor::get()
+#define HV Hypervisor::instance	

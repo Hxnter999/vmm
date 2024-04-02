@@ -4,34 +4,36 @@
 #include <cpuid/extended-features/fn_identifiers.h>
 #include <cpuid/extended-features/fn_svm_features.h>
 #include <msrs/msrs.h>
-#include <msrs/hsave_pa.h>
+#include <msrs/hsave.h>
 #include <msrs/pat.h>
 #include <msrs/vm_cr.h>
 #include <hypercall/hypercall.h>
 #include <pages/npts.h>
+#include <vmexit/handlers.h>
 
 extern "C" int64_t testcall(hypercall_code code);
-extern "C" void vmenter(uint64_t * guest_vmcb_pa);
+extern "C" void vmenter(uint64_t* guest_vmcb_pa);
+
 
 Hypervisor* Hypervisor::instance = nullptr;
 
-Hypervisor* Hypervisor::get()
-{
-	//naive because we know when its first called
-	if (instance == nullptr)
-	{
-		instance = static_cast<Hypervisor*>(ExAllocatePoolWithTag(NonPagedPool, sizeof(Hypervisor), 'hv'));
-		instance->init();
-	}
-	return instance;
-}
+//Hypervisor* Hypervisor::get()
+//{
+//	//naive because we know when its first called
+//	if (instance == nullptr)
+//	{
+//		instance = static_cast<Hypervisor*>(ExAllocatePoolWithTag(NonPagedPool, sizeof(Hypervisor), 'hv'));
+//		instance->init();
+//	}
+//	return instance;
+//}
 
 void Hypervisor::devirtualize(vcpu_t* const vcpu)
 {
 	print("Exiting [%d]...\n", (vcpu - vcpus.begin()) / sizeof(vcpu_t*));
 
-	for (auto& cvcpu : vcpus) // alert all other vcpus
-		cvcpu.should_exit = true;
+	//for (auto& cvcpu : vcpus) // alert all other vcpus
+	//	cvcpu.should_exit = true;
 
 	// devirtualize current vcpu, later in the vmrun loop we restore rsp and jump to guest_rip.
 	vcpu->guest_rip = vcpu->guest_vmcb.control.nrip;
@@ -75,20 +77,19 @@ void Hypervisor::unload()
 	instance = nullptr;
 }
 
-void Hypervisor::init()
+bool Hypervisor::init()
 {
 	HV->map_physical_memory();
 
 	vcpus = {};
 	shared_msrpm = nullptr;
 	npt = nullptr;
-	vaild = false;
 
 	print("Initializing Hypervisor...\n");
 
 	if (!init_check()) {
 		print("SVM not supported\n");
-		return;
+		return false;
 	}
 	print("SVM supported\n");
 
@@ -97,11 +98,10 @@ void Hypervisor::init()
 	shared_msrpm = reinterpret_cast<MSR::msrpm_t*>(MmAllocateContiguousMemory(sizeof(MSR::msrpm_t), { .QuadPart = -1 }));
 	if (shared_msrpm == nullptr) {
 		print("Failed to allocate msrpm\n");
-		return;
+		return false;
 	}
 
-	print("Setup\n");
-	vaild = true;
+	return true;
 }
 
 bool Hypervisor::virtualize(uint32_t index)
@@ -113,9 +113,6 @@ bool Hypervisor::virtualize(uint32_t index)
 	efer.svme = 1;
 	efer.store();
 
-	print("Setting up host\n");
-	setup_host(vcpu);
-
 	CONTEXT* ctx = reinterpret_cast<CONTEXT*>(ExAllocatePoolWithTag(NonPagedPool, sizeof(CONTEXT), 'sgma'));
 	memset(ctx, 0, sizeof(CONTEXT));
 	RtlCaptureContext(ctx);
@@ -123,10 +120,16 @@ bool Hypervisor::virtualize(uint32_t index)
 	print("Checking efer\n");
 	// efer.svme will be 0 when we read it in a virtualized state, this is how we have the msr handler setup.
 	MSR::EFER guest_efer{}; guest_efer.load();
-	if (!guest_efer.svme) return true;
+	if (!guest_efer.svme) {
+		__debugbreak();
+		return true;
+	}
 
 	print("Setting up guest\n");
 	setup_guest(vcpu, ctx);
+
+	print("Setting up host\n");
+	setup_host(vcpu);
 
 	print("Entering vm\n");
 	vmenter(&vcpu.guest_vmcb_pa);
@@ -144,7 +147,7 @@ bool Hypervisor::virtualize()
 {
 	if (!execute_on_all_cpus([](uint32_t index) -> bool {
 		print("Virtualizing [%d]...\n", index);
-		if (!Hypervisor::get()->virtualize(index))
+		if (!instance->virtualize(index))
 		{
 			print("Failed to virtualize\n");
 			return false;
@@ -175,12 +178,10 @@ void Hypervisor::setup_guest(vcpu_t& vcpu, CONTEXT* ctx) //should make it a refe
 	vcpu.guest_vmcb.control.vmmcall = 1; // explicit vmexits back to host
 	vcpu.guest_vmcb.control.vmload = 1;
 	vcpu.guest_vmcb.control.vmsave = 1;
-	vcpu.guest_vmcb.control.clgi = 1;
+	//vcpu.guest_vmcb.control.clgi = 1;
 	vcpu.guest_vmcb.control.msr_prot = 1;
-	vcpu.guest_vmcb.control.pushf = 1;
-	//vcpu.guest_vmcb.control.popf = 1;
 
-	vcpu.guest_vmcb.control.guest_asid = 1; // Address space identifier "ASID [cannot be] equal to zero" 15.5.1 ASID 0 is for the host
+	vcpu.guest_vmcb.control.guest_asid = 1; // Address space identifier, 0 is reserved for host.
 	vcpu.guest_vmcb.control.v_intr_masking = 1; // 15.21.1 & 15.22.2
 
 	if (npt) {
@@ -195,7 +196,7 @@ void Hypervisor::setup_guest(vcpu_t& vcpu, CONTEXT* ctx) //should make it a refe
 	vcpu.guest_vmcb.save_state.cr3.value = __readcr3();
 	vcpu.guest_vmcb.save_state.cr4.value = __readcr4();
 	vcpu.guest_vmcb.save_state.efer.bits = __readmsr(MSR::EFER::MSR_EFER);
-	vcpu.guest_vmcb.save_state.g_pat = __readmsr(MSR::PAT::MSR_PAT); // very sigma (kinda like MTRRs but for page tables)
+	vcpu.guest_vmcb.save_state.g_pat = __readmsr(MSR::PAT::MSR_PAT); 
 
 	descriptor_table_register idtr{}, gdtr{}; __sidt(&idtr); _sgdt(&gdtr);
 	vcpu.guest_vmcb.save_state.idtr.base = idtr.base;
@@ -204,12 +205,12 @@ void Hypervisor::setup_guest(vcpu_t& vcpu, CONTEXT* ctx) //should make it a refe
 	vcpu.guest_vmcb.save_state.gdtr.base = gdtr.base;
 	vcpu.guest_vmcb.save_state.gdtr.limit = gdtr.limit;
 
-	//TODO: need to set RSP, RIP, and RFLAGS (This is where the guest will start executing)
+	// This is where the guest will start executing
 	vcpu.guest_vmcb.save_state.rsp = ctx->Rsp;
 	vcpu.guest_vmcb.save_state.rip = ctx->Rip;
 	vcpu.guest_vmcb.save_state.rflags.value = ctx->EFlags;
 
-	//Setup all the segment registers
+	// Setup all the segment registers
 	vcpu.guest_vmcb.save_state.cs.limit = __segmentlimit(ctx->SegCs);
 	vcpu.guest_vmcb.save_state.ds.limit = __segmentlimit(ctx->SegDs);
 	vcpu.guest_vmcb.save_state.es.limit = __segmentlimit(ctx->SegEs);
@@ -228,16 +229,18 @@ void Hypervisor::setup_guest(vcpu_t& vcpu, CONTEXT* ctx) //should make it a refe
 	vcpu.guest_vmcb_pa = MmGetPhysicalAddress(&vcpu.guest_vmcb).QuadPart;
 	vcpu.host_vmcb_pa = MmGetPhysicalAddress(&vcpu.host_vmcb).QuadPart;
 	vcpu.self = &vcpu;
+	
+
+	
 
 	__svm_vmsave(vcpu.host_vmcb_pa);
-
-
 	__svm_vmsave(vcpu.guest_vmcb_pa); // needed here cause the vmrun loop loads guest state before everything, if there isnt a guest saved already it wont work properly
 }
 
 void Hypervisor::map_physical_memory() {
 	print("Setting up host page tables\n");
-	// map all the physical memory and share it between the hosts to be able to access it directly.
+
+	// map all the physical memory and share it between the hosts to be able to access physical memory directly.
 	auto& pml4e = shared_host_pt.pml4[shared_host_pt.host_pml4e];
 	pml4e.present = 1;
 	pml4e.write = 1;
@@ -251,15 +254,12 @@ void Hypervisor::map_physical_memory() {
 
 		for (int j = 0; j < 512; j++) {
 			auto& pde = shared_host_pt.pd[i][j];
-			pde.present = 1;
+			pde.present = 1;	
 			pde.write = 1;
 			pde.large_page = 1;
-			pde.page_pa = i * 512 + j;
+			pde.page_pa = (i << 9) + j;
 		}
 	}
-	// cant be bothered to deal with the structure errors rn...
-	//auto system_process = reinterpret_cast<_EPROCESS*>(PsInitialSystemProcess);
-	//cr3_t system_cr3{ system_process->Pcb.DirectoryTableBase };
 
 	auto system_process = reinterpret_cast<uintptr_t>(PsInitialSystemProcess);
 	auto system_cr3 = *reinterpret_cast<cr3_t*>(system_process + 0x28);
@@ -271,7 +271,7 @@ void Hypervisor::map_physical_memory() {
 
 void Hypervisor::setup_host(vcpu_t& vcpu) {
 
-	// ------------------- Isolate host ---------------------
+	// ------------------- Isolate the host ---------------------
 
 	// -------
 
@@ -284,25 +284,26 @@ void Hypervisor::setup_host(vcpu_t& vcpu) {
 
 	// -------
 
-	MSR::PAT host_pat{};
-
-	host_pat.pa0 = MSR::PAT::page_attribute_type::write_back;
-	host_pat.pa1 = MSR::PAT::page_attribute_type::write_through;
-	host_pat.pa2 = MSR::PAT::page_attribute_type::uncacheable_no_write_combinining;
-	host_pat.pa3 = MSR::PAT::page_attribute_type::uncacheable;
-
-	host_pat.pa4 = MSR::PAT::page_attribute_type::write_back;
-	host_pat.pa5 = MSR::PAT::page_attribute_type::write_through;
-	host_pat.pa6 = MSR::PAT::page_attribute_type::uncacheable_no_write_combinining;
-	host_pat.pa7 = MSR::PAT::page_attribute_type::uncacheable;
-
-	host_pat.store();
+	 MSR::PAT host_pat{};
+	 host_pat.load(); 
+	 
+	 host_pat.pa0 = MSR::PAT::page_attribute_type::write_back;
+	 host_pat.pa1 = MSR::PAT::page_attribute_type::write_through;
+	 host_pat.pa2 = MSR::PAT::page_attribute_type::uncacheable_no_write_combinining;
+	 host_pat.pa3 = MSR::PAT::page_attribute_type::uncacheable;
+	 
+	 host_pat.pa4 = MSR::PAT::page_attribute_type::write_back;
+	 host_pat.pa5 = MSR::PAT::page_attribute_type::write_through;
+	 host_pat.pa6 = MSR::PAT::page_attribute_type::uncacheable_no_write_combinining;
+	 host_pat.pa7 = MSR::PAT::page_attribute_type::uncacheable;
+	 
+	 host_pat.store();
 
 	// -------
 
 
 
-
+	
 };
 
 svm_status Hypervisor::init_check()

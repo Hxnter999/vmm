@@ -5,9 +5,10 @@
 
 inline uint64_t gva_to_gpa(vcpu_t& vcpu, uint64_t address, uint64_t& modifiable_size) {
 	virtual_address_t va{ address };
-	__debugbreak();
+
 	auto& guest_cr3 = vcpu.guest_vmcb.save_state.cr3;
-	auto base = host_pt_t::host_pa_base;
+	auto& base = host_pt_t::host_pa_base;
+
 	uint64_t offset{};
 
 	auto pml4e = reinterpret_cast<pml4e_t*>(base + (guest_cr3.pml4 << 12))[va.pml4_index];

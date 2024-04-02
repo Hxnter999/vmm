@@ -85,7 +85,7 @@
     <EnableMicrosoftCodeAnalysis>false</EnableMicrosoftCodeAnalysis>
     <ApiValidator_Enable>false</ApiValidator_Enable>
     <ExternalIncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath)</ExternalIncludePath>
-    <IncludePath>$(ProjectDir)src\header\arch\;$(ProjectDir)src\header\;windows-defs-2021h20\structs;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProtectDir)source\;$(ProjectDir)source\header\arch\;$(ProjectDir)source\header\;windows-defs-2021h20\structs;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
     <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
@@ -144,66 +144,65 @@
     <FilesToPackage Include="$(TargetPath)" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\header\arch\vmexit\HANDLERS\cpuid.cpp" />
-    <ClCompile Include="src\header\arch\vmexit\HANDLERS\msr.cpp" />
-    <ClCompile Include="src\header\arch\vmexit\HANDLERS\npf.cpp" />
-    <ClCompile Include="src\header\hypercall\hypercall.cpp">
+    <ClCompile Include="source\header\arch\vmexit\handlers\cpuid.cpp" />
+    <ClCompile Include="source\header\arch\vmexit\handlers\msr.cpp" />
+    <ClCompile Include="source\header\arch\vmexit\handlers\npf.cpp" />
+    <ClCompile Include="source\header\arch\vmexit\handlers\vmexit_handler.cpp" />
+    <ClCompile Include="source\header\hypercall\hypercall.cpp">
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">../commons.h</PrecompiledHeaderFile>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">../commons.h</PrecompiledHeaderFile>
     </ClCompile>
-    <ClCompile Include="src\asm\sce.cpp" />
-    <ClCompile Include="src\hypervisor.cpp" />
-    <ClCompile Include="src\main.cpp">
+    <ClCompile Include="source\asm\sce.cpp" />
+    <ClCompile Include="source\hypervisor.cpp" />
+    <ClCompile Include="source\main.cpp">
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\Header\commons.h</PrecompiledHeaderFile>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\Header\commons.h</PrecompiledHeaderFile>
     </ClCompile>
-    <ClCompile Include="src\svm.cpp" />
-    <MASM Include="src\asm\vmenter.asm">
+    <ClCompile Include="source\svm.cpp" />
+    <MASM Include="source\asm\vmenter.asm">
       <FileType>Document</FileType>
     </MASM>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\header\arch\msrs\cstar.h" />
-    <ClInclude Include="src\header\arch\msrs\lstar.h" />
-    <ClInclude Include="src\header\arch\msrs\pl3_ssp.h" />
-    <ClInclude Include="src\header\arch\msrs\sfmask.h" />
-    <ClInclude Include="src\header\arch\msrs\star.h" />
-    <ClInclude Include="src\header\arch\msrs\s_cet.h" />
-    <ClInclude Include="src\header\arch\msrs\tsc_ratio.h" />
-    <ClInclude Include="src\header\arch\msrs\u_cet.h" />
-    <ClInclude Include="src\header\arch\pages\nptssruct.h" />
-    <ClInclude Include="src\header\arch\pages\translations.h" />
-    <ClInclude Include="src\header\arch\rflags.h" />
-    <ClInclude Include="src\header\arch\stack_frame.h" />
-    <ClInclude Include="src\header\arch\vmexit\handlers.h" />
-    <ClInclude Include="src\header\arch\pages\pages.h" />
-    <ClInclude Include="src\header\hypercall\hypercall.h" />
-    <ClInclude Include="src\header\arch\cr\control_registers.h" />
-    <ClInclude Include="src\header\arch\pages\npts.h" />
-    <ClInclude Include="src\hypervisor.h" />
-    <ClInclude Include="src\asm\sce.h" />
-    <ClInclude Include="src\header\arch\vmexit\exitinfo2.h" />
-    <ClInclude Include="src\header\util\bitset.h" />
-    <ClInclude Include="src\header\commons.h" />
-    <ClInclude Include="src\header\arch\cpuid\cpuid_t.h" />
-    <ClInclude Include="src\header\arch\msrs\efer.h" />
-    <ClInclude Include="src\header\arch\vmexit\exit_int_info.h" />
-    <ClInclude Include="src\header\arch\cpuid\extended-features\fn_identifiers.h" />
-    <ClInclude Include="src\header\arch\cpuid\extended-features\fn_processor_capacity.h" />
-    <ClInclude Include="src\header\arch\cpuid\extended-features\fn_svm_features.h" />
-    <ClInclude Include="src\header\arch\cpuid\standard-features\fn_vendor.h" />
-    <ClInclude Include="src\header\arch\msrs\hsave_pa.h" />
-    <ClInclude Include="src\header\arch\vmexit\exitinfo1.h" />
-    <ClInclude Include="src\header\arch\msrs\msrs.h" />
-    <ClInclude Include="src\header\arch\msrs\pat.h" />
-    <ClInclude Include="src\header\arch\segment\segment.h" />
-    <ClInclude Include="src\header\arch\vmexit\svm_exit_code.h" />
-    <ClInclude Include="src\header\svm_status.h" />
-    <ClInclude Include="src\header\arch\vmcb\vmcb.h" />
-    <ClInclude Include="src\header\arch\vmcb\vmcb_control.h" />
-    <ClInclude Include="src\header\arch\vmcb\vmcb_state_save.h" />
-    <ClInclude Include="src\header\arch\msrs\vm_cr.h" />
-    <ClInclude Include="src\svm.h" />
+    <ClInclude Include="source\header\arch\msrs\cstar.h" />
+    <ClInclude Include="source\header\arch\msrs\lstar.h" />
+    <ClInclude Include="source\header\arch\msrs\pl3_ssp.h" />
+    <ClInclude Include="source\header\arch\msrs\sfmask.h" />
+    <ClInclude Include="source\header\arch\msrs\star.h" />
+    <ClInclude Include="source\header\arch\msrs\s_cet.h" />
+    <ClInclude Include="source\header\arch\msrs\tsc_ratio.h" />
+    <ClInclude Include="source\header\arch\msrs\u_cet.h" />
+    <ClInclude Include="source\header\arch\pages\translations.h" />
+    <ClInclude Include="source\header\arch\rflags.h" />
+    <ClInclude Include="source\header\arch\stack_frame.h" />
+    <ClInclude Include="source\header\arch\pages\pages.h" />
+    <ClInclude Include="source\header\arch\vmexit\handlers.h" />
+    <ClInclude Include="source\header\hypercall\hypercall.h" />
+    <ClInclude Include="source\header\arch\cr\control_registers.h" />
+    <ClInclude Include="source\header\arch\pages\npts.h" />
+    <ClInclude Include="source\hypervisor.h" />
+    <ClInclude Include="source\header\arch\vmexit\exitinfo2.h" />
+    <ClInclude Include="source\header\util\bitset.h" />
+    <ClInclude Include="source\header\commons.h" />
+    <ClInclude Include="source\header\arch\cpuid\cpuid_t.h" />
+    <ClInclude Include="source\header\arch\msrs\efer.h" />
+    <ClInclude Include="source\header\arch\vmexit\exit_int_info.h" />
+    <ClInclude Include="source\header\arch\cpuid\extended-features\fn_identifiers.h" />
+    <ClInclude Include="source\header\arch\cpuid\extended-features\fn_processor_capacity.h" />
+    <ClInclude Include="source\header\arch\cpuid\extended-features\fn_svm_features.h" />
+    <ClInclude Include="source\header\arch\cpuid\standard-features\fn_vendor.h" />
+    <ClInclude Include="source\header\arch\msrs\hsave.h" />
+    <ClInclude Include="source\header\arch\vmexit\exitinfo1.h" />
+    <ClInclude Include="source\header\arch\msrs\msrs.h" />
+    <ClInclude Include="source\header\arch\msrs\pat.h" />
+    <ClInclude Include="source\header\arch\segment\segment.h" />
+    <ClInclude Include="source\header\arch\vmexit\svm_exit_code.h" />
+    <ClInclude Include="source\header\svm_status.h" />
+    <ClInclude Include="source\header\arch\vmcb\vmcb.h" />
+    <ClInclude Include="source\header\arch\vmcb\vmcb_control.h" />
+    <ClInclude Include="source\header\arch\vmcb\vmcb_state_save.h" />
+    <ClInclude Include="source\header\arch\msrs\vm_cr.h" />
+    <ClInclude Include="source\svm.h" />
     <ClInclude Include="windows-defs\structs\_RTL_PROCESS_MODULES.h" />
     <ClInclude Include="windows-defs\structs\_RTL_PROCESS_MODULE_INFORMATION.h" />
   </ItemGroup>
