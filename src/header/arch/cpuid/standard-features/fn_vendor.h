@@ -1,5 +1,5 @@
 #pragma once
-#include "../cpuid_t.h"
+#include <cpuid/cpuid_t.h>
 // 0x8000_0000
 
 namespace CPUID {

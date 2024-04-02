@@ -1,6 +1,6 @@
 #pragma once
-#include "../../datatypes.h"
-#include "../../Util/bitset.h"
+#include <commons.h>
+#include <util/bitset.h>
 #include <intrin.h>
 #pragma warning(disable : 4996)
 
@@ -26,18 +26,8 @@ namespace MSR {
 		}
 	};
 
-	struct msr_t { // return value of rdmsr instructions is split between RAX and RDX
-		union {
-			uint64_t value;
-			struct {
-				uint32_t eax;
-				uint32_t edx;
-			};
-		};
-	};
-
 	// The MSRPM (MSR Permission Map) is a bitmap (2 bits per MSR [R,W], 1 == operation is intercepted) that determines the access permissions for each MSR.
-	struct alignas(0x1000) msrpm_t {
+	class alignas(0x1000) msrpm_t {
 		union {
 			struct {
 				// 0x0 - 0x7FF
@@ -54,6 +44,9 @@ namespace MSR {
 			};
 			util::bitset<0x2000> vector;
 		};
+
+	public:
+		msrpm_t() : vector1{}, vector2{}, vector3{}, vector4{} {}
 
 		void set(uint64_t msr, access access_bit, bool value = true) {
 			[[maybe_unused]] constexpr uint64_t vector1_start = 0x0000'0000, vector1_end = 0x0000'1FFF;

@@ -1,5 +1,5 @@
 #pragma once
-#include "../../datatypes.h"
+#include <commons.h>
 
 struct pml4e_t 
 {
@@ -108,4 +108,25 @@ struct pte_t
 	uint64_t available : 7;
 	uint64_t mpk : 4;
 	uint64_t no_execute : 1;
+};
+
+struct alignas(0x1000) host_pt_t {
+	pml4e_t pml4[512];
+	pdpe_t pdpt[512];
+	pde_large_t pd[64][512];
+	
+	static constexpr uint64_t host_pml4e = 255;
+	static constexpr uint64_t host_pa_base = host_pml4e << (12 + 9 + 9 + 9);
+};
+
+union virtual_address_t {
+	uint64_t address;
+	struct {
+		uint64_t offset : 12;
+		uint64_t pt_index : 9;
+		uint64_t pd_index : 9;
+		uint64_t pdpt_index : 9;
+		uint64_t pml4_index : 9;
+		uint64_t reserved : 16;
+	};
 };

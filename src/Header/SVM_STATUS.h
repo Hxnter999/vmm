@@ -1,6 +1,6 @@
 #pragma once
 
-enum class SVM_STATUS
+enum class svm_status
 {
 	SVM_IS_CAPABLE_OF_BEING_ENABLE = 0,
 	SVM_IS_NOT_SUPPORTED_BY_CPU,
@@ -11,7 +11,7 @@ enum class SVM_STATUS
 	SVM_NEXT_RIP_NOT_SUPPORTED
 };
 
-inline bool operator!(SVM_STATUS status)
+inline bool operator!(svm_status status)
 {
-	return status != SVM_STATUS::SVM_IS_CAPABLE_OF_BEING_ENABLE;
+	return status != svm_status::SVM_IS_CAPABLE_OF_BEING_ENABLE;
 }

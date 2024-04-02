@@ -1,8 +1,7 @@
 #pragma once
-#include "../cpuid_t.h"
+#include <cpuid/cpuid_t.h>
 
 namespace CPUID {
-
 	// 8000_0001
 	struct fn_identifiers : BASE_CPUID {
 		union

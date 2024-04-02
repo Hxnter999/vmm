@@ -1,9 +1,8 @@
 #pragma once
-#include "../cpuid_t.h"
-// 8000_0008
+#include <cpuid/cpuid_t.h>
 
 namespace CPUID {
-
+	// 8000_0008
 	struct fn_processor_capacity : BASE_CPUID {
 		union
 		{

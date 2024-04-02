@@ -1,10 +1,18 @@
 #pragma once
-#include "../../datatypes.h"
-#include "../VMEXIT/exit_int_info.h"
-#include "../VMEXIT/EXITINFO/exitinfo1.h"
-#include "../VMEXIT/EXITINFO/exitinfo2.h"
-#include "../MSRs/msrs.h"
-#include "../VMEXIT/svm_exit_code.h"
+#include <commons.h>
+#include <vmexit/exit_int_info.h>
+#include <vmexit/exitinfo1.h>
+#include <vmexit/exitinfo2.h>
+#include <msrs/msrs.h>
+#include <vmexit/svm_exit_code.h>
+#include <vmexit/exit_int_info.h>
+
+enum class tlb_control_id : uint64_t {
+	do_nothing = 0,
+	flush_entire_tlb = 1, // every entry, every asid; should only be used by legacy hypervisor
+	flush_guest_tlb = 3, // flush this guest's tlb 
+	flush_guest_non_global_tlb = 7 // flush this guest's non-global tlb
+};
 
 struct vmcb_control {
 	union {
@@ -170,8 +178,8 @@ struct vmcb_control {
 		struct {
 			uint32_t vmrun : 1;
 			uint32_t vmmcall : 1;
-			uint32_t vmmload : 1;
-			uint32_t vmmsave : 1;
+			uint32_t vmload : 1;
+			uint32_t vmsave : 1;
 			uint32_t stgi : 1;
 			uint32_t clgi : 1;
 			uint32_t skinit : 1;
@@ -226,10 +234,7 @@ struct vmcb_control {
 		struct {
 			uint64_t guest_asid : 32; // guest asid
 			// tlb_control: tlb control bits
-			uint64_t do_nothing : 1; // do nothing
-			uint64_t flush_entire_tlb : 2; // flush entire tlb (all entries, all asids) on vmrun should only be used by legacy hypervisor
-			uint64_t flush_guest_tlb : 2; // flush tlb entries associated with guest asid on vmrun
-			uint64_t flush_guest_non_global_tlb : 3; // flush this guest’s non-global tlb entries
+			tlb_control_id tlb_control : 8;
 			uint64_t reserved40 : 24;
 		};
 	};
@@ -252,7 +257,7 @@ struct vmcb_control {
 			uint64_t v_nmi_enable : 1; // nmi virtualization enabled
 			uint64_t reserved27 : 3;
 			uint64_t x2avic_enable : 1; // x2apic virtualization enabled
-			uint64_t avic_enable : 1; 
+			uint64_t avic_enable : 1;
 			uint64_t v_intr_vector : 8; // vector to use for this interrupt
 			uint64_t reserved40 : 24;
 		};
@@ -272,13 +277,13 @@ struct vmcb_control {
 	svm_exit_code exit_code;
 
 	// 078h
-	EXITINFO::exitinfo1 exit_info_1;
+	exitinfo1_t exit_info_1;
 
 	// 080h
-	EXITINFO::exitinfo2 exit_info_2;
+	exitinfo2_t exit_info_2;
 
 	// 088h
-	exit_int_info exit_int_info;
+	exit_int_info_t exit_int_info;
 
 	// 090h
 	union {
@@ -309,7 +314,7 @@ struct vmcb_control {
 	uint64_t gpa_of_ghcb;
 
 	// 0a8h
-	uint64_t event_injection;
+	exit_int_info_t event_injection;
 
 	// 0b0h
 	uint64_t n_cr3; // nested page table cr3 to use for nested paging
@@ -350,10 +355,10 @@ struct vmcb_control {
 	};
 
 	// 0c8h
-	uint64_t nrip; // nrip—next sequential instruction pointer
+	uint64_t nrip; // nrip—next sequential instruction pointer, only provided on INSTRUCTION intercepts
 
 	// 0d0h
-	// 0:7 number of bytes fetched. 8:127 intruction bytes
+	// 0:7 number of bytes fetched. 8:127 intruction bytes, only used in when theres a #NPF
 	uint8_t number_of_bytes_fetched;
 	uint8_t guest_instructions[15];
 

@@ -1,38 +1,45 @@
 #pragma once
-#include "../../datatypes.h"
-#include "../SEGMENT/segment.h"
-#include "../CR/control_registers.h"
+#include <commons.h>
+#include <segment/segment.h>
+#include <cr/control_registers.h>
+#include <rflags.h>
+#include <msrs/s_cet.h>
+#include <msrs/efer.h>
+#include <msrs/star.h>
+#include <msrs/lstar.h>
+#include <msrs/cstar.h>
+#include <msrs/sfmask.h>
 
 struct vmcb_state_save {
 	// 000h
-	SEGMENT::segment_register es; // only lower 32 bits of base are implemented
+	segment_register_t es; // only lower 32 bits of base are implemented
 
 	// 010h
-	SEGMENT::segment_register cs; // only lower 32 bits of base are implemented
+	segment_register_t cs; // only lower 32 bits of base are implemented
 
 	// 020h
-	SEGMENT::segment_register ss; // only lower 32 bits of base are implemented
+	segment_register_t ss; // only lower 32 bits of base are implemented
 
 	// 030h
-	SEGMENT::segment_register ds; // only lower 32 bits of base are implemented
+	segment_register_t ds; // only lower 32 bits of base are implemented
 
 	// 040h
-	SEGMENT::segment_register fs;
+	segment_register_t fs;
 
 	// 050h
-	SEGMENT::segment_register gs;
+	segment_register_t gs;
 
 	// 060h
-	SEGMENT::segment_register gdtr; //  only lower 16 bits of limit are implemented
+	segment_register_t gdtr; //  only lower 16 bits of limit are implemented
 
 	// 070h
-	SEGMENT::segment_register ldtr;
+	segment_register_t ldtr;
 
 	// 080h
-	SEGMENT::segment_register idtr; // only lower 16 bits of limit are implemented
+	segment_register_t idtr; // only lower 16 bits of limit are implemented
 
 	// 090h
-	SEGMENT::segment_register tr;
+	segment_register_t tr;
 
 	// 0a0h - 0cah
 	uint8_t reserveda0[0x2b];
@@ -44,19 +51,19 @@ struct vmcb_state_save {
 	uint32_t reservedcc;
 
 	// 0d0h
-	uint64_t efer;
+	MSR::EFER efer;
 
 	// 0d8h
 	uint8_t reservedd8[0x70];
 
 	// 148h
-	CR::cr4 cr4;
+	cr4_t cr4;
 
 	// 150h
-	CR::cr3 cr3;
+	cr3_t cr3;
 
 	// 158h
-	CR::cr0 cr0;
+	cr0_t cr0;
 
 	// 160h
 	uint64_t dr7;
@@ -65,7 +72,7 @@ struct vmcb_state_save {
 	uint64_t dr6;
 
 	// 170h
-	uint64_t rflags;
+	rflags_t rflags;
 
 	// 178h
 	uint64_t rip;
@@ -77,7 +84,7 @@ struct vmcb_state_save {
 	uint64_t rsp;
 
 	// 1e0h
-	uint64_t s_cet;
+	MSR::S_CET s_cet;
 
 	// 1e8h
 	uint64_t ssp;
@@ -89,16 +96,16 @@ struct vmcb_state_save {
 	uint64_t rax;
 
 	// 200h
-	uint64_t star;
+	MSR::STAR star;
 
 	// 208h
-	uint64_t lstar;
+	MSR::LSTAR lstar;
 
 	// 210h
-	uint64_t cstar;
+	MSR::CSTAR cstar;
 
 	// 218h
-	uint64_t sfmask;
+	MSR::SFMASK sfmask;
 
 	// 220h
 	uint64_t kernel_gs_base;
@@ -113,7 +120,7 @@ struct vmcb_state_save {
 	uint64_t sysenter_eip;
 
 	// 240h
-	CR::cr2 cr2;
+	cr2_t cr2;
 
 	// 248h 
 	uint8_t reserved248[0x20];
