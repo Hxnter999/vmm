@@ -3,7 +3,7 @@
 
 void dtr_save_handler(vcpu_t& vcpu) 
 {
-	
+	vcpu;
 }
 
 void dtr_load_handler(vcpu_t& vcpu)
