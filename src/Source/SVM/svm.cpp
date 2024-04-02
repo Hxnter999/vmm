@@ -35,15 +35,16 @@ bool vmexit_handler(vcpu_t* const vcpu) {
 		vcpu->guest_vmcb.control.event_injection.bits = 0; // reset to avoid infinite loop
 		break;
 
-	case svm_exit_code::VMEXIT_IDTR_READ:
-	case svm_exit_code::VMEXIT_GDTR_READ:
-		dtr_load_handler(*vcpu);
-		break;
+	//commenting this out so u get the intent (not done)
+	//case svm_exit_code::VMEXIT_IDTR_READ:
+	//case svm_exit_code::VMEXIT_GDTR_READ:
+	//	dtr_load_handler(*vcpu);
+	//	break;
 
-	case svm_exit_code::VMEXIT_IDTR_WRITE:
-	case svm_exit_code::VMEXIT_GDTR_WRITE:
-		dtr_save_handler(*vcpu);
-		break;
+	//case svm_exit_code::VMEXIT_IDTR_WRITE:
+	//case svm_exit_code::VMEXIT_GDTR_WRITE:
+	//	dtr_save_handler(*vcpu);
+	//	break;
 
 	case svm_exit_code::VMEXIT_VMRUN:
 	case svm_exit_code::VMEXIT_VMLOAD:
