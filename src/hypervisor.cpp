@@ -56,7 +56,7 @@ void Hypervisor::unload()
 		print("Devirtualizing [%d]...\n", index);
 		testcall(hypercall_code::UNLOAD);
 		return true;
-	});
+		});
 
 	if (vcpus.buffer) {
 		ExFreePoolWithTag(vcpus.buffer, 'hv');
@@ -77,6 +77,8 @@ void Hypervisor::unload()
 
 void Hypervisor::init()
 {
+	HV->map_physical_memory();
+
 	vcpus = {};
 	shared_msrpm = nullptr;
 	npt = nullptr;
@@ -98,20 +100,22 @@ void Hypervisor::init()
 		return;
 	}
 
-	HV->setup_host_pt();
-
 	print("Setup\n");
 	vaild = true;
 }
 
 bool Hypervisor::virtualize(uint32_t index)
 {
+	vcpu_t& vcpu = vcpus.get(index);
+
 	MSR::EFER efer{};
 	efer.load();
 	efer.svme = 1;
 	efer.store();
 
-	vcpu_t* vcpu = vcpus.get(index);
+	print("Setting up host\n");
+	setup_host(vcpu);
+
 	CONTEXT* ctx = reinterpret_cast<CONTEXT*>(ExAllocatePoolWithTag(NonPagedPool, sizeof(CONTEXT), 'sgma'));
 	memset(ctx, 0, sizeof(CONTEXT));
 	RtlCaptureContext(ctx);
@@ -121,22 +125,22 @@ bool Hypervisor::virtualize(uint32_t index)
 	MSR::EFER guest_efer{}; guest_efer.load();
 	if (!guest_efer.svme) return true;
 
-	print("Setting up vmcb\n");
-	setup_vmcb(vcpu, ctx);
+	print("Setting up guest\n");
+	setup_guest(vcpu, ctx);
 
 	print("Entering vm\n");
-	vmenter(&vcpu->guest_vmcb_pa);
+	vmenter(&vcpu.guest_vmcb_pa);
 
 	// shouldnt reach this point, if so something went wrong
 	return false;
 }
 
-bool Hypervisor::setup_npts() 
+bool Hypervisor::setup_npts()
 {
 	return initnpts(npt);
 }
 
-bool Hypervisor::virtualize() 
+bool Hypervisor::virtualize()
 {
 	if (!execute_on_all_cpus([](uint32_t index) -> bool {
 		print("Virtualizing [%d]...\n", index);
@@ -156,87 +160,82 @@ bool Hypervisor::virtualize()
 	return true;
 }
 
-void Hypervisor::setup_vmcb(vcpu_t* vcpu, CONTEXT* ctx) //should make it a reference
+void Hypervisor::setup_guest(vcpu_t& vcpu, CONTEXT* ctx) //should make it a reference
 {
-	vcpu->is_virtualized = true;
+	vcpu.is_virtualized = true;
 
 	MSR::HSAVE_PA hsave_pa{};
-	hsave_pa.bits = MmGetPhysicalAddress(&vcpu->host_vmcb).QuadPart;
+	hsave_pa.bits = MmGetPhysicalAddress(&vcpu.host_vmcb).QuadPart;
 	hsave_pa.store();
 
-	vcpu->guest_vmcb.control.msrpm_base_pa = MmGetPhysicalAddress(shared_msrpm).QuadPart;
+	vcpu.guest_vmcb.control.msrpm_base_pa = MmGetPhysicalAddress(shared_msrpm).QuadPart;
 
 	// ------------------- Setup guest state -------------------
-	vcpu->guest_vmcb.control.vmrun = 1; // VMRUN intercepts muse be enabled 15.5.1
-	vcpu->guest_vmcb.control.vmmcall = 1; // explicit vmexits back to host
-	vcpu->guest_vmcb.control.vmload = 1;
-	vcpu->guest_vmcb.control.vmsave = 1;
-	vcpu->guest_vmcb.control.clgi = 1;
-	vcpu->guest_vmcb.control.msr_prot = 1; 
+	vcpu.guest_vmcb.control.vmrun = 1; // VMRUN intercepts muse be enabled 15.5.1
+	vcpu.guest_vmcb.control.vmmcall = 1; // explicit vmexits back to host
+	vcpu.guest_vmcb.control.vmload = 1;
+	vcpu.guest_vmcb.control.vmsave = 1;
+	vcpu.guest_vmcb.control.clgi = 1;
+	vcpu.guest_vmcb.control.msr_prot = 1;
+	vcpu.guest_vmcb.control.pushf = 1;
+	//vcpu.guest_vmcb.control.popf = 1;
 
-	vcpu->guest_vmcb.control.guest_asid = 1; // Address space identifier "ASID [cannot be] equal to zero" 15.5.1 ASID 0 is for the host
-	vcpu->guest_vmcb.control.v_intr_masking = 1; // 15.21.1 & 15.22.2
+	vcpu.guest_vmcb.control.guest_asid = 1; // Address space identifier "ASID [cannot be] equal to zero" 15.5.1 ASID 0 is for the host
+	vcpu.guest_vmcb.control.v_intr_masking = 1; // 15.21.1 & 15.22.2
 
 	if (npt) {
-		vcpu->guest_vmcb.control.np_enable = 1;
-		vcpu->guest_vmcb.control.n_cr3 = MmGetPhysicalAddress(npt).QuadPart;
+		vcpu.guest_vmcb.control.np_enable = 1;
+		vcpu.guest_vmcb.control.n_cr3 = MmGetPhysicalAddress(npt).QuadPart;
 		print("NPT: %p\n", MmGetPhysicalAddress(npt).QuadPart);
 	}
-	
+
 	// Set up the guest state
-	vcpu->guest_vmcb.save_state.cr0.value = __readcr0();
-	vcpu->guest_vmcb.save_state.cr2.value = __readcr2();
-	vcpu->guest_vmcb.save_state.cr3.value = __readcr3();
-	vcpu->guest_vmcb.save_state.cr4.value = __readcr4();
-	vcpu->guest_vmcb.save_state.efer.bits = __readmsr(MSR::EFER::MSR_EFER);
-	vcpu->guest_vmcb.save_state.g_pat = __readmsr(MSR::PAT::MSR_PAT); // very sigma (kinda like MTRRs but for page tables)
+	vcpu.guest_vmcb.save_state.cr0.value = __readcr0();
+	vcpu.guest_vmcb.save_state.cr2.value = __readcr2();
+	vcpu.guest_vmcb.save_state.cr3.value = __readcr3();
+	vcpu.guest_vmcb.save_state.cr4.value = __readcr4();
+	vcpu.guest_vmcb.save_state.efer.bits = __readmsr(MSR::EFER::MSR_EFER);
+	vcpu.guest_vmcb.save_state.g_pat = __readmsr(MSR::PAT::MSR_PAT); // very sigma (kinda like MTRRs but for page tables)
 
 	descriptor_table_register idtr{}, gdtr{}; __sidt(&idtr); _sgdt(&gdtr);
-	vcpu->guest_vmcb.save_state.idtr.base = idtr.base;
-	vcpu->guest_vmcb.save_state.idtr.limit = idtr.limit;
+	vcpu.guest_vmcb.save_state.idtr.base = idtr.base;
+	vcpu.guest_vmcb.save_state.idtr.limit = idtr.limit;
 
-	vcpu->guest_vmcb.save_state.gdtr.base = gdtr.base;
-	vcpu->guest_vmcb.save_state.gdtr.limit = gdtr.limit;
+	vcpu.guest_vmcb.save_state.gdtr.base = gdtr.base;
+	vcpu.guest_vmcb.save_state.gdtr.limit = gdtr.limit;
 
 	//TODO: need to set RSP, RIP, and RFLAGS (This is where the guest will start executing)
-	vcpu->guest_vmcb.save_state.rsp = ctx->Rsp;
-	vcpu->guest_vmcb.save_state.rip = ctx->Rip;
-	vcpu->guest_vmcb.save_state.rflags.value = ctx->EFlags;
+	vcpu.guest_vmcb.save_state.rsp = ctx->Rsp;
+	vcpu.guest_vmcb.save_state.rip = ctx->Rip;
+	vcpu.guest_vmcb.save_state.rflags.value = ctx->EFlags;
 
 	//Setup all the segment registers
-	vcpu->guest_vmcb.save_state.cs.limit = __segmentlimit(ctx->SegCs);
-	vcpu->guest_vmcb.save_state.ds.limit = __segmentlimit(ctx->SegDs);
-	vcpu->guest_vmcb.save_state.es.limit = __segmentlimit(ctx->SegEs);
-	vcpu->guest_vmcb.save_state.ss.limit = __segmentlimit(ctx->SegSs);
+	vcpu.guest_vmcb.save_state.cs.limit = __segmentlimit(ctx->SegCs);
+	vcpu.guest_vmcb.save_state.ds.limit = __segmentlimit(ctx->SegDs);
+	vcpu.guest_vmcb.save_state.es.limit = __segmentlimit(ctx->SegEs);
+	vcpu.guest_vmcb.save_state.ss.limit = __segmentlimit(ctx->SegSs);
 
-	vcpu->guest_vmcb.save_state.cs.selector.value = ctx->SegCs;
-	vcpu->guest_vmcb.save_state.ds.selector.value = ctx->SegDs;
-	vcpu->guest_vmcb.save_state.es.selector.value = ctx->SegEs;
-	vcpu->guest_vmcb.save_state.ss.selector.value = ctx->SegSs;
+	vcpu.guest_vmcb.save_state.cs.selector.value = ctx->SegCs;
+	vcpu.guest_vmcb.save_state.ds.selector.value = ctx->SegDs;
+	vcpu.guest_vmcb.save_state.es.selector.value = ctx->SegEs;
+	vcpu.guest_vmcb.save_state.ss.selector.value = ctx->SegSs;
 
-	vcpu->guest_vmcb.save_state.cs.get_attributes(gdtr.base);
-	vcpu->guest_vmcb.save_state.ds.get_attributes(gdtr.base);
-	vcpu->guest_vmcb.save_state.es.get_attributes(gdtr.base);
-	vcpu->guest_vmcb.save_state.ss.get_attributes(gdtr.base);
+	vcpu.guest_vmcb.save_state.cs.get_attributes(gdtr.base);
+	vcpu.guest_vmcb.save_state.ds.get_attributes(gdtr.base);
+	vcpu.guest_vmcb.save_state.es.get_attributes(gdtr.base);
+	vcpu.guest_vmcb.save_state.ss.get_attributes(gdtr.base);
 
-	vcpu->guest_vmcb_pa = MmGetPhysicalAddress(&vcpu->guest_vmcb).QuadPart;
-	vcpu->host_vmcb_pa = MmGetPhysicalAddress(&vcpu->host_vmcb).QuadPart;
-	vcpu->self = vcpu;
+	vcpu.guest_vmcb_pa = MmGetPhysicalAddress(&vcpu.guest_vmcb).QuadPart;
+	vcpu.host_vmcb_pa = MmGetPhysicalAddress(&vcpu.host_vmcb).QuadPart;
+	vcpu.self = &vcpu;
 
-	// ------------------- Setup host state -------------------
-	auto& host_cr3 = vcpu->host_vmcb.save_state.cr3;
-	host_cr3.value = 0;
-	host_cr3.pml4 = MmGetPhysicalAddress(&shared_host_pt.pml4).QuadPart >> 12;
-
-	print("Writing host cr3: %zX\n", host_cr3.value);
-	__writecr3(host_cr3.value);
-	__svm_vmsave(vcpu->host_vmcb_pa);
+	__svm_vmsave(vcpu.host_vmcb_pa);
 
 
-	__svm_vmsave(vcpu->guest_vmcb_pa); // needed here cause the vmrun loop loads guest state before everything, if there isnt a guest saved already it wont work properly
+	__svm_vmsave(vcpu.guest_vmcb_pa); // needed here cause the vmrun loop loads guest state before everything, if there isnt a guest saved already it wont work properly
 }
 
-void Hypervisor::setup_host_pt() {
+void Hypervisor::map_physical_memory() {
 	print("Setting up host page tables\n");
 	// map all the physical memory and share it between the hosts to be able to access it directly.
 	auto& pml4e = shared_host_pt.pml4[shared_host_pt.host_pml4e];
@@ -269,6 +268,42 @@ void Hypervisor::setup_host_pt() {
 
 	memcpy(&shared_host_pt.pml4[256], &system_pml4[256], sizeof(pml4e_t) * 256);
 }
+
+void Hypervisor::setup_host(vcpu_t& vcpu) {
+
+	// ------------------- Isolate host ---------------------
+
+	// -------
+
+	auto& host_cr3 = vcpu.host_vmcb.save_state.cr3;
+	host_cr3.value = 0;
+	host_cr3.pml4 = MmGetPhysicalAddress(&shared_host_pt.pml4).QuadPart >> 12;
+
+	print("Writing host cr3: %zX\n", host_cr3.value);
+	__writecr3(host_cr3.value);
+
+	// -------
+
+	MSR::PAT host_pat{};
+
+	host_pat.pa0 = MSR::PAT::page_attribute_type::write_back;
+	host_pat.pa1 = MSR::PAT::page_attribute_type::write_through;
+	host_pat.pa2 = MSR::PAT::page_attribute_type::uncacheable_no_write_combinining;
+	host_pat.pa3 = MSR::PAT::page_attribute_type::uncacheable;
+
+	host_pat.pa4 = MSR::PAT::page_attribute_type::write_back;
+	host_pat.pa5 = MSR::PAT::page_attribute_type::write_through;
+	host_pat.pa6 = MSR::PAT::page_attribute_type::uncacheable_no_write_combinining;
+	host_pat.pa7 = MSR::PAT::page_attribute_type::uncacheable;
+
+	host_pat.store();
+
+	// -------
+
+
+
+
+};
 
 svm_status Hypervisor::init_check()
 {

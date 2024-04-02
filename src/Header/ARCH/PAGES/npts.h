@@ -4,11 +4,9 @@
 #include <cpuid/extended-features/fn_processor_capacity.h>
 #include <pages/pages.h>
 #include <vmcb/vmcb.h>
-#include <smbios/smbios.h>
-#include <hypervisor.h>
 
 constexpr decltype(auto) roundup(auto&& var, auto&& num) {
-	return ((var) + (num) - 1) / (num);
+	return ((var)+(num)-1) / (num);
 }
 
 constexpr uint64_t plm4e_address_range = 0x1000000000; //256GB
@@ -21,8 +19,8 @@ inline bool setup_huge(const uint64_t guest_phys_addr_size, uint64_t*& buffer)
 	const uint64_t amount_plm4es = roundup(guest_phys_addr_size, plm4e_address_range);
 	const uint64_t amount_pdepes = roundup(guest_phys_addr_size, pdpes_address_range);
 
-	print ("amount_plm4es: %u\n", amount_plm4es);
-	print ("amount_pdepes: %u\n", amount_pdepes);
+	print("amount_plm4es: %u\n", amount_plm4es);
+	print("amount_pdepes: %u\n", amount_pdepes);
 
 	const uint64_t bufsize = sizeof(pml4e_t) * 512 + sizeof(pdpe_huge_t) * amount_pdepes;
 	buffer = static_cast<uint64_t*>(MmAllocateContiguousMemory(bufsize, { .QuadPart = -1 }));
@@ -61,7 +59,7 @@ inline bool setup_allusive(const uint64_t guest_phys_addr_size, uint64_t*& buffe
 {
 	const uint64_t amount_plm4es = roundup(guest_phys_addr_size, plm4e_address_range);
 	const uint64_t amount_pdepes = roundup(guest_phys_addr_size, pdpes_address_range);
-	const uint64_t amount_pdes   = roundup(guest_phys_addr_size, pdes_address_range);
+	const uint64_t amount_pdes = roundup(guest_phys_addr_size, pdes_address_range);
 
 	print("amount_plm4es: %u\n", amount_plm4es);
 	print("amount_pdepes: %u\n", amount_pdepes);
@@ -90,7 +88,7 @@ inline bool setup_allusive(const uint64_t guest_phys_addr_size, uint64_t*& buffe
 		plm4es[i].page_pa = MmGetPhysicalAddress(&pdepes[i * 512]).QuadPart >> 12;
 	}
 
-	for (uint64_t i = 0; i < amount_pdepes; i++) 
+	for (uint64_t i = 0; i < amount_pdepes; i++)
 	{
 		pdepes[i].present = 1;
 		pdepes[i].write = 1;
@@ -98,7 +96,7 @@ inline bool setup_allusive(const uint64_t guest_phys_addr_size, uint64_t*& buffe
 		pdepes[i].page_pa = MmGetPhysicalAddress(&pdes[i * 512]).QuadPart >> 12;
 	}
 
-	for (uint64_t i = 0; i < amount_pdes; i++) 
+	for (uint64_t i = 0; i < amount_pdes; i++)
 	{
 		pdes[i].present = 1;
 		pdes[i].large_page = 1;
@@ -115,82 +113,83 @@ inline bool initnpts(uint64_t*& nptbuffer)  //TODO: add support for IO devices (
 
 	//maybe want to check the amount of supported TLB shittery and decide if its worth using hugepages (even if they are allowed)
 
-	uint32_t size = GetSystemFirmwareTable('RSMB', 0, nullptr, 0);
-	if (size == 0)
-	{
-		print("Failed to get smbios table size\n");
-		return false;
-	}
+	//uint32_t size = GetSystemFirmwareTable('RSMB', 0, nullptr, 0);
+	//if (size == 0)
+	//{
+	//	print("Failed to get smbios table size\n");
+	//	return false;
+	//}
 
-	uint8_t* buffer = static_cast<uint8_t*>(ExAllocatePool(NonPagedPool, size));
-	if (size != GetSystemFirmwareTable('RSMB', 0, buffer, size)) 
-	{
-		print("Failed to get smbios table\n");
-		return false;
-	}
+	//uint8_t* buffer = static_cast<uint8_t*>(ExAllocatePool(NonPagedPool, size));
+	//if (size != GetSystemFirmwareTable('RSMB', 0, buffer, size)) 
+	//{
+	//	print("Failed to get smbios table\n");
+	//	return false;
+	//}
 
-	smbios::Parser parser{ buffer, size };
+	//smbios::Parser parser{ buffer, size };
 
-	if (!parser.valid())
-	{
-		print("Failed to parse smbios table\n");
-		return false;
-	}
+	//if (!parser.valid())
+	//{
+	//	print("Failed to parse smbios table\n");
+	//	return false;
+	//}
 
-	int version = parser.version();
-	print("smbios version %d\n", version);
-	if (version < smbios::SMBIOS_2_1) 
-	{
-		print("smbios version too low\n");
-		return false;
-	}
+	//int version = parser.version();
+	//print("smbios version %d\n", version);
+	//if (version < smbios::SMBIOS_2_1) 
+	//{
+	//	print("smbios version too low\n");
+	//	return false;
+	//}
 
-	const smbios::Entry* entry{};
-	uint64_t guest_phys_addr_size{};
+	//const smbios::Entry* entry{};
+	//uint64_t guest_phys_addr_size{};
 
-	for (uint64_t i = 0; i > 0x2000 && entry != nullptr; i++) //just set a max to be safe
-	{
-		entry = parser.next();
+	//for (uint64_t i = 0; i > 0x2000 && entry != nullptr; i++) //just set a max to be safe
+	//{
+	//	entry = parser.next();
 
-		if (entry->data.memory.Size == smbios::TYPE::TYPE_MEMORY_DEVICE)
-			guest_phys_addr_size += entry->data.memory.Size;
-	}
+	//	if (entry->data.memory.Size == smbios::TYPE::TYPE_MEMORY_DEVICE)
+	//		guest_phys_addr_size += entry->data.memory.Size;
+	//}
 
-	bool result{};
-	CPUID::fn_identifiers ident{};
-	ident.load();
+	//bool result{};
+	//CPUID::fn_identifiers ident{};
+	//ident.load();
 
-	bool huge_page_supported = ident.feature_identifiers_ext.page_1gb;
+	//bool huge_page_supported = ident.feature_identifiers_ext.page_1gb;
 
 
-	if (guest_phys_addr_size < plm4e_address_range) guest_phys_addr_size = plm4e_address_range;
-	if (guest_phys_addr_size > plm4e_address_range * 512) 
-	{
-		print("guest_phys_addr_size %p is not within the supported range\n", guest_phys_addr_size);
-		result = false;
-		goto end; //need to make smart_pool lols
-	}
+	//if (guest_phys_addr_size < plm4e_address_range) guest_phys_addr_size = plm4e_address_range;
+	//if (guest_phys_addr_size > plm4e_address_range * 512) 
+	//{
+	//	print("guest_phys_addr_size %p is not within the supported range\n", guest_phys_addr_size);
+	//	result = false;
+	//	goto end; //need to make smart_pool lols
+	//}
+	uint64_t guest_phys_addr_size = 0x1000000000;
 	print("guest_phys_addr_size %p\n", guest_phys_addr_size);
 
 
 
-	if (huge_page_supported)
-	{
-		result = setup_huge(guest_phys_addr_size, nptbuffer);
-	}
-	else 
+	//if (huge_page_supported)
+	//{
+	bool result = setup_huge(guest_phys_addr_size, nptbuffer);
+	//}
+	/*else
 	{
 		print("cuh");
 		result = setup_allusive(guest_phys_addr_size, nptbuffer);
-	}
+	}*/
 
 
-	if (!result) 
+	if (!result)
 	{
 		print("failed to setup npts\n");
 	}
 
-	end:
-	ExFreePool(buffer);
+	//end:
+	//ExFreePool(buffer);
 	return result;
 }

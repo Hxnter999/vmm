@@ -6,7 +6,7 @@
 class Hypervisor
 {
 	static Hypervisor* instance;
-	
+
 	inline bool execute_on_all_cpus(bool(*func)(uint32_t)) //this is cancer!
 	{
 		for (uint32_t i = 0; i < vcpus.vcpu_count; i++)
@@ -25,9 +25,11 @@ class Hypervisor
 
 	bool virtualize(uint32_t index);
 
-	void setup_vmcb(vcpu_t* vcpu, CONTEXT* ctx);
+	void setup_guest(vcpu_t& vcpu, CONTEXT* ctx);
 
-	void setup_host_pt();
+	void setup_host(vcpu_t& vcpu);
+
+	void map_physical_memory();
 
 	static svm_status init_check();
 
@@ -43,7 +45,8 @@ class Hypervisor
 		vcpu_t* buffer;
 		uint32_t vcpu_count;
 
-		vcpu_t* get(uint32_t i) { return buffer + i; }
+		//vcpu_t* get(uint32_t i) { return buffer + i; }
+		vcpu_t& get(uint32_t i) { return buffer[i]; }
 		vcpu_t* begin() { return buffer; }
 		vcpu_t* end() { return buffer + vcpu_count; }
 	} vcpus;

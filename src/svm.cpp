@@ -1,6 +1,6 @@
 #include <commons.h>
 #include "svm.h"
-#include <hypervisor.h>
+#include "hypervisor.h"
 
 bool vmexit_handler(vcpu_t* const vcpu) {
 	__svm_vmload(vcpu->host_vmcb_pa);

@@ -1,7 +1,7 @@
 #include <commons.h>
-#include "svm/svm.h"
+#include "svm.h"
 #include <pages/npts.h>
-#include <hypervisor.h>
+#include "hypervisor.h"
 		 
 #include <vmcb/vmcb.h>
 #include <msrs/vm_cr.h>
