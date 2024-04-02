@@ -170,6 +170,32 @@
     </MASM>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="capstone\include\capstone\aarch64.h" />
+    <ClInclude Include="capstone\include\capstone\alpha.h" />
+    <ClInclude Include="capstone\include\capstone\arm.h" />
+    <ClInclude Include="capstone\include\capstone\bpf.h" />
+    <ClInclude Include="capstone\include\capstone\capstone.h" />
+    <ClInclude Include="capstone\include\capstone\cs_operand.h" />
+    <ClInclude Include="capstone\include\capstone\evm.h" />
+    <ClInclude Include="capstone\include\capstone\hppa.h" />
+    <ClInclude Include="capstone\include\capstone\m680x.h" />
+    <ClInclude Include="capstone\include\capstone\m68k.h" />
+    <ClInclude Include="capstone\include\capstone\mips.h" />
+    <ClInclude Include="capstone\include\capstone\mos65xx.h" />
+    <ClInclude Include="capstone\include\capstone\platform.h" />
+    <ClInclude Include="capstone\include\capstone\ppc.h" />
+    <ClInclude Include="capstone\include\capstone\riscv.h" />
+    <ClInclude Include="capstone\include\capstone\sh.h" />
+    <ClInclude Include="capstone\include\capstone\sparc.h" />
+    <ClInclude Include="capstone\include\capstone\systemz.h" />
+    <ClInclude Include="capstone\include\capstone\tms320c64x.h" />
+    <ClInclude Include="capstone\include\capstone\tricore.h" />
+    <ClInclude Include="capstone\include\capstone\wasm.h" />
+    <ClInclude Include="capstone\include\capstone\x86.h" />
+    <ClInclude Include="capstone\include\capstone\xcore.h" />
+    <ClInclude Include="capstone\include\platform.h" />
+    <ClInclude Include="capstone\include\windowsce\intrin.h" />
+    <ClInclude Include="capstone\include\windowsce\stdint.h" />
     <ClInclude Include="src\Header\ARCH\mod_rm.h" />
     <ClInclude Include="src\header\arch\msrs\cstar.h" />
     <ClInclude Include="src\header\arch\msrs\lstar.h" />
