@@ -5,9 +5,6 @@
 #include <wdm.h>
 #include <intrin.h>
 
-
-#include <capstone/capstone.h>
-
 /* stdint */
 typedef signed char        int8_t;
 typedef short              int16_t;
