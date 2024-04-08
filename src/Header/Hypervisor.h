@@ -31,7 +31,6 @@ class Hypervisor
 
 	static svm_status init_check();
 
-	bool get_phys(cr3_t cr3, virtual_address_t va, PHYSICAL_ADDRESS& phy);
 
 	bool vaild;
 	uint64_t* npt;
@@ -64,17 +63,13 @@ public:
 
 	bool setup_npts();
 
+	bool get_phys(cr3_t cr3, virtual_address_t va, PHYSICAL_ADDRESS& phy);
+
 	template<typename T>
 	T read_phys(PHYSICAL_ADDRESS phy);
 
 	template<typename T>
 	void write_phys(PHYSICAL_ADDRESS phy, const T& value);
-
-	template<typename T>
-	bool read_virtual(cr3_t cr3, virtual_address_t va, T& out);
-
-	template<typename T>
-	bool write_virtual(cr3_t cr3, virtual_address_t va, const T& value);
 
 	template<exception_vector exception>
 	void inject_event(vcpu_t& vcpu)

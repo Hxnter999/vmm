@@ -329,33 +329,13 @@ svm_status Hypervisor::init_check()
 template<typename T>
 T Hypervisor::read_phys(PHYSICAL_ADDRESS phy) 
 {
-	return *reinterpret_cast<T*>(host_pa_base + phy.QuadPart);
+	return *reinterpret_cast<T*>(host_pt_t::host_pa_base + phy.QuadPart);
 }
 
 template<typename T>
 void Hypervisor::write_phys(PHYSICAL_ADDRESS phy, const T& value) 
 {
-	*reinterpret_cast<T*>(host_pa_base + phy.QuadPart) = value;
-}
-
-template<typename T>
-bool Hypervisor::read_virtual(cr3_t cr3, virtual_address_t va, T& out)
-{
-	PHYSICAL_ADDRESS phy{};
-	if (!get_phys(cr3, va, phy)) return false;
-
-	out = read_phys<T>(phy);
-	return true;
-}
-
-template<typename T>
-bool Hypervisor::write_virtual(cr3_t cr3, virtual_address_t va, const T& value)
-{
-	PHYSICAL_ADDRESS phy{};
-	if (!get_phys(cr3, va, phy)) return false;
-
-	write_phys(phy, value);
-	return true;
+	*reinterpret_cast<T*>(host_pt_t::host_pa_base + phy.QuadPart) = value;
 }
 
 bool Hypervisor::get_phys(cr3_t cr3, virtual_address_t va, PHYSICAL_ADDRESS& phy)

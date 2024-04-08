@@ -42,6 +42,7 @@
     <ClCompile Include="zydis\src\String.c" />
     <ClCompile Include="zydis\src\Utils.c" />
     <ClCompile Include="zydis\src\Zydis.c" />
+    <ClCompile Include="src\Header\ARCH\VMCB\vcpu_t.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\header\arch\msrs\cstar.h" />

@@ -34,5 +34,12 @@ struct alignas(0x1000) vcpu_t {
 	};
 	vmcb_t host_vmcb; // on vmrun and exits processor saves/restores host state to/from this field, we can also directly manipulate it as long as its considered legal
 	vmcb_t guest_vmcb;
+
+	template<typename T>
+	bool read_virtual(virtual_address_t va, T& out);
+
+	template<typename T>
+	bool write_virtual(virtual_address_t va, const T& value);
+
 };
 static_assert(sizeof(vcpu_t) == 0x8000, "vcpu size is not 0x8000");
