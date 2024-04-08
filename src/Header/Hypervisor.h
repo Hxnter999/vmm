@@ -31,6 +31,8 @@ class Hypervisor
 
 	static svm_status init_check();
 
+	bool get_phys(cr3_t cr3, virtual_address_t va, PHYSICAL_ADDRESS& phy);
+
 	bool vaild;
 	uint64_t* npt;
 	MSR::msrpm_t* shared_msrpm;
@@ -56,11 +58,23 @@ public:
 
 	static Hypervisor* get();
 
-	bool isvalid() { return vaild; }
+	bool is_valid() { return vaild; }
 
 	bool virtualize();
 
 	bool setup_npts();
+
+	template<typename T>
+	T read_phys(PHYSICAL_ADDRESS phy);
+
+	template<typename T>
+	void write_phys(PHYSICAL_ADDRESS phy, const T& value);
+
+	template<typename T>
+	bool read_virtual(cr3_t cr3, virtual_address_t va, T& out);
+
+	template<typename T>
+	bool write_virtual(cr3_t cr3, virtual_address_t va, const T& value);
 
 	template<exception_vector exception>
 	void inject_event(vcpu_t& vcpu)

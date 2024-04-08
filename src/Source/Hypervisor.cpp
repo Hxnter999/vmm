@@ -239,7 +239,7 @@ void Hypervisor::setup_vmcb(vcpu_t* vcpu, CONTEXT* ctx) //should make it a refer
 void Hypervisor::setup_host_pt() {
 	print("Setting up host page tables\n");
 	// map all the physical memory and share it between the hosts to be able to access it directly.
-	auto& pml4e = shared_host_pt.pml4[shared_host_pt.host_pml4e];
+	auto& pml4e = shared_host_pt.pml4[shared_host_pt.phys_pml4e];
 	pml4e.present = 1;
 	pml4e.write = 1;
 	pml4e.page_pa = MmGetPhysicalAddress(&shared_host_pt.pdpt).QuadPart >> 12;
@@ -258,7 +258,7 @@ void Hypervisor::setup_host_pt() {
 			pde.page_pa = i * 512 + j;
 		}
 	}
-	// cant be bothered to deal with the structure errors rn...
+
 	//auto system_process = reinterpret_cast<_EPROCESS*>(PsInitialSystemProcess);
 	//cr3_t system_cr3{ system_process->Pcb.DirectoryTableBase };
 
@@ -324,4 +324,72 @@ svm_status Hypervisor::init_check()
 
 	print("SVM lock bit set, disabled\n");
 	return svm_status::SVM_DISABLED_WITH_KEY;
+}
+
+template<typename T>
+T Hypervisor::read_phys(PHYSICAL_ADDRESS phy) 
+{
+	return *reinterpret_cast<T*>(host_pa_base + phy.QuadPart);
+}
+
+template<typename T>
+void Hypervisor::write_phys(PHYSICAL_ADDRESS phy, const T& value) 
+{
+	*reinterpret_cast<T*>(host_pa_base + phy.QuadPart) = value;
+}
+
+template<typename T>
+bool Hypervisor::read_virtual(cr3_t cr3, virtual_address_t va, T& out)
+{
+	PHYSICAL_ADDRESS phy{};
+	if (!get_phys(cr3, va, phy)) return false;
+
+	out = read_phys<T>(phy);
+	return true;
+}
+
+template<typename T>
+bool Hypervisor::write_virtual(cr3_t cr3, virtual_address_t va, const T& value)
+{
+	PHYSICAL_ADDRESS phy{};
+	if (!get_phys(cr3, va, phy)) return false;
+
+	write_phys(phy, value);
+	return true;
+}
+
+bool Hypervisor::get_phys(cr3_t cr3, virtual_address_t va, PHYSICAL_ADDRESS& phy)
+{
+	PHYSICAL_ADDRESS pa{};
+
+	pa.QuadPart = cr3.pml4 << 8 + va.pml4_index * sizeof(pml4e_t);
+	pml4e_t pml4e = { read_phys<pml4e_t>(pa) };
+
+	if (!pml4e.present) return false;
+
+	pa.QuadPart = pml4e.page_pa << 8 + va.pdpt_index * sizeof(pdpe_t);
+	pdpe_t pdpe = { read_phys<pdpe_t>(pa) };
+
+	if (!pdpe.present) return false;
+
+	if (pdpe.huge_page) {
+		phy.QuadPart = pdpe.huge.page_pa << 26 + va.pd_index << 21 + va.pt_index << 12 + va.offset;
+	}
+
+	pa.QuadPart = pdpe.page_pa << 8 + va.pd_index * sizeof(pde_t);
+	pde_t pde = { read_phys<pde_t>(pa) };
+
+	if (!pde.present) return false;
+
+	if (pde.large_page) {
+		phy.QuadPart = pde.page_pa << 17 + va.pt_index << 12 + va.offset;
+	}
+
+	pa.QuadPart = pde.page_pa << 8 + va.pt_index * sizeof(pte_t);
+	pte_t pte = { read_phys< pte_t>(pa) };
+
+	if (!pte.present) return false;
+
+	phy.QuadPart = pte.page_pa << 8 + va.offset;
+	return true;
 }

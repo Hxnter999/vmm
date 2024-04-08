@@ -231,7 +231,6 @@
     <ClInclude Include="capstone\include\platform.h" />
     <ClInclude Include="capstone\include\windowsce\intrin.h" />
     <ClInclude Include="capstone\include\windowsce\stdint.h" />
-    <ClInclude Include="src\Header\ARCH\mod_rm.h" />
     <ClInclude Include="src\header\arch\msrs\cstar.h" />
     <ClInclude Include="src\header\arch\msrs\lstar.h" />
     <ClInclude Include="src\header\arch\msrs\pl3_ssp.h" />

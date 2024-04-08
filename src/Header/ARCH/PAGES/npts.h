@@ -24,7 +24,7 @@ inline bool setup_huge(const uint64_t guest_phys_addr_size, uint64_t*& buffer)
 	print ("amount_plm4es: %u\n", amount_plm4es);
 	print ("amount_pdepes: %u\n", amount_pdepes);
 
-	const uint64_t bufsize = sizeof(pml4e_t) * 512 + sizeof(pdpe_huge_t) * amount_pdepes;
+	const uint64_t bufsize = sizeof(pml4e_t) * 512 + sizeof(pdpe_t) * amount_pdepes;
 	buffer = static_cast<uint64_t*>(MmAllocateContiguousMemory(bufsize, { .QuadPart = -1 }));
 	if (!buffer)
 	{
@@ -34,7 +34,7 @@ inline bool setup_huge(const uint64_t guest_phys_addr_size, uint64_t*& buffer)
 	memset(buffer, 0, bufsize);
 
 	pml4e_t* plm4es = reinterpret_cast<pml4e_t*>(buffer);
-	pdpe_huge_t* pdepes = reinterpret_cast<pdpe_huge_t*>(buffer + 512);
+	pdpe_t* pdepes = reinterpret_cast<pdpe_t*>(buffer + 512);
 
 
 	for (uint64_t i = 0; i < amount_plm4es; i++) {
@@ -47,11 +47,11 @@ inline bool setup_huge(const uint64_t guest_phys_addr_size, uint64_t*& buffer)
 
 	for (uint64_t i = 0; i < amount_pdepes; i++)
 	{
-		pdepes[i].present = 1;
-		pdepes[i].huge_page = 1;
-		pdepes[i].write = 1;
-		pdepes[i].usermode = 1;
-		pdepes[i].page_pa = i;
+		pdepes[i].huge.present = 1;
+		pdepes[i].huge.huge_page = 1;
+		pdepes[i].huge.write = 1;
+		pdepes[i].huge.usermode = 1;
+		pdepes[i].huge.page_pa = i;
 	}
 
 	return true;
@@ -69,7 +69,7 @@ inline bool setup_allusive(const uint64_t guest_phys_addr_size, uint64_t*& buffe
 
 	//this is odd maybe make better later if i get a complaint
 	const uint64_t real_pdepes_size = sizeof(pdpe_t) * roundup(amount_pdepes, 512) * 512; //used because pdes must be page alligned
-	const uint64_t bufsize = sizeof(pml4e_t) * 512 + sizeof(pdpe_t) * real_pdepes_size + sizeof(pde_large_t) * amount_pdes;
+	const uint64_t bufsize = sizeof(pml4e_t) * 512 + sizeof(pdpe_t) * real_pdepes_size + sizeof(pde_t) * amount_pdes;
 	buffer = static_cast<uint64_t*>(MmAllocateContiguousMemory(bufsize, { .QuadPart = -1 }));
 	if (!buffer)
 	{
@@ -80,7 +80,7 @@ inline bool setup_allusive(const uint64_t guest_phys_addr_size, uint64_t*& buffe
 
 	pml4e_t* plm4es = reinterpret_cast<pml4e_t*>(buffer);
 	pdpe_t* pdepes = reinterpret_cast<pdpe_t*>(buffer + sizeof(pml4e_t) * 512);
-	pde_large_t* pdes = reinterpret_cast<pde_large_t*>(buffer + sizeof(pml4e_t) * 512 + real_pdepes_size);
+	pde_t* pdes = reinterpret_cast<pde_t*>(buffer + sizeof(pml4e_t) * 512 + real_pdepes_size);
 
 	for (uint64_t i = 0; i < amount_plm4es; i++) {
 
@@ -100,11 +100,11 @@ inline bool setup_allusive(const uint64_t guest_phys_addr_size, uint64_t*& buffe
 
 	for (uint64_t i = 0; i < amount_pdes; i++) 
 	{
-		pdes[i].present = 1;
-		pdes[i].large_page = 1;
-		pdes[i].write = 1;
-		pdes[i].usermode = 1;
-		pdes[i].page_pa = i; // should working tion, need to testingtion
+		pdes[i].large.present = 1;
+		pdes[i].large.large_page = 1;
+		pdes[i].large.write = 1;
+		pdes[i].large.usermode = 1;
+		pdes[i].large.page_pa = i; // should working tion, need to testingtion
 	}
 
 	return true;
