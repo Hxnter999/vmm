@@ -5,6 +5,12 @@
 #include <wdm.h>
 #include <intrin.h>
 
+#include <ntimage.h>
+#include <stdio.h>
+#include <stdarg.h>
+#include <Zydis/Zydis.h>
+
+
 /* stdint */
 typedef signed char        int8_t;
 typedef short              int16_t;
