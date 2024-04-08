@@ -30,8 +30,19 @@ void dtr_load_handler(vcpu_t& vcpu)
 	}
 
 	uint8_t* rip = reinterpret_cast<uint8_t*>(vcpu.guest_rip);
-	ModRM_t* modRm = reinterpret_cast<ModRM_t*>(rip + 2);
-	uint8_t operand_size = (modRm->mod >> 1) & 0b1;
+
+	ZydisDecoder decoder;
+	ZydisDecoderInit(&decoder, ZYDIS_MACHINE_MODE_LEGACY_32, ZYDIS_STACK_WIDTH_32);
+	//9 bytes (dunno if this is correct)
+	uint8_t buh[9];
+	vcpu.read_virtual(rip, buh);
+	ZyanUSize offset = 0;
+	ZydisDecodedInstruction instruction;
+	ZydisDecodedOperand operands[ZYDIS_MAX_OPERAND_COUNT];
+	ZYAN_SUCCESS(ZydisDecoderDecodeFull(&decoder, buh + offset, sizeof(buh) - offset, &instruction, operands));
+
+
+	uint8_t operand_size = instruction.operand_width;
 
 	struct src_32_idt_t 
 	{

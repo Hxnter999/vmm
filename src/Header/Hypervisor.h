@@ -1,7 +1,7 @@
 #pragma once
 #include <commons.h>
 #include <svm_status.h>
-#include <vmcb/vmcb.h>
+#include <vmcb/vcpu_t.h>
 
 class Hypervisor
 {
@@ -66,10 +66,26 @@ public:
 	bool get_phys(cr3_t cr3, virtual_address_t va, PHYSICAL_ADDRESS& phy);
 
 	template<typename T>
-	T read_phys(PHYSICAL_ADDRESS phy);
+	T read_phys(PHYSICAL_ADDRESS phy)
+	{
+		return *reinterpret_cast<T*>(host_pt_t::host_pa_base + phy.QuadPart);
+	}
+
+	void read_phys(PHYSICAL_ADDRESS phy, void* out, size_t size) 
+	{
+		memcpy(reinterpret_cast<void*>(host_pt_t::host_pa_base + phy.QuadPart), out, size);
+	}
 
 	template<typename T>
-	void write_phys(PHYSICAL_ADDRESS phy, const T& value);
+	void write_phys(PHYSICAL_ADDRESS phy, const T& value)
+	{
+		*reinterpret_cast<T*>(host_pt_t::host_pa_base + phy.QuadPart) = value;
+	}
+
+	void write_phys(PHYSICAL_ADDRESS phy, void* value, size_t size) 
+	{
+		memcpy(value, reinterpret_cast<void*>(host_pt_t::host_pa_base + phy.QuadPart), size);
+	}
 
 	template<exception_vector exception>
 	void inject_event(vcpu_t& vcpu)

@@ -134,5 +134,6 @@ union virtual_address_t {
 		uint64_t reserved : 16;
 	};
 
+	virtual_address_t(void* v) : address(reinterpret_cast<uint64_t>(v)) {}
 	virtual_address_t(uint64_t v) : address(v) {}
 };
