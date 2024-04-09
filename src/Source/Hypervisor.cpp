@@ -326,16 +326,17 @@ svm_status Hypervisor::init_check()
 	return svm_status::SVM_DISABLED_WITH_KEY;
 }
 
+//this is not done and wrong probs
 bool Hypervisor::get_phys(cr3_t cr3, virtual_address_t va, PHYSICAL_ADDRESS& phy)
 {
 	PHYSICAL_ADDRESS pa{};
 
-	pa.QuadPart = (cr3.pml4 << 8) + va.pml4_index * sizeof(pml4e_t);
+	pa.QuadPart = (cr3.pml4 << 16) + va.pml4_index * sizeof(pml4e_t);
 	pml4e_t pml4e = { read_phys<pml4e_t>(pa) };
 
 	if (!pml4e.present) return false;
 
-	pa.QuadPart = (pml4e.page_pa << 8) + va.pdpt_index * sizeof(pdpe_t);
+	pa.QuadPart = (pml4e.page_pa << 16) + va.pdpt_index * sizeof(pdpe_t);
 	pdpe_t pdpe = { read_phys<pdpe_t>(pa) };
 
 	if (!pdpe.present) return false;
@@ -344,7 +345,7 @@ bool Hypervisor::get_phys(cr3_t cr3, virtual_address_t va, PHYSICAL_ADDRESS& phy
 		phy.QuadPart = (pdpe.huge.page_pa << 26) + (va.pd_index << 21) + (va.pt_index << 12) + va.offset;
 	}
 
-	pa.QuadPart = (pdpe.page_pa << 8) + va.pd_index * sizeof(pde_t);
+	pa.QuadPart = (pdpe.page_pa << 16) + va.pd_index * sizeof(pde_t);
 	pde_t pde = { read_phys<pde_t>(pa) };
 
 	if (!pde.present) return false;
@@ -353,11 +354,11 @@ bool Hypervisor::get_phys(cr3_t cr3, virtual_address_t va, PHYSICAL_ADDRESS& phy
 		phy.QuadPart = (pde.page_pa << 17) + (va.pt_index << 12) + va.offset;
 	}
 
-	pa.QuadPart = (pde.page_pa << 8) + va.pt_index * sizeof(pte_t);
+	pa.QuadPart = (pde.page_pa << 16) + va.pt_index * sizeof(pte_t);
 	pte_t pte = { read_phys< pte_t>(pa) };
 
 	if (!pte.present) return false;
 
-	phy.QuadPart = (pte.page_pa << 8) + va.offset;
+	phy.QuadPart = (pte.page_pa << 16) + va.offset;
 	return true;
 }
