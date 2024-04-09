@@ -326,39 +326,63 @@ svm_status Hypervisor::init_check()
 	return svm_status::SVM_DISABLED_WITH_KEY;
 }
 
-//this is not done and wrong probs
-bool Hypervisor::get_phys(cr3_t cr3, virtual_address_t va, PHYSICAL_ADDRESS& phy)
+//should use page tables but this is from my other driver
+bool Hypervisor::get_phys(uint64_t cr3, virtual_address_t va, PHYSICAL_ADDRESS& phy)
 {
+	//0x8 bytes (sizeof)
+	struct _MMPTE_HARDWARE
+	{
+		ULONGLONG Valid : 1;                                                      //0x0
+		ULONGLONG Dirty1 : 1;                                                     //0x0
+		ULONGLONG Owner : 1;                                                      //0x0
+		ULONGLONG WriteThrough : 1;                                               //0x0
+		ULONGLONG CacheDisable : 1;                                               //0x0
+		ULONGLONG Accessed : 1;                                                   //0x0
+		ULONGLONG Dirty : 1;                                                      //0x0
+		ULONGLONG LargePage : 1;                                                  //0x0
+		ULONGLONG Global : 1;                                                     //0x0
+		ULONGLONG CopyOnWrite : 1;                                                //0x0
+		ULONGLONG Unused : 1;                                                     //0x0
+		ULONGLONG Write : 1;                                                      //0x0
+		ULONGLONG PageFrameNumber : 36;                                           //0x0
+		ULONGLONG ReservedForHardware : 4;                                        //0x0
+		ULONGLONG ReservedForSoftware : 4;                                        //0x0
+		ULONGLONG WsleAge : 4;                                                    //0x0
+		ULONGLONG WsleProtection : 3;                                             //0x0
+		ULONGLONG NoExecute : 1;                                                  //0x0
+	};
+
+
 	PHYSICAL_ADDRESS pa{};
 
-	pa.QuadPart = (cr3.pml4 << 16) + va.pml4_index * sizeof(pml4e_t);
-	pml4e_t pml4e = { read_phys<pml4e_t>(pa) };
+	pa.QuadPart = cr3 + va.pml4_index * sizeof(_MMPTE_HARDWARE);
+	_MMPTE_HARDWARE pml4e = { read_phys<_MMPTE_HARDWARE>(pa) };
 
-	if (!pml4e.present) return false;
+	if (!pml4e.Valid) return false;
 
-	pa.QuadPart = (pml4e.page_pa << 16) + va.pdpt_index * sizeof(pdpe_t);
-	pdpe_t pdpe = { read_phys<pdpe_t>(pa) };
+	pa.QuadPart = (pml4e.PageFrameNumber << 12) + va.pdpt_index * sizeof(_MMPTE_HARDWARE);
+	_MMPTE_HARDWARE pdpe = { read_phys<_MMPTE_HARDWARE>(pa) };
 
-	if (!pdpe.present) return false;
+	if (!pdpe.Valid) return false;
 
-	if (pdpe.huge_page) {
-		phy.QuadPart = (pdpe.huge.page_pa << 26) + (va.pd_index << 21) + (va.pt_index << 12) + va.offset;
+	if (pdpe.LargePage) {
+		phy.QuadPart = (pdpe.PageFrameNumber << 30) + (va.pd_index << 21) + (va.pt_index << 12) + va.offset;
 	}
 
-	pa.QuadPart = (pdpe.page_pa << 16) + va.pd_index * sizeof(pde_t);
-	pde_t pde = { read_phys<pde_t>(pa) };
+	pa.QuadPart = (pdpe.PageFrameNumber << 12) + va.pd_index * sizeof(_MMPTE_HARDWARE);
+	_MMPTE_HARDWARE pde = { read_phys<_MMPTE_HARDWARE>(pa) };
 
-	if (!pde.present) return false;
+	if (!pde.Valid) return false;
 
-	if (pde.large_page) {
-		phy.QuadPart = (pde.page_pa << 17) + (va.pt_index << 12) + va.offset;
+	if (pde.Valid) {
+		phy.QuadPart = (pde.PageFrameNumber << 21) + (va.pt_index << 12) + va.offset;
 	}
 
-	pa.QuadPart = (pde.page_pa << 16) + va.pt_index * sizeof(pte_t);
-	pte_t pte = { read_phys< pte_t>(pa) };
+	pa.QuadPart = (pde.PageFrameNumber << 12) + va.pt_index * sizeof(_MMPTE_HARDWARE);
+	_MMPTE_HARDWARE pte = { read_phys< _MMPTE_HARDWARE>(pa) };
 
-	if (!pte.present) return false;
+	if (!pte.Valid) return false;
 
-	phy.QuadPart = (pte.page_pa << 16) + va.offset;
+	phy.QuadPart = (pte.PageFrameNumber << 12) + va.offset;
 	return true;
 }
