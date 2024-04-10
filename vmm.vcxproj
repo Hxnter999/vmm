@@ -233,6 +233,7 @@
     <ClInclude Include="capstone\include\platform.h" />
     <ClInclude Include="capstone\include\windowsce\intrin.h" />
     <ClInclude Include="capstone\include\windowsce\stdint.h" />
+    <ClInclude Include="src\Header\ARCH\CPUID\standard-features\fn_processor.h" />
     <ClInclude Include="src\header\arch\msrs\cstar.h" />
     <ClInclude Include="src\header\arch\msrs\lstar.h" />
     <ClInclude Include="src\header\arch\msrs\pl3_ssp.h" />
@@ -2079,6 +2080,9 @@
     <None Include="zydis\src\Generated\OperandDefinitions.h" />
     <None Include="zydis\src\Generated\RegisterClassLookup.h" />
     <None Include="zydis\src\Generated\RegisterLookup.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="todo.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

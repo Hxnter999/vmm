@@ -2,3 +2,6 @@ Test added handlers (XSETBV)
 Test phys r/w
 Finish (l/s)(i/g)dt
 Add LBR virtulization
+add custom seh
+
+make project for testing dtcs, pafish for now is good

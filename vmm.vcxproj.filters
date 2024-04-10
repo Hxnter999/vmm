@@ -1897,6 +1897,7 @@
     <ClInclude Include="zydis\include\Zydis\Status.h" />
     <ClInclude Include="zydis\include\Zydis\Utils.h" />
     <ClInclude Include="zydis\include\Zydis\Zydis.h" />
+    <ClInclude Include="src\Header\ARCH\CPUID\standard-features\fn_processor.h" />
   </ItemGroup>
   <ItemGroup>
     <MASM Include="src\source\asm\vmenter.asm" />
@@ -1917,5 +1918,8 @@
     <None Include="zydis\src\Generated\OperandDefinitions.h" />
     <None Include="zydis\src\Generated\RegisterClassLookup.h" />
     <None Include="zydis\src\Generated\RegisterLookup.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="todo.txt" />
   </ItemGroup>
 </Project>

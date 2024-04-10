@@ -4,6 +4,8 @@
 namespace CPUID {
 	// 8000_0008
 	struct fn_processor_capacity : BASE_CPUID {
+		static constexpr uint64_t id = 0x80000008;
+
 		union
 		{
 			struct {
@@ -64,7 +66,7 @@ namespace CPUID {
 
 		void load()
 		{
-			__cpuid(reinterpret_cast<int*>(&this->cpuid), 0x80000008);
+			__cpuid(reinterpret_cast<int*>(&this->cpuid), id);
 		}
 	};
 };

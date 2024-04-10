@@ -167,6 +167,8 @@ void Hypervisor::setup_vmcb(vcpu_t* vcpu, CONTEXT* ctx) //should make it a refer
 	vcpu->guest_vmcb.control.guest_asid = 1; // Address space identifier "ASID [cannot be] equal to zero" 15.5.1 ASID 0 is for the host
 	vcpu->guest_vmcb.control.v_intr_masking = 1; // 15.21.1 & 15.22.2
 
+	vcpu->guest_vmcb.control.cpuid = 1;
+
 	if (npt) {
 		vcpu->guest_vmcb.control.np_enable = 1;
 		vcpu->guest_vmcb.control.n_cr3 = MmGetPhysicalAddress(npt).QuadPart;
