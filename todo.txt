@@ -4,4 +4,12 @@ Finish (l/s)(i/g)dt
 Add LBR virtulization
 add custom seh
 
+ofc RDTSC handler
+
+INVD handler
+
+"IET Divergence"
+
+emulate more shit (im sigma)
+
 make project for testing dtcs, pafish for now is good

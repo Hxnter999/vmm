@@ -13,16 +13,12 @@ void msr_handler(vcpu_t& vcpu) {
 	if (msr == MSR::EFER::MSR_EFER) {
 		MSR::EFER efer{};
 		if (read) {
-			efer.load(); efer.svme = 0; result.value = efer.bits;
+			efer.load(); efer.svme = 0; efer.sce = 1; result.value = efer.bits;
 		}
 		else {
 			efer.bits = result.value;
-			//if (!efer.svme) { // we cant disable svme.
-			//	vcpu.guest_vmcb.save_state.efer.bits = result.value;
-			//}
-			
-			// allternatively, write the msr anyway but flip svme, incase the guest is trying to enable/disable multiple things at once we dont want to discard everything.
 			efer.svme = 1;
+			//efer.sce = 0 (this is needed for syscall hooking, could get a little messy)
 			vcpu.guest_vmcb.save_state.efer.bits = efer.bits;
 		}
 	}
