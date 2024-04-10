@@ -3,7 +3,7 @@
 
 namespace CPUID {
 	//Fn0000_0001
-
+	//this struct COULD be wrong
 	struct fn_processor : BASE_CPUID {
 		static constexpr uint64_t id = 0x0000'0001;
 
