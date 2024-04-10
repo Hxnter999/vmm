@@ -50,7 +50,11 @@ bool vmexit_handler(vcpu_t* const vcpu) {
 	case svm_exit_code::VMEXIT_VMLOAD:
 	case svm_exit_code::VMEXIT_VMSAVE:
 	case svm_exit_code::VMEXIT_CLGI:
-		HV->inject_event<exception_vector::UD>(*vcpu);
+		vcpu->inject_event<exception_vector::UD>();
+		break;
+
+	case svm_exit_code::VMEXIT_XSETBV:
+		xsetbv_handler(*vcpu);
 		break;
 
 	default:

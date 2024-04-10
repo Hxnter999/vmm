@@ -151,6 +151,7 @@
     <ClCompile Include="src\Header\ARCH\VMEXIT\HANDLERS\dtr.cpp" />
     <ClCompile Include="src\header\arch\vmexit\handlers\msr.cpp" />
     <ClCompile Include="src\header\arch\vmexit\handlers\npf.cpp" />
+    <ClCompile Include="src\Header\ARCH\VMEXIT\HANDLERS\xsetbv.cpp" />
     <ClCompile Include="src\header\hypercall\hypercall.cpp">
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">../commons.h</PrecompiledHeaderFile>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">../commons.h</PrecompiledHeaderFile>

@@ -47,6 +47,16 @@ struct alignas(0x1000) vcpu_t {
 		return write_virtual_w(va, value, sizeof(T));
 	}
 
+
+	template<exception_vector exception>
+	void inject_event()
+	{
+		auto& ei = guest_vmcb.control.event_injection;
+		ei.valid = 1;
+		ei.type = interrupt_type::HARDWARE_EXCEPTION;
+		ei.evector = exception;
+	}
+
 private:
 	//trickery
 	bool read_virtual_w(virtual_address_t va, void* out, size_t size);

@@ -74,7 +74,7 @@ public:
 
 	//testing needed for these functions
 	bool get_phys(cr3_t cr3, virtual_address_t va, PHYSICAL_ADDRESS& phy) {
-		return get_phys(cr3.pml4 << 12, va, phy);
+		return get_phys(cr3.get_phys_pml4(), va, phy);
 	}
 	bool get_phys(uint64_t cr3, virtual_address_t va, PHYSICAL_ADDRESS& phy);
 
@@ -98,15 +98,6 @@ public:
 	void write_phys(PHYSICAL_ADDRESS phy, void* value, size_t size) 
 	{
 		memcpy(value, reinterpret_cast<void*>(host_pt_t::host_pa_base + phy.QuadPart), size);
-	}
-
-	template<exception_vector exception>
-	void inject_event(vcpu_t& vcpu)
-	{
-		auto& ei = vcpu.guest_vmcb.control.event_injection;
-		ei.valid = 1;
-		ei.type = interrupt_type::HARDWARE_EXCEPTION;
-		ei.evector = exception;
 	}
 
 	void devirtualize(vcpu_t* const vcpu);

@@ -52,6 +52,8 @@ struct cr3_t {
 			}pcide_on;
 		};
 	};
+
+	uint64_t get_phys_pml4() { return pml4 << 12; }
 };
 
 struct cr4_t {

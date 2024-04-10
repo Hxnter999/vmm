@@ -19,3 +19,5 @@ void dtr_load_handler(vcpu_t& vcpu);
 
 void syscall(vcpu_t& vcpu);
 void sysret(vcpu_t& vcpu);
+
+void xsetbv_handler(vcpu_t& vcpu);

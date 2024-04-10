@@ -36,6 +36,27 @@ extern "C" NTSTATUS DriverEntry(PDRIVER_OBJECT pDriverObject, PUNICODE_STRING pR
 	HV->msrpm().set(MSR::HSAVE_PA::MSR_VM_HSAVE_PA, MSR::access::read);
 	HV->msrpm().set(MSR::HSAVE_PA::MSR_VM_HSAVE_PA, MSR::access::write);
 
+	//for (LONGLONG i = 0; i < 10; i++) 
+	//{
+	//	uint64_t zuh{};
+	//	PHYSICAL_ADDRESS pa{ .QuadPart = i * 1000 };
+	//	MM_COPY_ADDRESS adr{ .PhysicalAddress = pa };
+	//	size_t bread{};
+	//	if (!MmCopyMemory(&zuh, adr, sizeof(zuh), MM_COPY_MEMORY_PHYSICAL, &bread) && bread == sizeof(uint64_t))
+	//	{
+	//		uint64_t guh{};
+	//		__try {
+	//			HV->read_phys(pa, &guh, sizeof(uint64_t));
+
+	//			print("%llu, %llu\n", zuh, guh);
+	//		}
+	//		__except (EXCEPTION_EXECUTE_HANDLER)
+	//		{
+	//			print("Catched %d\n", i);
+	//		}
+	//	}
+	//}
+
 	if (!HV->virtualize())
 	{
 		print("Virtualization failed\n");
