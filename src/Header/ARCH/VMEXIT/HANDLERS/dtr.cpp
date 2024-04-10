@@ -1,11 +1,11 @@
 #include "../handlers.h"
 
-void dtr_save_handler(vcpu_t& vcpu) 
+HANDLER_STATUS dtr_save_handler(vcpu_t& vcpu)
 {
 	vcpu;
 }
 
-void dtr_load_handler(vcpu_t& vcpu)
+HANDLER_STATUS dtr_load_handler(vcpu_t& vcpu)
 {
 
 	segment_register_t& dtr{

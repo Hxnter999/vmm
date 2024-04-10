@@ -7,18 +7,20 @@ bool vmexit_handler(vcpu_t* const vcpu) {
 
 	// guest rax overwriten by host after vmexit
 	vcpu->guest_stack_frame.rax.value = vcpu->guest_vmcb.save_state.rax;
+
+	HANDLER_STATUS status{ HANDLER_STATUS::INCREMENT_RIP };
 	switch (vcpu->guest_vmcb.control.exit_code) {
 
 	case svm_exit_code::VMEXIT_VMMCALL:
-		hypercall_handler(*vcpu);
+		status = hypercall_handler(*vcpu);
 		break;
 
 	case svm_exit_code::VMEXIT_MSR:
-		msr_handler(*vcpu);
+		status = msr_handler(*vcpu);
 		break;
 
 	case svm_exit_code::VMEXIT_CPUID:
-		cpuid_handler(*vcpu);
+		status = cpuid_handler(*vcpu);
 		break;
 
 	case svm_exit_code::VMEXIT_INVALID:
@@ -27,7 +29,7 @@ bool vmexit_handler(vcpu_t* const vcpu) {
 		break;
 
 	case svm_exit_code::VMEXIT_NPF:
-		npf_handler(*vcpu);
+		status = npf_handler(*vcpu);
 		break;
 
 	case svm_exit_code::VMEXIT_HV: // event injection exception
@@ -50,11 +52,11 @@ bool vmexit_handler(vcpu_t* const vcpu) {
 	case svm_exit_code::VMEXIT_VMLOAD:
 	case svm_exit_code::VMEXIT_VMSAVE:
 	case svm_exit_code::VMEXIT_CLGI:
-		vcpu->inject_event<exception_vector::UD>();
+		status = HANDLER_STATUS::INJECT_UD;
 		break;
 
 	case svm_exit_code::VMEXIT_XSETBV:
-		xsetbv_handler(*vcpu);
+		status = xsetbv_handler(*vcpu);
 		break;
 
 	default:
@@ -63,6 +65,19 @@ bool vmexit_handler(vcpu_t* const vcpu) {
 	}
 	// the cpu handles guest rax for us
 	vcpu->guest_vmcb.save_state.rax = vcpu->guest_stack_frame.rax.value;
+
+	switch (status) 
+	{
+		case HANDLER_STATUS::INCREMENT_RIP:
+			vcpu->guest_vmcb.save_state.rip = vcpu->guest_vmcb.control.nrip;
+			break;
+		case HANDLER_STATUS::INJECT_GP:
+			vcpu->inject_event<EXCEPTION_VECTOR::GP>();
+			break;
+		case HANDLER_STATUS::INJECT_UD:
+			vcpu->inject_event<EXCEPTION_VECTOR::UD>();
+			break;
+	}
 
 	if (vcpu->should_exit) {
 		HV->devirtualize(vcpu); // devirtualize current vcpu and alert all others

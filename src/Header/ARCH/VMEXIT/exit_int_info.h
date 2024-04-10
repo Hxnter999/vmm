@@ -4,7 +4,7 @@
 //"Only events raised by the INTn instruction (opcode CDh) are
 // considered software interrupts."
 // everthing else is handled by this struct
-enum class interrupt_type : uint64_t
+enum class INTERRUPT_TYPE : uint64_t
 {
 	EXTERNAL_INTERRUPT = 0, //INTR
 	NMI = 2, //NMI
@@ -13,7 +13,7 @@ enum class interrupt_type : uint64_t
 };
 
 //https://wiki.osdev.org/Exceptions
-enum class exception_vector : uint64_t
+enum class EXCEPTION_VECTOR : uint64_t
 {
 	DE = 0,
 	DB = 1,
@@ -58,8 +58,8 @@ struct exit_int_info_t
 			union {
 				struct {
 					//NMI doesnt use this field (alpha)
-					exception_vector evector : 8; //it can be other stuff but for now guh
-					interrupt_type type : 3;
+					EXCEPTION_VECTOR evector : 8; //it can be other stuff but for now guh
+					INTERRUPT_TYPE type : 3;
 					uint64_t ev : 1;
 					uint64_t reserved : 19;
 					uint64_t valid : 1;
@@ -69,7 +69,7 @@ struct exit_int_info_t
 				struct {
 					//NMI doesnt use this field (alpha)
 					uint64_t vector : 8; //it can be other stuff but for now guh
-					interrupt_type type : 3;
+					INTERRUPT_TYPE type : 3;
 					uint64_t ev : 1;
 					uint64_t reserved : 19;
 					uint64_t valid : 1;

@@ -2,7 +2,7 @@
 #include <ARCH/CPUID/standard-features/fn_processor.h>
 #include <ARCH/CPUID/extended-features/fn_identifiers.h>
 
-void cpuid_handler(vcpu_t& vcpu) {
+HANDLER_STATUS cpuid_handler(vcpu_t& vcpu) {
 
 	CPUID::cpuid_t result{};
 	int function_id = vcpu.guest_stack_frame.rax.low;
@@ -10,8 +10,8 @@ void cpuid_handler(vcpu_t& vcpu) {
 	__cpuidex(reinterpret_cast<int*>(&result.cpu_info), function_id, leaf_id);
 
 	//print("CPUID: %d, %d\n", function_id);
-	switch (function_id) 
-	{
+	//switch (function_id) 
+	//{
 	//case CPUID::fn_processor::id: {
 	//	CPUID::fn_processor* tm = reinterpret_cast<CPUID::fn_processor*>(&result);
 	//	tm->feature_identifiers2.vme = 0;
@@ -22,7 +22,7 @@ void cpuid_handler(vcpu_t& vcpu) {
 	//	tm->feature_identifiers_ext.vme = 0;
 	//	break;
 	//}
-	}
+	//}
 
 
 	vcpu.guest_stack_frame.rax.value = result.registers.eax;
@@ -30,5 +30,5 @@ void cpuid_handler(vcpu_t& vcpu) {
 	vcpu.guest_stack_frame.rcx.value = result.registers.ecx;
 	vcpu.guest_stack_frame.rdx.value = result.registers.edx;
 
-	INCREMENT_RIP;
+	return HANDLER_STATUS::INCREMENT_RIP;
 }

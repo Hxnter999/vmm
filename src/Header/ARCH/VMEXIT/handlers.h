@@ -6,18 +6,23 @@
 #include "../cpuid/cpuid_t.h"
 #include "handlercommon.h"
 
-#define INCREMENT_RIP vcpu.guest_vmcb.save_state.rip = vcpu.guest_vmcb.control.nrip
+enum class HANDLER_STATUS 
+{
+	INCREMENT_RIP,
+	INJECT_GP,
+	INJECT_UD
+};
 
-void msr_handler(vcpu_t& vcpu);
+HANDLER_STATUS msr_handler(vcpu_t& vcpu);
 
-void cpuid_handler(vcpu_t& vcpu);
+HANDLER_STATUS cpuid_handler(vcpu_t& vcpu);
 
-void npf_handler(vcpu_t& vcpu);
+HANDLER_STATUS npf_handler(vcpu_t& vcpu);
 
-void dtr_save_handler(vcpu_t& vcpu);
-void dtr_load_handler(vcpu_t& vcpu);
+//HANDLER_STATUS dtr_save_handler(vcpu_t& vcpu);
+//HANDLER_STATUS dtr_load_handler(vcpu_t& vcpu);
+//
+//HANDLER_STATUS syscall(vcpu_t& vcpu);
+//HANDLER_STATUS sysret(vcpu_t& vcpu);
 
-void syscall(vcpu_t& vcpu);
-void sysret(vcpu_t& vcpu);
-
-void xsetbv_handler(vcpu_t& vcpu);
+HANDLER_STATUS xsetbv_handler(vcpu_t& vcpu);

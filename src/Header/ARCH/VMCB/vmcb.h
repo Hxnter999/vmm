@@ -48,12 +48,12 @@ struct alignas(0x1000) vcpu_t {
 	}
 
 
-	template<exception_vector exception>
+	template<EXCEPTION_VECTOR exception>
 	void inject_event()
 	{
 		auto& ei = guest_vmcb.control.event_injection;
 		ei.valid = 1;
-		ei.type = interrupt_type::HARDWARE_EXCEPTION;
+		ei.type = INTERRUPT_TYPE::HARDWARE_EXCEPTION;
 		ei.evector = exception;
 	}
 

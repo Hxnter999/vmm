@@ -1,6 +1,5 @@
 #pragma once
-#include "../ARCH/VMCB/vmcb.h"
-#include "../ARCH/MSRs/efer.h"
+#include <VMEXIT/handlers.h>
 
 enum class hypercall_code : uint64_t
 {
@@ -9,4 +8,4 @@ enum class hypercall_code : uint64_t
 	test
 };
 
-void hypercall_handler(vcpu_t& vcpu);
+HANDLER_STATUS hypercall_handler(vcpu_t& vcpu);
