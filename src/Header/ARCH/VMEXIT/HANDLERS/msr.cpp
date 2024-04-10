@@ -35,16 +35,16 @@ HANDLER_STATUS msr_handler(vcpu_t& vcpu) {
 			break;
 		}
 
-		case MSR::TSC::MSR_TSC:
-		{
-			if (read) {
-				result.value = vcpu.timing.g_shadow.QuadPart;
-			}
-			else {
-				//probs need to emulate the shift msr too "IA32_TSC_ADJUST"
-				vcpu.timing.g_shadow.QuadPart = result.value;
-			}
-		}
+		//case MSR::TSC::MSR_TSC:
+		//{
+		//	if (read) {
+		//		result.value = vcpu.timing.shadow_tsc.QuadPart;
+		//	}
+		//	else {
+		//		//probs need to emulate the shift msr too "IA32_TSC_ADJUST"
+		//		vcpu.timing.shadow_tsc.QuadPart = result.value;
+		//	}
+		//}
 
 		case MSR::HSAVE_PA::MSR_VM_HSAVE_PA: 
 		{

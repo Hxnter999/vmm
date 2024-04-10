@@ -113,7 +113,7 @@ bool Hypervisor::virtualize(uint32_t index)
 
 	print("Setting up vmcb\n");
 	const uint64_t rdtsc = __rdtsc();
-	vcpu->timing.g_shadow.QuadPart = rdtsc;
+	vcpu->timing.shadow_tsc.QuadPart = rdtsc;
 	vcpu->timing.last_exited = rdtsc;
 	setup_vmcb(vcpu, ctx);
 

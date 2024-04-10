@@ -31,9 +31,9 @@ struct alignas(0x1000) vcpu_t {
 			uint64_t should_exit;
 			struct {
 				uint64_t last_exited;
-				ULARGE_INTEGER g_shadow;
+				ULARGE_INTEGER shadow_tsc;
+				//ULARGE_INTEGER shadow_tsc_adjust;
 			} timing;
-			uint64_t aligned;
 		};
 	};
 	vmcb_t host_vmcb; // on vmrun and exits processor saves/restores host state to/from this field, we can also directly manipulate it as long as its considered legal

@@ -9,8 +9,8 @@ HANDLER_STATUS rdtsc_handler(vcpu_t& vcpu)
 		return HANDLER_STATUS::INCREMENT_RIP;
 	}
 
-	vcpu.guest_stack_frame.rax = vcpu.timing.g_shadow.LowPart;
-	vcpu.guest_stack_frame.rdx = vcpu.timing.g_shadow.HighPart;
+	vcpu.guest_stack_frame.rax = vcpu.timing.shadow_tsc.LowPart;
+	vcpu.guest_stack_frame.rdx = vcpu.timing.shadow_tsc.HighPart;
 
 	return HANDLER_STATUS::INCREMENT_RIP;
 }

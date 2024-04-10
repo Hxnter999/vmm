@@ -10,8 +10,9 @@ bool vmexit_handler(vcpu_t* const vcpu) {
 
 	//"latency of 25-35 cycles" - https://community.intel.com/t5/Software-Tuning-Performance/High-impact-of-rdtsc/td-p/1092539=
 	const uint64_t rdtsc = __rdtsc();
-	vcpu->timing.g_shadow.QuadPart += rdtsc - vcpu->timing.last_exited;
+	vcpu->timing.shadow_tsc.QuadPart += rdtsc - vcpu->timing.last_exited;
 	vcpu->timing.last_exited = rdtsc;
+	vcpu->guest_vmcb.control.tsc_offset = rdtsc - vcpu->timing.shadow_tsc.QuadPart;
 
 	HANDLER_STATUS status{ HANDLER_STATUS::INCREMENT_RIP };
 	switch (vcpu->guest_vmcb.control.exit_code) {
