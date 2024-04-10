@@ -8,6 +8,8 @@ bool vmexit_handler(vcpu_t* const vcpu) {
 	// guest rax overwriten by host after vmexit
 	vcpu->guest_stack_frame.rax.value = vcpu->guest_vmcb.save_state.rax;
 
+	//"latency of 25-35 cycles" - https://community.intel.com/t5/Software-Tuning-Performance/High-impact-of-rdtsc/td-p/1092539
+
 	HANDLER_STATUS status{ HANDLER_STATUS::INCREMENT_RIP };
 	switch (vcpu->guest_vmcb.control.exit_code) {
 
@@ -35,6 +37,9 @@ bool vmexit_handler(vcpu_t* const vcpu) {
 	case svm_exit_code::VMEXIT_HV: // event injection exception
 		print("Failed to inject event\n");
 		vcpu->guest_vmcb.control.event_injection.bits = 0; // reset to avoid infinite loop
+		break;
+
+	case svm_exit_code::VMEXIT_RDTSC:
 		break;
 
 	//commenting this out so u get the intent (not done)

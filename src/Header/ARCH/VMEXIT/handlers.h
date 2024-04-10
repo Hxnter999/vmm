@@ -26,3 +26,5 @@ HANDLER_STATUS npf_handler(vcpu_t& vcpu);
 //HANDLER_STATUS sysret(vcpu_t& vcpu);
 
 HANDLER_STATUS xsetbv_handler(vcpu_t& vcpu);
+
+HANDLER_STATUS rdtsc_handler(vcpu_t& vcpu);
