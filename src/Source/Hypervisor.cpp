@@ -16,7 +16,7 @@ extern "C" void vmenter(uint64_t * guest_vmcb_pa);
 Hypervisor* Hypervisor::instance = nullptr;
 
 
-void Hypervisor::devirtualize(vcpu_t* const vcpu)
+void Hypervisor::devirtualize(vcpu_t* const vcpu) //maybe move this into vcpu?
 {
 	print("Exiting [%d]...\n", (vcpu - vcpus.begin()) / sizeof(vcpu_t*));
 

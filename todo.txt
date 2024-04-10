@@ -1,0 +1,4 @@
+Test added handlers (XSETBV)
+Test phys r/w
+Finish (l/s)(i/g)dt
+Add LBR virtulization
