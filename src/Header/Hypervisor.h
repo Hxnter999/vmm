@@ -65,7 +65,7 @@ public:
 
 	//testing needed for these functions
 	bool get_phys(cr3_t cr3, virtual_address_t va, PHYSICAL_ADDRESS& phy) {
-		return get_phys(cr3.pml4 << 24, va, phy);
+		return get_phys(cr3.pml4 << 12, va, phy);
 	}
 	bool get_phys(uint64_t cr3, virtual_address_t va, PHYSICAL_ADDRESS& phy);
 
