@@ -113,48 +113,48 @@ inline bool setup_allusive(const uint64_t guest_phys_addr_size, uint64_t*& buffe
 inline bool initnpts(uint64_t*& nptbuffer)  //TODO: add support for IO devices (dynamiclly add pages)
 {
 
-	//maybe want to check the amount of supported TLB shittery and decide if its worth using hugepages (even if they are allowed)
+	////maybe want to check the amount of supported TLB shittery and decide if its worth using hugepages (even if they are allowed)
 
-	uint32_t size = GetSystemFirmwareTable('RSMB', 0, nullptr, 0);
-	if (size == 0)
-	{
-		print("Failed to get smbios table size\n");
-		return false;
-	}
+	//uint32_t size = GetSystemFirmwareTable('RSMB', 0, nullptr, 0);
+	//if (size == 0)
+	//{
+	//	print("Failed to get smbios table size\n");
+	//	return false;
+	//}
 
-	uint8_t* buffer = static_cast<uint8_t*>(ExAllocatePool(NonPagedPool, size));
-	if (size != GetSystemFirmwareTable('RSMB', 0, buffer, size)) 
-	{
-		print("Failed to get smbios table\n");
-		return false;
-	}
+	//uint8_t* buffer = static_cast<uint8_t*>(ExAllocatePool(NonPagedPool, size));
+	//if (size != GetSystemFirmwareTable('RSMB', 0, buffer, size)) 
+	//{
+	//	print("Failed to get smbios table\n");
+	//	return false;
+	//}
 
-	smbios::Parser parser{ buffer, size };
+	//smbios::Parser parser{ buffer, size };
 
-	if (!parser.valid())
-	{
-		print("Failed to parse smbios table\n");
-		return false;
-	}
+	//if (!parser.valid())
+	//{
+	//	print("Failed to parse smbios table\n");
+	//	return false;
+	//}
 
-	int version = parser.version();
-	print("smbios version %d\n", version);
-	if (version < smbios::SMBIOS_2_1) 
-	{
-		print("smbios version too low\n");
-		return false;
-	}
+	//int version = parser.version();
+	//print("smbios version %d\n", version);
+	//if (version < smbios::SMBIOS_2_1) 
+	//{
+	//	print("smbios version too low\n");
+	//	return false;
+	//}
 
-	const smbios::Entry* entry{};
-	uint64_t guest_phys_addr_size{};
+	//const smbios::Entry* entry{};
+	uint64_t guest_phys_addr_size = plm4e_address_range;
 
-	for (uint64_t i = 0; i > 0x2000 && entry != nullptr; i++) //just set a max to be safe
-	{
-		entry = parser.next();
+	//for (uint64_t i = 0; i > 0x2000 && entry != nullptr; i++) //just set a max to be safe
+	//{
+	//	entry = parser.next();
 
-		if (entry->data.memory.Size == smbios::TYPE::TYPE_MEMORY_DEVICE)
-			guest_phys_addr_size += entry->data.memory.Size;
-	}
+	//	if (entry->data.memory.Size == smbios::TYPE::TYPE_MEMORY_DEVICE)
+	//		guest_phys_addr_size += entry->data.memory.Size;
+	//}
 
 	bool result{};
 	CPUID::fn_identifiers ident{};
@@ -163,13 +163,13 @@ inline bool initnpts(uint64_t*& nptbuffer)  //TODO: add support for IO devices (
 	bool huge_page_supported = ident.feature_identifiers_ext.page_1gb;
 
 
-	if (guest_phys_addr_size < plm4e_address_range) guest_phys_addr_size = plm4e_address_range;
-	if (guest_phys_addr_size > plm4e_address_range * 512) 
-	{
-		print("guest_phys_addr_size %p is not within the supported range\n", guest_phys_addr_size);
-		result = false;
-		goto end; //need to make smart_pool lols
-	}
+	//if (guest_phys_addr_size < plm4e_address_range) guest_phys_addr_size = plm4e_address_range;
+	//if (guest_phys_addr_size > plm4e_address_range * 512) 
+	//{
+	//	print("guest_phys_addr_size %p is not within the supported range\n", guest_phys_addr_size);
+	//	result = false;
+	//	goto end; //need to make smart_pool lols
+	//}
 	print("guest_phys_addr_size %p\n", guest_phys_addr_size);
 
 
@@ -190,7 +190,7 @@ inline bool initnpts(uint64_t*& nptbuffer)  //TODO: add support for IO devices (
 		print("failed to setup npts\n");
 	}
 
-	end:
-	ExFreePool(buffer);
+	//end:
+	//ExFreePool(buffer);
 	return result;
 }
