@@ -15,16 +15,6 @@ extern "C" void vmenter(uint64_t * guest_vmcb_pa);
 
 Hypervisor* Hypervisor::instance = nullptr;
 
-Hypervisor* Hypervisor::get()
-{
-	//naive because we know when its first called
-	if (instance == nullptr)
-	{
-		instance = static_cast<Hypervisor*>(ExAllocatePoolWithTag(NonPagedPool, sizeof(Hypervisor), 'hv'));
-		instance->init();
-	}
-	return instance;
-}
 
 void Hypervisor::devirtualize(vcpu_t* const vcpu)
 {

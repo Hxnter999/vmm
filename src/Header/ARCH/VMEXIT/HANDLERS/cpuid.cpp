@@ -12,4 +12,6 @@ void cpuid_handler(vcpu_t& vcpu) {
 	vcpu.guest_stack_frame.rbx.value = result.registers.ebx;
 	vcpu.guest_stack_frame.rcx.value = result.registers.ecx;
 	vcpu.guest_stack_frame.rdx.value = result.registers.edx;
+
+	INCREMENT_RIP;
 }

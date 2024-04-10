@@ -55,7 +55,16 @@ public:
 
 	MSR::msrpm_t& msrpm() { return *shared_msrpm; }
 
-	static Hypervisor* get();
+	static Hypervisor* get() 
+	{
+		//naive because we know when its first called
+		if (instance == nullptr)
+		{
+			instance = static_cast<Hypervisor*>(ExAllocatePoolWithTag(NonPagedPool, sizeof(Hypervisor), 'hv'));
+			instance->init();
+		}
+		return instance;
+	}
 
 	bool is_valid() { return vaild; }
 

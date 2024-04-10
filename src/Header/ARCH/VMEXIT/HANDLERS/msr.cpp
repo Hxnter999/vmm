@@ -48,4 +48,6 @@ void msr_handler(vcpu_t& vcpu) {
 		vcpu.guest_stack_frame.rax.value = result.low;
 		vcpu.guest_stack_frame.rdx.value = result.high;
 	}
+
+	INCREMENT_RIP;
 }
