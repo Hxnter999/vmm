@@ -1,7 +1,7 @@
 #pragma once
 #include <commons.h>
 #include <svm_status.h>
-#include <vmcb/vcpu_t.h>
+#include <vmcb/vmcb.h>
 
 class Hypervisor
 {

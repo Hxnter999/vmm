@@ -1,17 +1,5 @@
-#include "vcpu_t.h"
+#include "vmcb.h"
 #include <Hypervisor.h>
-
-//template<typename T>
-//bool read_virtual(virtual_address_t va, T& out)
-//{
-
-//}
-
-//template<typename T>
-//bool write_virtual(virtual_address_t va, const T& value)
-//{
-
-//}
 
 bool vcpu_t::read_virtual_w(virtual_address_t va, void* out, size_t size)
 {

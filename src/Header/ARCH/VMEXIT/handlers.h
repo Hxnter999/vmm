@@ -1,6 +1,6 @@
 #pragma once
 #include <commons.h>
-#include "../vmcb/vcpu_t.h"
+#include "../vmcb/vmcb.h"
 #include "../msrs/hsave_pa.h"
 #include "../msrs/efer.h"
 #include "../cpuid/cpuid_t.h"

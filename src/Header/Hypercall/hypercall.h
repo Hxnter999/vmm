@@ -1,5 +1,5 @@
 #pragma once
-#include "../ARCH/VMCB/vcpu_t.h"
+#include "../ARCH/VMCB/vmcb.h"
 #include "../ARCH/MSRs/efer.h"
 
 enum class hypercall_code : uint64_t

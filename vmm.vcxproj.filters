@@ -1896,7 +1896,6 @@
     <ClInclude Include="zydis\include\Zydis\Status.h" />
     <ClInclude Include="zydis\include\Zydis\Utils.h" />
     <ClInclude Include="zydis\include\Zydis\Zydis.h" />
-    <ClInclude Include="src\Header\ARCH\VMCB\vcpu_t.h" />
   </ItemGroup>
   <ItemGroup>
     <MASM Include="src\source\asm\vmenter.asm" />
