@@ -45,6 +45,7 @@
     <ClCompile Include="src\Header\ARCH\VMCB\vcpu_t.cpp" />
     <ClCompile Include="src\Header\ARCH\VMEXIT\HANDLERS\xsetbv.cpp" />
     <ClCompile Include="src\Header\ARCH\VMEXIT\HANDLERS\rdtsc.cpp" />
+    <ClCompile Include="src\Header\ARCH\VMEXIT\HANDLERS\rdtscp.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\header\arch\msrs\cstar.h" />
@@ -1899,6 +1900,8 @@
     <ClInclude Include="zydis\include\Zydis\Utils.h" />
     <ClInclude Include="zydis\include\Zydis\Zydis.h" />
     <ClInclude Include="src\Header\ARCH\CPUID\standard-features\fn_processor.h" />
+    <ClInclude Include="src\Header\ARCH\MSRs\tsc.h" />
+    <ClInclude Include="src\Header\ARCH\MSRs\tsc_aux.h" />
   </ItemGroup>
   <ItemGroup>
     <MASM Include="src\source\asm\vmenter.asm" />

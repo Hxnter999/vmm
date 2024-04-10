@@ -20,7 +20,7 @@ struct alignas(0x1000) vcpu_t {
 	union {
 		uint8_t host_stack[0x6000]; //0x6000 default size of KM stack
 		struct {
-			uint8_t stack_contents[0x6000 - (sizeof(uint64_t) * 8) - sizeof(stack_frame_t)];
+			uint8_t stack_contents[0x6000 - (sizeof(uint64_t) * 10) - sizeof(stack_frame_t)];
 			stack_frame_t guest_stack_frame;
 			uint64_t guest_vmcb_pa;
 			uint64_t host_vmcb_pa;
@@ -29,6 +29,10 @@ struct alignas(0x1000) vcpu_t {
 			uint64_t guest_rsp;
 			uint64_t is_virtualized; // 16byte aligned
 			uint64_t should_exit;
+			struct {
+				uint64_t last_exited;
+				ULARGE_INTEGER g_shadow;
+			} timing;
 			uint64_t aligned;
 		};
 	};

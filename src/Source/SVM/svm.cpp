@@ -8,7 +8,10 @@ bool vmexit_handler(vcpu_t* const vcpu) {
 	// guest rax overwriten by host after vmexit
 	vcpu->guest_stack_frame.rax.value = vcpu->guest_vmcb.save_state.rax;
 
-	//"latency of 25-35 cycles" - https://community.intel.com/t5/Software-Tuning-Performance/High-impact-of-rdtsc/td-p/1092539
+	//"latency of 25-35 cycles" - https://community.intel.com/t5/Software-Tuning-Performance/High-impact-of-rdtsc/td-p/1092539=
+	const uint64_t rdtsc = __rdtsc();
+	vcpu->timing.g_shadow.QuadPart += rdtsc - vcpu->timing.last_exited;
+	vcpu->timing.last_exited = rdtsc;
 
 	HANDLER_STATUS status{ HANDLER_STATUS::INCREMENT_RIP };
 	switch (vcpu->guest_vmcb.control.exit_code) {

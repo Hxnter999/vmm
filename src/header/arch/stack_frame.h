@@ -57,7 +57,7 @@ struct register_t {
 
 struct stack_frame_t
 {
-	register_t rax; // rax is in vmcb
+	register_t rax; // rax is in vmcb // cryptic ass comment..
 	register_t rcx;
 	register_t rdx;
 	register_t rbx;

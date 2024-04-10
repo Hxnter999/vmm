@@ -155,6 +155,7 @@
     <ClCompile Include="src\header\arch\vmexit\handlers\msr.cpp" />
     <ClCompile Include="src\header\arch\vmexit\handlers\npf.cpp" />
     <ClCompile Include="src\Header\ARCH\VMEXIT\HANDLERS\rdtsc.cpp" />
+    <ClCompile Include="src\Header\ARCH\VMEXIT\HANDLERS\rdtscp.cpp" />
     <ClCompile Include="src\Header\ARCH\VMEXIT\HANDLERS\xsetbv.cpp" />
     <ClCompile Include="src\header\hypercall\hypercall.cpp">
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">../commons.h</PrecompiledHeaderFile>
@@ -247,6 +248,8 @@
     <ClInclude Include="src\header\arch\msrs\sfmask.h" />
     <ClInclude Include="src\header\arch\msrs\star.h" />
     <ClInclude Include="src\header\arch\msrs\s_cet.h" />
+    <ClInclude Include="src\Header\ARCH\MSRs\tsc.h" />
+    <ClInclude Include="src\Header\ARCH\MSRs\tsc_aux.h" />
     <ClInclude Include="src\header\arch\msrs\tsc_ratio.h" />
     <ClInclude Include="src\header\arch\msrs\u_cet.h" />
     <ClInclude Include="src\header\arch\pages\nptssruct.h" />

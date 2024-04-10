@@ -27,9 +27,9 @@ vmrun_loop:
 	; every push gets it closer to stack_contents
 
 	; cant push xmm directly so we simulate a push by subtracting and manually moving
+	; rsp -> xmm0
 	sub rsp, 100h
 
-	; rsp -> xmm0
 	movaps xmmword ptr [rsp], xmm0
 	movaps xmmword ptr [rsp+10h], xmm1
 	movaps xmmword ptr [rsp+20h], xmm2
@@ -61,6 +61,11 @@ vmrun_loop:
 	push rdx
 	push rcx
 	push rax
+
+
+    ; rdtsc
+    ; shl rdx, 32
+    ; or rdx, rax
 
 	; rsp -> stack_frame
 	mov rcx, [rsp + 180h] ; sizeof(stack_contents) + sizeof(uint64_t) * 2

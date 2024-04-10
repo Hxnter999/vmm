@@ -1,4 +1,7 @@
 #include <arch/vmexit/handlers.h>
+#include <ARCH/MSRs/hsave_pa.h>
+#include <ARCH/MSRs/efer.h>
+#include <ARCH/MSRs/tsc.h>
 
 HANDLER_STATUS msr_handler(vcpu_t& vcpu) {
 
@@ -30,6 +33,17 @@ HANDLER_STATUS msr_handler(vcpu_t& vcpu) {
 				vcpu.guest_vmcb.save_state.efer.bits = efer.bits;
 			}
 			break;
+		}
+
+		case MSR::TSC::MSR_TSC:
+		{
+			if (read) {
+				result.value = vcpu.timing.g_shadow.QuadPart;
+			}
+			else {
+				//probs need to emulate the shift msr too "IA32_TSC_ADJUST"
+				vcpu.timing.g_shadow.QuadPart = result.value;
+			}
 		}
 
 		case MSR::HSAVE_PA::MSR_VM_HSAVE_PA: 

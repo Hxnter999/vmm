@@ -1,3 +1,7 @@
+IA32_TIME_STAMP_COUNTER 
+IA32_TSC_ADJUST (could just shadow as disabled ig)
+RDPID is used to read TSC_AUX, good to know if we ever mess with it
+
 Test added handlers (XSETBV)
 Test phys r/w
 Finish (l/s)(i/g)dt
@@ -13,3 +17,6 @@ INVD handler
 emulate more shit (im sigma)
 
 make project for testing dtcs, pafish for now is good
+
+lots of If the LOCK prefix is used then #UD
+Emulating Debug registers and shit
