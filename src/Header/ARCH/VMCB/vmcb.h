@@ -29,7 +29,7 @@ struct alignas(0x1000) vcpu_t {
 			uint64_t guest_rsp;
 			uint64_t is_virtualized; // 16byte aligned
 			uint64_t should_exit;
-			uint64_t aligned;
+			uint64_t tsc_last_exit;
 		};
 	};
 	vmcb_t host_vmcb; // on vmrun and exits processor saves/restores host state to/from this field, we can also directly manipulate it as long as its considered legal

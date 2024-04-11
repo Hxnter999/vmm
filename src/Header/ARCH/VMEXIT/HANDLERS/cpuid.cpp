@@ -9,7 +9,8 @@ HANDLER_STATUS cpuid_handler(vcpu_t& vcpu) {
 	int leaf_id = vcpu.guest_stack_frame.rcx.low;
 	__cpuidex(reinterpret_cast<int*>(&result.cpu_info), function_id, leaf_id);
 
-	print("CPUID: %d, %d\n", function_id, leaf_id);
+	//print("CPUID: %d, %d\n", function_id, leaf_id);
+	print("last time %llu\n", vcpu.tsc_last_exit);
 	//switch (function_id) 
 	//{
 	//case CPUID::fn_processor::id: {

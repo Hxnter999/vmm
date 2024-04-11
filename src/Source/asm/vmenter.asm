@@ -26,6 +26,18 @@ vmrun_loop:
 	; rsp -> guest_vmcb_pa
 	; every push gets it closer to stack_contents
 
+	mov qword ptr [rsp-160h], rdx
+	mov qword ptr [rsp-170h], rax
+
+	xor rax, rax
+    xor rdx, rdx
+
+	rdtsc
+    shl rdx, 32
+    or rdx, rax
+
+	;mov qword ptr [rsp+38h], rdx ; might be 40h cant test today
+
 	; cant push xmm directly so we simulate a push by subtracting and manually moving
 	sub rsp, 100h
 
@@ -47,25 +59,44 @@ vmrun_loop:
 	movaps xmmword ptr [rsp+0E0h], xmm14
 	movaps xmmword ptr [rsp+0F0h], xmm15
 
-	push r15
-	push r14
-	push r13
-	push r12
-	push r11
-	push r10
-	push r9
-	push r8
-	push rdi
-	push rsi
-	push rbx
-	push rdx
-	push rcx
-	push rax
+	mov qword ptr [rsp-8h],  r15
+	mov qword ptr [rsp-10h], r14
+	mov qword ptr [rsp-18h], r13
+	mov qword ptr [rsp-20h], r12
+	mov qword ptr [rsp-28h], r11
+	mov qword ptr [rsp-30h], r10
+	mov qword ptr [rsp-38h], r9
+	mov qword ptr [rsp-40h], r8
+	mov qword ptr [rsp-48h], rdi
+	mov qword ptr [rsp-50h], rsi
+	mov qword ptr [rsp-58h], rbx
+	;mov qword ptr [rsp-60h], rdx
+	mov qword ptr [rsp-68h], rcx
+	;mov qword ptr [rsp-70h], rax
+
+	sub rsp, 70h
 
 	; rsp -> stack_frame
 	mov rcx, [rsp + 180h] ; sizeof(stack_contents) + sizeof(uint64_t) * 2
 	call vmexit_handler
 	test al, al
+
+	; mov rax, qword ptr [rsp]
+	; mov rcx, qword ptr [rsp+8h]
+	; mov rdx, qword ptr [rsp+10h]  
+	; mov rbx, qword ptr [rsp+18h]  
+	; mov rsi, qword ptr [rsp+20h]  
+	; mov rdi, qword ptr [rsp+28h]  
+	; mov r8,  qword ptr [rsp+30h]  
+	; mov r9,  qword ptr [rsp+38h]  
+	; mov r10, qword ptr [rsp+40h]  
+	; mov r11, qword ptr [rsp+48h]  
+	; mov r12, qword ptr [rsp+50h]  
+	; mov r13, qword ptr [rsp+58h]  
+	; mov r14, qword ptr [rsp+60h]  
+	; mov r15, qword ptr [rsp+68h] 
+
+	; add rsp, 70h
 
 	pop rax
 	pop rcx

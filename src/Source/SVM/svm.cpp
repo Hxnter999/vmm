@@ -5,7 +5,7 @@
 bool vmexit_handler(vcpu_t* const vcpu) {
 	__svm_vmload(vcpu->host_vmcb_pa);
 
-	print("Hi sigma\n");
+	//print("Hi sigma\n");
 
 	// guest rax overwriten by host after vmexit
 	vcpu->guest_stack_frame.rax.value = vcpu->guest_vmcb.save_state.rax;
