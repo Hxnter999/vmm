@@ -10,6 +10,7 @@ HANDLER_STATUS hypercall_handler(vcpu_t& vcpu) {
 	switch (static_cast<hypercall_code>(vcpu.guest_stack_frame.rcx.value)) {
 		case hypercall_code::UNLOAD:
 		{
+			print("UNLOAD\n");
 			vcpu.should_exit = true;
 			break;
 		}

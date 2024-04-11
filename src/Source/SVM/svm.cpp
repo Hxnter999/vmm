@@ -3,13 +3,15 @@
 #include <hypervisor.h>
 
 bool vmexit_handler(vcpu_t* const vcpu) {
-	//"latency of 25-35 cycles" - https://community.intel.com/t5/Software-Tuning-Performance/High-impact-of-rdtsc/td-p/1092539=
-	const uint64_t rdtsc = __rdtsc() - 135; //135 estimated cycles before this, did not calculate this (just guessed). probs way more
-	vcpu->timing.shadow_tsc.QuadPart += rdtsc - vcpu->timing.last_exited;
-	vcpu->timing.last_exited = rdtsc;
-	vcpu->guest_vmcb.control.tsc_offset = rdtsc - vcpu->timing.shadow_tsc.QuadPart;
-
 	__svm_vmload(vcpu->host_vmcb_pa);
+
+	//"latency of 25-35 cycles" - https://community.intel.com/t5/Software-Tuning-Performance/High-impact-of-rdtsc/td-p/1092539=
+	//const uint64_t rdtsc = __rdtsc() - 135; //135 estimated cycles before this, did not calculate this (just guessed). probs way more
+	//vcpu->timing.shadow_tsc.QuadPart += rdtsc - vcpu->timing.last_exited;
+	//vcpu->timing.last_exited = rdtsc;
+	//vcpu->guest_vmcb.control.tsc_offset = rdtsc - vcpu->timing.shadow_tsc.QuadPart;
+
+	print("last exited %llu, curtime %llu\n", vcpu->timing.last_exited, __rdtsc());
 
 	// guest rax overwriten by host after vmexit
 	vcpu->guest_stack_frame.rax.value = vcpu->guest_vmcb.save_state.rax;
@@ -89,6 +91,7 @@ bool vmexit_handler(vcpu_t* const vcpu) {
 	}
 
 	if (vcpu->should_exit) {
+		print("Exiting!!\n");
 		HV->devirtualize(vcpu); // devirtualize current vcpu and alert all others
 		return false; 
 	};

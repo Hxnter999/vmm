@@ -20,10 +20,10 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\vmm\shared.h">
+    <ClInclude Include="vmmcall.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="vmmcall.h">
+    <ClInclude Include="..\shared.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

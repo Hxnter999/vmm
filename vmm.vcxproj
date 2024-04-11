@@ -85,7 +85,7 @@
     <EnableMicrosoftCodeAnalysis>false</EnableMicrosoftCodeAnalysis>
     <ApiValidator_Enable>false</ApiValidator_Enable>
     <ExternalIncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath)</ExternalIncludePath>
-    <IncludePath>$(ProjectDir)src\header\arch\;$(ProjectDir)src\header\;windows-defs-2021h20\structs;zydis\include;zydis\dependencies\zycore\include\;zydis\src;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)src\header\arch\;$(ProjectDir)src\header\;windows-defs-2021h20\structs;zydis\include;zydis\dependencies\zycore\include\;zydis\src;$(ProjectDir);$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
     <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>

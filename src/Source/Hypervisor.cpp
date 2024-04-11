@@ -1,4 +1,5 @@
 #include "Hypervisor.h"
+#include <shared.h>
 
 #include <cpuid/standard-features/fn_vendor.h>
 #include <cpuid/extended-features/fn_identifiers.h>
@@ -111,16 +112,16 @@ bool Hypervisor::virtualize(uint32_t index)
 	MSR::EFER guest_efer{}; guest_efer.load();
 	if (!guest_efer.svme) return true;
 
+	print("Failed efer check\n");
+
 	print("Setting up vmcb\n");
-	const uint64_t rdtsc = __rdtsc();
-	vcpu->timing.shadow_tsc.QuadPart = rdtsc;
-	vcpu->timing.last_exited = rdtsc;
 	setup_vmcb(vcpu, ctx);
 
 	print("Entering vm\n");
 	vmenter(&vcpu->guest_vmcb_pa);
 
 	// shouldnt reach this point, if so something went wrong
+	print("shouldnt reach this point, if so something went wrong\n");
 	return false;
 }
 
@@ -170,7 +171,7 @@ void Hypervisor::setup_vmcb(vcpu_t* vcpu, CONTEXT* ctx) //should make it a refer
 	vcpu->guest_vmcb.control.guest_asid = 1; // Address space identifier "ASID [cannot be] equal to zero" 15.5.1 ASID 0 is for the host
 	vcpu->guest_vmcb.control.v_intr_masking = 1; // 15.21.1 & 15.22.2
 
-	vcpu->guest_vmcb.control.rdtsc = 1;
+	//vcpu->guest_vmcb.control.rdtsc = 1;
 	vcpu->guest_vmcb.control.cpuid = 1;
 
 	if (npt) {
