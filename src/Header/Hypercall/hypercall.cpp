@@ -3,6 +3,7 @@
 #include <pages/translations.h>
 //#include "../ARCH/VMCB/vmcb.h"
 //#include "../ARCH/MSRs/efer.h"
+#include <shared.h>
 
 HANDLER_STATUS hypercall_handler(vcpu_t& vcpu) {
 
