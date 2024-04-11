@@ -29,27 +29,11 @@ struct alignas(0x1000) vcpu_t {
 			uint64_t guest_rsp;
 			uint64_t is_virtualized; // 16byte aligned
 			uint64_t should_exit;
-			struct {
-				uint64_t last_exited;
-				//ULARGE_INTEGER shadow_tsc_adjust;
-			} timing;
+			uint64_t aligned;
 		};
 	};
 	vmcb_t host_vmcb; // on vmrun and exits processor saves/restores host state to/from this field, we can also directly manipulate it as long as its considered legal
 	vmcb_t guest_vmcb;
-
-	template<typename T>
-	bool read_virtual(virtual_address_t va, T& out)
-	{
-		return read_virtual_w(va, out, sizeof(T));
-	}
-
-	template<typename T>
-	bool write_virtual(virtual_address_t va, const T& value)
-	{
-		return write_virtual_w(va, value, sizeof(T));
-	}
-
 
 	template<EXCEPTION_VECTOR exception>
 	void inject_event()
@@ -59,10 +43,5 @@ struct alignas(0x1000) vcpu_t {
 		ei.type = INTERRUPT_TYPE::HARDWARE_EXCEPTION;
 		ei.evector = exception;
 	}
-
-private:
-	//trickery
-	bool read_virtual_w(virtual_address_t va, void* out, size_t size);
-	bool write_virtual_w(virtual_address_t va, void* value, size_t size);
 };
 static_assert(sizeof(vcpu_t) == 0x8000, "vcpu size is not 0x8000");

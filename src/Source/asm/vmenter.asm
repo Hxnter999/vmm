@@ -27,18 +27,9 @@ vmrun_loop:
 	; every push gets it closer to stack_contents
 
 	; cant push xmm directly so we simulate a push by subtracting and manually moving
-	; rsp -> xmm0
 	sub rsp, 100h
 
-	mov qword ptr [rsp-60h], rdx
-	mov qword ptr [rsp-70h], rax
-
-	rdtsc
-    shl rdx, 32
-    or rdx, rax
-
-	mov qword ptr [rsp+130h], rdx
-
+	; rsp -> xmm0
 	movaps xmmword ptr [rsp], xmm0
 	movaps xmmword ptr [rsp+10h], xmm1
 	movaps xmmword ptr [rsp+20h], xmm2
@@ -56,24 +47,23 @@ vmrun_loop:
 	movaps xmmword ptr [rsp+0E0h], xmm14
 	movaps xmmword ptr [rsp+0F0h], xmm15
 
-	mov qword ptr [rsp-8h],  r15
-	mov qword ptr [rsp-10h], r14
-	mov qword ptr [rsp-18h], r13
-	mov qword ptr [rsp-20h], r12
-	mov qword ptr [rsp-28h], r11
-	mov qword ptr [rsp-30h], r10
-	mov qword ptr [rsp-38h], r9
-	mov qword ptr [rsp-40h], r8
-	mov qword ptr [rsp-48h], rdi
-	mov qword ptr [rsp-50h], rsi
-	mov qword ptr [rsp-58h], rbx
-
-	mov qword ptr [rsp-68h], rcx
-
-	sub rsp, 70h ; Total size of pushed registers
+	push r15
+	push r14
+	push r13
+	push r12
+	push r11
+	push r10
+	push r9
+	push r8
+	push rdi
+	push rsi
+	push rbx
+	push rdx
+	push rcx
+	push rax
 
 	; rsp -> stack_frame
-	mov rcx, [rsp + 180h] ; sizeof(stack_contents) + sizeof(uint64_t) * 2 ; getting self in a DUMB! way
+	mov rcx, [rsp + 180h] ; sizeof(stack_contents) + sizeof(uint64_t) * 2
 	call vmexit_handler
 	test al, al
 
