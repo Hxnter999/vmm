@@ -1,14 +1,11 @@
-IA32_TIME_STAMP_COUNTER 
-IA32_TSC_ADJUST (could just shadow as disabled ig)
+TSC_ADJUST (could just shadow as disabled ig), could be used as a dtc vector
 RDPID is used to read TSC_AUX, good to know if we ever mess with it
 
 Test added handlers (XSETBV)
-Test phys r/w
+**Test phys r/w**
 Finish (l/s)(i/g)dt
 Add LBR virtulization
 add custom seh
-
-ofc RDTSC handler
 
 INVD handler
 
