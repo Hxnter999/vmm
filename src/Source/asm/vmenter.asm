@@ -26,20 +26,18 @@ vmrun_loop:
 	; rsp -> guest_vmcb_pa
 	; every push gets it closer to stack_contents
 
-	mov qword ptr [rsp-160h], rdx
-	mov qword ptr [rsp-170h], rax
-
-	xor rax, rax
-    xor rdx, rdx
-
-	rdtsc
-    shl rdx, 32
-    or rdx, rax
-
-	;mov qword ptr [rsp+38h], rdx ; might be 40h cant test today
-
 	; cant push xmm directly so we simulate a push by subtracting and manually moving
 	sub rsp, 100h
+
+	mov qword ptr [rsp-60h], rdx
+	mov qword ptr [rsp-70h], rax
+
+	xor rdx, rdx
+	xor rax, rax
+
+	rdtsc
+	shl rdx, 20h
+	or rdx, rax
 
 	; rsp -> xmm0
 	movaps xmmword ptr [rsp], xmm0
@@ -70,9 +68,7 @@ vmrun_loop:
 	mov qword ptr [rsp-48h], rdi
 	mov qword ptr [rsp-50h], rsi
 	mov qword ptr [rsp-58h], rbx
-	;mov qword ptr [rsp-60h], rdx
 	mov qword ptr [rsp-68h], rcx
-	;mov qword ptr [rsp-70h], rax
 
 	sub rsp, 70h
 

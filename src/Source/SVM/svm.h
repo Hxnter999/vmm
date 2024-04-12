@@ -15,4 +15,4 @@
 		 
 #include <util/bitset.h>
 
-extern "C" bool vmexit_handler(vcpu_t* vcpu);
+extern "C" bool vmexit_handler(vcpu_t* vcpu, uint64_t);

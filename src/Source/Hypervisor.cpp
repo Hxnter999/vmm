@@ -10,6 +10,7 @@
 #include <msrs/vm_cr.h>
 #include <hypercall/hypercall.h>
 #include <pages/npts.h>
+#include <MSRs/tsc_ratio.h>
 
 extern "C" int64_t testcall(hypercall_code code);
 extern "C" void vmenter(uint64_t * guest_vmcb_pa);

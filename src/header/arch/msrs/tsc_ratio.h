@@ -4,7 +4,7 @@
 namespace MSR {
 	struct TSC_RATIO : BASE_MSR
 	{
-		static constexpr uint32_t MSR_TSC_RATIO = 0xC0000104;
+		static constexpr uint32_t MSR_TSC_RATIO = 0xC000'0104;
 
 		union {
 			struct {

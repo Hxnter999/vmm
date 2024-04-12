@@ -2,6 +2,7 @@
 #include <ARCH/MSRs/hsave_pa.h>
 #include <ARCH/MSRs/efer.h>
 #include <ARCH/MSRs/tsc.h>
+#include <ARCH\MSRs\tsc_ratio.h>
 
 HANDLER_STATUS msr_handler(vcpu_t& vcpu) {
 
@@ -55,6 +56,18 @@ HANDLER_STATUS msr_handler(vcpu_t& vcpu) {
 				print("HSAVE_PA write???\n");
 			}
 			break;
+		}
+
+		//better just to disable this feature in the cpuid
+		case MSR::TSC_RATIO::MSR_TSC_RATIO: 
+		{
+			static MSR::TSC_RATIO TSC_RATIO_SHADOW{ .bits = 0 }; //the default may be 1 (thats what is said in the manual but testing in vmware shows 0 (maybe its their handler)
+			if (read) { 
+				result = { TSC_RATIO_SHADOW.bits };
+			}
+			else {
+				TSC_RATIO_SHADOW.bits = result.value;
+			}
 		}
 
 		default:
