@@ -4,29 +4,12 @@
 #include <MSRs/tsc_ratio.h>
 
 bool vmexit_handler(vcpu_t* const vcpu, uint64_t last_exited) {
+	UNREFERENCED_PARAMETER(last_exited);
+
 	__svm_vmload(vcpu->host_vmcb_pa);
 
 	// guest rax overwriten by host after vmexit
 	vcpu->guest_stack_frame.rax.value = vcpu->guest_vmcb.save_state.rax;
-
-	//Not supported on vmware
-	//if (static bool first = true; first) 
-	//{
-	//	CPUID::fn_svm_features z{};
-	//	z.load();
-	//	
-
-	//	if (z.svm_feature_identification.tsc_rate_msr) {
-	//		MSR::TSC_RATIO tsc_ratio{};
-	//		tsc_ratio.load();
-	//		print("%llu\n", tsc_ratio.bits);
-	//	}
-	//	else 
-	//	{
-	//		print("Not supported\n");
-	//	}
-	//	first = false;
-	//}
 
 	HANDLER_STATUS status{ HANDLER_STATUS::INCREMENT_RIP };
 	switch (vcpu->guest_vmcb.control.exit_code) {
@@ -40,7 +23,6 @@ bool vmexit_handler(vcpu_t* const vcpu, uint64_t last_exited) {
 		break;
 
 	case svm_exit_code::VMEXIT_CPUID:
-		print("last exited %llu %llu\n", last_exited, __rdtsc());
 		status = cpuid_handler(*vcpu);
 		break;
 

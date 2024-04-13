@@ -7,6 +7,8 @@
 
 HANDLER_STATUS hypercall_handler(vcpu_t& vcpu) {
 
+	print("Hypercall handler\n");
+
 	switch (static_cast<hypercall_code>(vcpu.guest_stack_frame.rcx.value)) {
 		case hypercall_code::UNLOAD:
 		{
@@ -31,6 +33,7 @@ HANDLER_STATUS hypercall_handler(vcpu_t& vcpu) {
 		}
 		default:
 		{
+			print("Default case inn hypercall handler\n");
 			break;
 		}
 	}
