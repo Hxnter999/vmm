@@ -24,7 +24,7 @@ void Hypervisor::devirtualize(vcpu_t* const vcpu) //maybe move this into vcpu?
 
 	current_count--;
 
-	print("Exiting [%d]...\n", (vcpu - vcpus.begin()) / sizeof(vcpu_t*));
+	print("Exiting [%p]...\n", vcpu);
 
 	// devirtualize current vcpu, later in the vmrun loop we restore rsp and jump to guest_rip.
 	vcpu->guest_rip = vcpu->guest_vmcb.control.nrip;
