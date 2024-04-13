@@ -8,7 +8,7 @@ bool vmexit_handler(vcpu_t& vcpu, uint64_t last_exited) {
 
 	__svm_vmload(vcpu.host_vmcb_pa);
 
-	print("ve %llu\n", vcpu.guest_vmcb.control.exit_code);
+	print("ve %llx\n", vcpu.guest_vmcb.control.exit_code);
 
 	// guest rax overwriten by host after vmexit
 	vcpu.guest_stack_frame.rax.value = vcpu.guest_vmcb.save_state.rax;
