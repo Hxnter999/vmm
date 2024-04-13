@@ -9,19 +9,19 @@ HANDLER_STATUS hypercall_handler(vcpu_t& vcpu) {
 
 	print("Hypercall handler\n");
 
-	switch (static_cast<hypercall_code>(vcpu.guest_stack_frame.rcx.value)) {
-		case hypercall_code::UNLOAD:
+	switch (static_cast<HYPERCALL_CODE>(vcpu.guest_stack_frame.rcx.value)) {
+		case HYPERCALL_CODE::UNLOAD:
 		{
 			print("UNLOAD\n");
 			vcpu.should_exit = true;
 			break;
 		}
-		case hypercall_code::PING:
+		case HYPERCALL_CODE::PING:
 		{
 			print("PONG\n");
 			break;
 		}
-		case hypercall_code::test:
+		case HYPERCALL_CODE::test:
 		{
 			uint64_t gva = vcpu.guest_stack_frame.rdx.value;
 			print("gva %p\n", gva);

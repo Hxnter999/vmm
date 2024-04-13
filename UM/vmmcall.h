@@ -6,7 +6,7 @@
 extern "C" {
 #endif
 
-	extern uint64_t _vmmcall(hypercall_code code);
+	extern hypercall_status _vmmcall(hypercall_code code, uint64_t arg2 = 0, uint64_t arg3 = 0, uint64_t arg4 = 0);
 
 #ifdef __cplusplus
 }

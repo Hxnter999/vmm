@@ -12,7 +12,7 @@
 #include <pages/npts.h>
 #include <MSRs/tsc_ratio.h>
 
-extern "C" int64_t testcall(hypercall_code code);
+extern "C" int64_t testcall(HYPERCALL_CODE code);
 extern "C" void vmenter(uint64_t * guest_vmcb_pa);
 
 Hypervisor* Hypervisor::instance = nullptr;
@@ -46,7 +46,7 @@ void Hypervisor::unload()
 
 	execute_on_all_cpus([](uint32_t index) -> bool {
 		print("Devirtualizing [%d]...\n", index);
-		testcall(hypercall_code::UNLOAD);
+		testcall(HYPERCALL_CODE::UNLOAD);
 		return true;
 	});
 
