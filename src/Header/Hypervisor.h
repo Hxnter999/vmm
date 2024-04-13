@@ -9,7 +9,6 @@ class Hypervisor
 	
 	inline bool execute_on_all_cpus(bool(*func)(uint32_t)) //this is cancer!
 	{
-		_disable();
 		for (uint32_t i = 0; i < vcpus.vcpu_count; i++)
 		{
 			auto original_affinity = KeSetSystemAffinityThreadEx(1ll << i);
@@ -17,7 +16,6 @@ class Hypervisor
 			KeRevertToUserAffinityThreadEx(original_affinity);
 			if (!result) return false;
 		}
-		_enable();
 		return true;
 	}
 
