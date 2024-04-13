@@ -44,6 +44,8 @@ void Hypervisor::devirtualize(vcpu_t* const vcpu) //maybe move this into vcpu?
 
 void Hypervisor::destroy() 
 {
+	print("Destroy\n");
+
 	if (vcpus.buffer) {
 		ExFreePoolWithTag(vcpus.buffer, 'hv');
 		vcpus.buffer = nullptr;
