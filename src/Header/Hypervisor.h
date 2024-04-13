@@ -55,7 +55,7 @@ public:
 
 	MSR::msrpm_t& msrpm() { return *shared_msrpm; }
 
-	void init();
+	bool init();
 
 	static Hypervisor* get() 
 	{

@@ -79,7 +79,7 @@ void Hypervisor::unload()
 	});
 }
 
-void Hypervisor::init()
+bool Hypervisor::init()
 {
 	vcpus = {};
 	shared_msrpm = nullptr;
@@ -90,7 +90,7 @@ void Hypervisor::init()
 
 	if (!init_check()) {
 		print("SVM not supported\n");
-		return;
+		return false;
 	}
 	print("SVM supported\n");
 
@@ -99,13 +99,14 @@ void Hypervisor::init()
 	shared_msrpm = reinterpret_cast<MSR::msrpm_t*>(MmAllocateContiguousMemory(sizeof(MSR::msrpm_t), { .QuadPart = -1 }));
 	if (shared_msrpm == nullptr) {
 		print("Failed to allocate msrpm\n");
-		return;
+		return false;
 	}
 
 	HV->setup_host_pt();
 
 	print("Setup\n");
 	vaild = true;
+	return true;
 }
 
 bool Hypervisor::virtualize(uint32_t index)

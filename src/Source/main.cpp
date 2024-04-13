@@ -17,9 +17,13 @@ extern "C" NTSTATUS DriverEntry(PDRIVER_OBJECT pDriverObject, PUNICODE_STRING pR
 
 	pDriverObject->DriverUnload = Unload;
 	
-	HV->init();
+	if (!HV) 
+	{
+		print("Hypervisor failed to allocate\n");
+		return STATUS_UNSUCCESSFUL;
+	}
 
-	if (!HV->is_valid())
+	if (!HV->init()) 
 	{
 		print("Hypervisor failed to initialize\n");
 		return STATUS_UNSUCCESSFUL;
