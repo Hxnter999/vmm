@@ -69,11 +69,11 @@ vmrun_loop:
 	mov rcx, [rsp + 180h] ; sizeof(stack_contents) + sizeof(uint64_t) * 2
 
 	xor rdx, rdx
-	xor rax, rax
+	;xor rax, rax
 
-	rdtsc
-	shl rdx, 20h
-	or rdx, rax
+	;rdtsc
+	;shl rdx, 20h
+	;or rdx, rax
 
 	call vmexit_handler
 	test al, al
