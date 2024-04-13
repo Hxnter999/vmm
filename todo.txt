@@ -1,3 +1,8 @@
+cleanup the destory
+
+make um client/um logger
+	sperate unload/deinit and setup/init so a client can disconnnect and connect
+
 TSC_ADJUST (could just shadow as disabled ig), could be used as a dtc vector
 RDPID is used to read TSC_AUX, good to know if we ever mess with it
 

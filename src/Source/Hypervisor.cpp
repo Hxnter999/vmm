@@ -20,10 +20,11 @@ Hypervisor* Hypervisor::instance = nullptr;
 
 void Hypervisor::devirtualize(vcpu_t* const vcpu) //maybe move this into vcpu?
 {
-	print("Exiting [%d]...\n", (vcpu - vcpus.begin()) / sizeof(vcpu_t*));
+	static uint32_t current_count = vcpus.vcpu_count;
 
-	for (auto& cvcpu : vcpus) // alert all other vcpus
-		cvcpu.should_exit = true;
+	current_count--;
+
+	print("Exiting [%d]...\n", (vcpu - vcpus.begin()) / sizeof(vcpu_t*));
 
 	// devirtualize current vcpu, later in the vmrun loop we restore rsp and jump to guest_rip.
 	vcpu->guest_rip = vcpu->guest_vmcb.control.nrip;
@@ -36,20 +37,13 @@ void Hypervisor::devirtualize(vcpu_t* const vcpu) //maybe move this into vcpu?
 
 	MSR::EFER efer{}; efer.load(); efer.svme = 0; efer.store();
 	__writeeflags(vcpu->guest_vmcb.save_state.rflags.value);
+
+	if (!current_count)
+		destroy();
 }
 
-void Hypervisor::unload()
+void Hypervisor::destroy() 
 {
-	if (instance == nullptr) return; //should never happen
-
-	print("Unloading Hypervisor...\n");
-
-	execute_on_all_cpus([](uint32_t index) -> bool {
-		print("Devirtualizing [%d]...\n", index);
-		testcall(HYPERCALL_CODE::UNLOAD);
-		return true;
-	});
-
 	if (vcpus.buffer) {
 		ExFreePoolWithTag(vcpus.buffer, 'hv');
 		vcpus.buffer = nullptr;
@@ -65,6 +59,22 @@ void Hypervisor::unload()
 
 	ExFreePoolWithTag(instance, 'hv');
 	instance = nullptr;
+}
+
+void Hypervisor::unload()
+{
+	if (instance == nullptr) return; //should never happen
+
+	print("Unloading Hypervisor...\n");
+
+	for (auto& cvcpu : vcpus) // alert all other vcpus
+		cvcpu.should_exit = true;
+
+	execute_on_all_cpus([](uint32_t index) -> bool {
+		print("Devirtualizing [%d]...\n", index);
+		testcall(HYPERCALL_CODE::UNLOAD);
+		return true;
+	});
 }
 
 void Hypervisor::init()

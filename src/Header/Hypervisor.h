@@ -103,6 +103,8 @@ public:
 	void devirtualize(vcpu_t* const vcpu);
 
 	void unload(); //this should only be called once (in Unload)
+
+	void destroy();
 };
 
 #define HV Hypervisor::get()
