@@ -29,16 +29,6 @@ vmrun_loop:
 	; cant push xmm directly so we simulate a push by subtracting and manually moving
 	sub rsp, 100h
 
-	mov qword ptr [rsp-60h], rdx
-	mov qword ptr [rsp-70h], rax
-
-	xor rdx, rdx
-	xor rax, rax
-
-	rdtsc
-	shl rdx, 20h
-	or rdx, rax
-
 	; rsp -> xmm0
 	movaps xmmword ptr [rsp], xmm0
 	movaps xmmword ptr [rsp+10h], xmm1
@@ -70,10 +60,21 @@ vmrun_loop:
 	mov qword ptr [rsp-58h], rbx
 	mov qword ptr [rsp-68h], rcx
 
+	mov qword ptr [rsp-60h], rdx
+	mov qword ptr [rsp-70h], rax
+
 	sub rsp, 70h
 
 	; rsp -> stack_frame
 	mov rcx, [rsp + 180h] ; sizeof(stack_contents) + sizeof(uint64_t) * 2
+
+	xor rdx, rdx
+	xor rax, rax
+
+	rdtsc
+	shl rdx, 20h
+	or rdx, rax
+
 	call vmexit_handler
 	test al, al
 

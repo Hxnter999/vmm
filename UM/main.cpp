@@ -5,7 +5,7 @@
 int main()
 {
 	printf("Hi\n");
-	for(uint64_t i = 0; i < 2; i++)
+	//for(uint64_t i = 0; i < 2; i++)
 		_vmmcall(hypercall_code::PING);
 	system("pause");
 
