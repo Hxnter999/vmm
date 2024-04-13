@@ -113,7 +113,7 @@ class npts_t
 		{
 			//UH OH!
 			print("pdepe_index: %u is already mapped UH OH", pdepe_index);
-			__debugbreak();
+			//__debugbreak();
 			return;
 		}
 

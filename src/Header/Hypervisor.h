@@ -9,6 +9,7 @@ class Hypervisor
 	
 	inline bool execute_on_all_cpus(bool(*func)(uint32_t)) //this is cancer!
 	{
+		_disable();
 		for (uint32_t i = 0; i < vcpus.vcpu_count; i++)
 		{
 			auto original_affinity = KeSetSystemAffinityThreadEx(1ll << i);
@@ -16,12 +17,11 @@ class Hypervisor
 			KeRevertToUserAffinityThreadEx(original_affinity);
 			if (!result) return false;
 		}
+		_enable();
 		return true;
 	}
 
-	Hypervisor() = default;
-
-	void init();
+	Hypervisor() = default;	
 
 	bool virtualize(uint32_t index);
 
@@ -55,13 +55,14 @@ public:
 
 	MSR::msrpm_t& msrpm() { return *shared_msrpm; }
 
+	void init();
+
 	static Hypervisor* get() 
 	{
 		//naive because we know when its first called
 		if (instance == nullptr)
 		{
 			instance = static_cast<Hypervisor*>(ExAllocatePoolWithTag(NonPagedPool, sizeof(Hypervisor), 'hv'));
-			instance->init();
 		}
 		return instance;
 	}
