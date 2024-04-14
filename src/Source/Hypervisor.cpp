@@ -124,13 +124,16 @@ bool Hypervisor::virtualize(uint32_t index)
 	print("Checking efer\n");
 	// efer.svme will be 0 when we read it in a virtualized state, this is how we have the msr handler setup.
 	MSR::EFER guest_efer{}; guest_efer.load();
-	if (!guest_efer.svme) return true;
+	if (!guest_efer.svme) { 
+		return true; 
+	}
 
 	print("Failed efer check\n");
 
 	print("Setting up vmcb\n");
 	setup_vmcb(vcpu, ctx);
 
+	ExFreePoolWithTag(ctx, 'sgma'); //somebody forgot to free...
 	print("Entering vm\n");
 	vmenter(&vcpu->guest_vmcb_pa);
 
