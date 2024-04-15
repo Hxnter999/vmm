@@ -29,15 +29,13 @@ class Hypervisor
 
 	static svm_status init_check();
 
-
-	bool vaild;
 	uint64_t* npt;
 	MSR::msrpm_t* shared_msrpm;
 	host_pt_t shared_host_pt;
 
 	struct vcpus_t {
 		vcpus_t() : vcpu_count(0), buffer(nullptr) {}
-		vcpus_t(uint32_t size) : vcpu_count(size) { buffer = reinterpret_cast<vcpu_t*>(ExAllocatePoolWithTag(NonPagedPool, size * sizeof(vcpu_t), 'sgma')); }
+		vcpus_t(uint32_t size) : vcpu_count(size) { buffer = reinterpret_cast<vcpu_t*>(ExAllocatePoolWithTag(NonPagedPool, size * sizeof(vcpu_t), 'sgmA')); }
 
 		vcpu_t* buffer;
 		uint32_t vcpu_count;
@@ -45,6 +43,7 @@ class Hypervisor
 		vcpu_t* get(uint32_t i) { return buffer + i; }
 		vcpu_t* begin() { return buffer; }
 		vcpu_t* end() { return buffer + vcpu_count; }
+
 	} vcpus;
 
 public:
@@ -53,19 +52,12 @@ public:
 
 	MSR::msrpm_t& msrpm() { return *shared_msrpm; }
 
-	bool init();
+	static bool init();
 
 	static Hypervisor* get() 
 	{
-		//naive because we know when its first called
-		if (instance == nullptr)
-		{
-			instance = static_cast<Hypervisor*>(ExAllocatePoolWithTag(NonPagedPool, sizeof(Hypervisor), 'hv'));
-		}
 		return instance;
 	}
-
-	bool is_valid() { return vaild; }
 
 	bool virtualize();
 

@@ -17,11 +17,6 @@ extern "C" NTSTATUS DriverEntry(PDRIVER_OBJECT pDriverObject, PUNICODE_STRING pR
 
 	pDriverObject->DriverUnload = Unload;
 	
-	if (!HV) 
-	{
-		print("Hypervisor failed to allocate (insufficient memory)\n");
-		return STATUS_UNSUCCESSFUL;
-	}
 
 	if (!HV->init()) 
 	{

@@ -173,6 +173,7 @@
     </ClCompile>
     <ClCompile Include="src\source\hypervisor.cpp" />
     <ClCompile Include="src\header\smbios\smbios.cpp" />
+    <ClCompile Include="src\Source\operators.cpp" />
     <ClCompile Include="src\source\svm\svm.cpp">
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">../../Header/commons.h</PrecompiledHeaderFile>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">../../Header/commons.h</PrecompiledHeaderFile>

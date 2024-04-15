@@ -47,7 +47,7 @@ void Hypervisor::destroy()
 	print("Destroy\n");
 
 	if (vcpus.buffer) {
-		ExFreePoolWithTag(vcpus.buffer, 'hv');
+		ExFreePoolWithTag(vcpus.buffer, 'sgmA');
 		vcpus.buffer = nullptr;
 	}
 	if (shared_msrpm) {
@@ -59,7 +59,7 @@ void Hypervisor::destroy()
 		npt = nullptr;
 	}
 
-	ExFreePoolWithTag(instance, 'hv');
+	ExFreePoolWithTag(instance, 'sgmA');
 	instance = nullptr;
 }
 
@@ -81,10 +81,17 @@ void Hypervisor::unload()
 
 bool Hypervisor::init()
 {
-	vcpus = {};
-	shared_msrpm = nullptr;
-	npt = nullptr;
-	vaild = false;
+
+	instance = static_cast<Hypervisor*>(ExAllocatePoolWithTag(NonPagedPool, sizeof(Hypervisor), 'sgmA'));
+	if (!instance) 
+	{
+		print("Hypervisor failed to allocate (insufficient memory)\n");
+		return false;
+	}
+
+	instance->vcpus = {};
+	instance->shared_msrpm = nullptr;
+	instance->npt = nullptr;
 
 	print("Initializing Hypervisor...\n");
 
@@ -94,10 +101,10 @@ bool Hypervisor::init()
 	}
 	print("SVM supported\n");
 
-	vcpus = { KeQueryActiveProcessorCount(nullptr) };
+	instance->vcpus = { KeQueryActiveProcessorCount(nullptr) };
 
-	shared_msrpm = reinterpret_cast<MSR::msrpm_t*>(MmAllocateContiguousMemory(sizeof(MSR::msrpm_t), { .QuadPart = -1 }));
-	if (shared_msrpm == nullptr) {
+	instance->shared_msrpm = reinterpret_cast<MSR::msrpm_t*>(MmAllocateContiguousMemory(sizeof(MSR::msrpm_t), { .QuadPart = -1 }));
+	if (instance->shared_msrpm == nullptr) {
 		print("Failed to allocate msrpm\n");
 		return false;
 	}
@@ -105,7 +112,6 @@ bool Hypervisor::init()
 	HV->setup_host_pt();
 
 	print("Setup\n");
-	vaild = true;
 	return true;
 }
 
@@ -117,7 +123,7 @@ bool Hypervisor::virtualize(uint32_t index)
 	efer.store();
 
 	vcpu_t* vcpu = vcpus.get(index);
-	CONTEXT* ctx = reinterpret_cast<CONTEXT*>(ExAllocatePoolWithTag(NonPagedPool, sizeof(CONTEXT), 'sgma'));
+	CONTEXT* ctx = reinterpret_cast<CONTEXT*>(ExAllocatePoolWithTag(NonPagedPool, sizeof(CONTEXT), 'sgmA'));
 	memset(ctx, 0, sizeof(CONTEXT));
 	RtlCaptureContext(ctx);
 
@@ -133,7 +139,7 @@ bool Hypervisor::virtualize(uint32_t index)
 	print("Setting up vmcb\n");
 	setup_vmcb(vcpu, ctx);
 
-	ExFreePoolWithTag(ctx, 'sgma'); //somebody forgot to free...
+	ExFreePoolWithTag(ctx, 'sgmA'); //somebody forgot to free...
 	print("Entering vm\n");
 	vmenter(&vcpu->guest_vmcb_pa);
 
