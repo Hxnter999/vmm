@@ -35,7 +35,7 @@ HANDLER_STATUS xsetbv_handler(vcpu_t& vcpu)
 		return HANDLER_STATUS::INJECT_GP;
 
 	xcr0_t value{ .value { .u {
-			.LowPart = static_cast<uint32_t>(vcpu.guest_vmcb.save_state.rax),
+			.LowPart = static_cast<uint32_t>(vcpu.guest_stack_frame.rax),
 			.HighPart = static_cast<uint32_t>(vcpu.guest_stack_frame.rdx)
 	}}};
 	

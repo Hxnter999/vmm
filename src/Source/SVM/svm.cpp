@@ -11,7 +11,7 @@ bool vmexit_handler(vcpu_t& vcpu, uint64_t last_exited) {
 	print("ve %llx\n", vcpu.guest_vmcb.control.exit_code);
 
 	// guest rax overwriten by host after vmexit
-	vcpu.guest_stack_frame.rax.value = vcpu.guest_vmcb.save_state.rax;
+	vcpu.guest_stack_frame.rax.value = vcpu.guest_vmcb.save_state.rax_do_not_touch;
 
 	HANDLER_STATUS status{ HANDLER_STATUS::INCREMENT_RIP };
 	switch (vcpu.guest_vmcb.control.exit_code) {
@@ -72,7 +72,7 @@ bool vmexit_handler(vcpu_t& vcpu, uint64_t last_exited) {
 		break;
 	}
 	// the cpu handles guest rax for us
-	vcpu.guest_vmcb.save_state.rax = vcpu.guest_stack_frame.rax.value;
+	vcpu.guest_vmcb.save_state.rax_do_not_touch = vcpu.guest_stack_frame.rax.value;
 
 	switch (status) 
 	{

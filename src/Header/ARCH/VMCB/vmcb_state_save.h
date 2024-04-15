@@ -93,7 +93,7 @@ struct vmcb_state_save {
 	uint64_t isst_addr;
 
 	// 1f8h
-	uint64_t rax;
+	uint64_t rax_do_not_touch;
 
 	// 200h
 	MSR::STAR star;
