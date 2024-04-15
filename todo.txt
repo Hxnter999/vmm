@@ -1,5 +1,4 @@
-fix errors... i think it might be cause context switching
-
+fix errors... two left... spin on start and the bsod after 3 runs one
 cleanup the destory
 
 make um client/um logger
@@ -23,6 +22,8 @@ INVD handler
 emulate more shit (im sigma)
 
 make project for testing dtcs, pafish for now is good
+
+read abt vASIDs
 
 lots of If the LOCK prefix is used then #UD
 Emulating Debug registers and shit
