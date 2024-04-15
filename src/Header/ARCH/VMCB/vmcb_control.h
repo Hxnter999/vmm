@@ -274,7 +274,7 @@ struct vmcb_control {
 	};
 
 	// 070h
-	svm_exit_code exit_code;
+	SVM_EXIT_CODE exit_code;
 
 	// 078h
 	exitinfo1_t exit_info_1;

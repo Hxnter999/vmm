@@ -8,7 +8,8 @@ enum class HANDLER_STATUS
 {
 	INCREMENT_RIP,
 	INJECT_GP,
-	INJECT_UD
+	INJECT_UD,
+	INJECT_PF
 };
 
 HANDLER_STATUS msr_handler(vcpu_t& vcpu);

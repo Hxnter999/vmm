@@ -16,33 +16,33 @@ bool vmexit_handler(vcpu_t& vcpu, uint64_t last_exited) {
 	HANDLER_STATUS status{ HANDLER_STATUS::INCREMENT_RIP };
 	switch (vcpu.guest_vmcb.control.exit_code) {
 
-	case svm_exit_code::VMEXIT_VMMCALL:
+	case SVM_EXIT_CODE::VMEXIT_VMMCALL:
 		status = hypercall_handler(vcpu);
 		break;
 
-	case svm_exit_code::VMEXIT_MSR:
+	case SVM_EXIT_CODE::VMEXIT_MSR:
 		status = msr_handler(vcpu);
 		break;
 
-	case svm_exit_code::VMEXIT_CPUID:
+	case SVM_EXIT_CODE::VMEXIT_CPUID:
 		status = cpuid_handler(vcpu);
 		break;
 
-	case svm_exit_code::VMEXIT_INVALID:
+	case SVM_EXIT_CODE::VMEXIT_INVALID:
 		print("INVALID GUEST STATE, EXITING...\n");
 		vcpu.should_exit = true;
 		break;
 
-	case svm_exit_code::VMEXIT_NPF:
+	case SVM_EXIT_CODE::VMEXIT_NPF:
 		status = npf_handler(vcpu);
 		break;
 
-	case svm_exit_code::VMEXIT_HV: // event injection exception
+	case SVM_EXIT_CODE::VMEXIT_HV: // event injection exception
 		print("Failed to inject event\n");
 		vcpu.guest_vmcb.control.event_injection.bits = 0; // reset to avoid infinite loop
 		break;
 
-	case svm_exit_code::VMEXIT_RDTSC:
+	case SVM_EXIT_CODE::VMEXIT_RDTSC:
 		break;
 
 	//commenting this out so u get the intent (not done)
@@ -56,14 +56,14 @@ bool vmexit_handler(vcpu_t& vcpu, uint64_t last_exited) {
 	//	dtr_save_handler(*vcpu);
 	//	break;
 
-	case svm_exit_code::VMEXIT_VMRUN:
-	case svm_exit_code::VMEXIT_VMLOAD:
-	case svm_exit_code::VMEXIT_VMSAVE:
-	case svm_exit_code::VMEXIT_CLGI:
+	case SVM_EXIT_CODE::VMEXIT_VMRUN:
+	case SVM_EXIT_CODE::VMEXIT_VMLOAD:
+	case SVM_EXIT_CODE::VMEXIT_VMSAVE:
+	case SVM_EXIT_CODE::VMEXIT_CLGI:
 		status = HANDLER_STATUS::INJECT_UD;
 		break;
 
-	case svm_exit_code::VMEXIT_XSETBV:
+	case SVM_EXIT_CODE::VMEXIT_XSETBV:
 		status = xsetbv_handler(vcpu);
 		break;
 
@@ -84,6 +84,9 @@ bool vmexit_handler(vcpu_t& vcpu, uint64_t last_exited) {
 			break;
 		case HANDLER_STATUS::INJECT_UD:
 			vcpu.inject_event<EXCEPTION_VECTOR::UD>();
+			break;
+		case HANDLER_STATUS::INJECT_PF:
+			vcpu.inject_event<EXCEPTION_VECTOR::PF>();
 			break;
 	}
 
