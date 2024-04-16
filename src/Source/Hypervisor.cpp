@@ -176,7 +176,10 @@ bool Hypervisor::virtualize()
 
 void Hypervisor::setup_vmcb(vcpu_t* vcpu, CONTEXT* ctx) //should make it a reference
 {
+	memset(vcpu, 0, sizeof(vcpu_t));
+
 	vcpu->is_virtualized = true;
+	vcpu->should_exit = false;
 
 	MSR::HSAVE_PA hsave_pa{};
 	hsave_pa.bits = MmGetPhysicalAddress(&vcpu->host_vmcb).QuadPart;
