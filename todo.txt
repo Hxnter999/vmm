@@ -1,10 +1,8 @@
-fix errors... two left... spin on start and the bsod after 3 runs one
-cleanup the destory
 
 make um client/um logger
 	sperate unload/deinit and setup/init so a client can disconnnect and connect
+TSC scaling
 
-TSC_ADJUST (could just shadow as disabled ig), could be used as a dtc vector
 RDPID is used to read TSC_AUX, good to know if we ever mess with it
 
 cleanup ASM
@@ -15,7 +13,7 @@ Finish (l/s)(i/g)dt
 Add LBR virtulization
 add custom seh
 
-INVD handler
+
 
 "IET Divergence"
 
@@ -23,7 +21,7 @@ emulate more shit (im sigma)
 
 make project for testing dtcs, pafish for now is good
 
-read abt vASIDs
+read abt TLB Control (15.16) -> INVD handler
 
 lots of If the LOCK prefix is used then #UD
 Emulating Debug registers and shit
