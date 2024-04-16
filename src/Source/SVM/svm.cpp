@@ -4,11 +4,10 @@
 #include <MSRs/tsc_ratio.h>
 
 bool vmexit_handler(vcpu_t& vcpu, uint64_t last_exited) {
-	UNREFERENCED_PARAMETER(last_exited);
 
 	__svm_vmload(vcpu.host_vmcb_pa);
 
-	print("ve %llx\n", vcpu.guest_vmcb.control.exit_code);
+	print("ve %llx, last_exited %llu\n", vcpu.guest_vmcb.control.exit_code, last_exited);
 
 	// guest rax overwriten by host after vmexit
 	vcpu.guest_stack_frame.rax.value = vcpu.guest_vmcb.save_state.rax_do_not_touch;
