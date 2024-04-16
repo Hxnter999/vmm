@@ -76,7 +76,7 @@ void Hypervisor::unload()
 		print("Devirtualizing [%d]...\n", index);
 		testcall(HYPERCALL_CODE::UNLOAD);
 		return true;
-	});
+	}, vcpus.vcpu_count);
 }
 
 bool Hypervisor::init()
@@ -103,11 +103,12 @@ bool Hypervisor::init()
 
 	instance->vcpus = { KeQueryActiveProcessorCount(nullptr) };
 
-	instance->shared_msrpm = reinterpret_cast<MSR::msrpm_t*>(MmAllocateContiguousMemory(sizeof(MSR::msrpm_t), { .QuadPart = -1 }));
+	instance->shared_msrpm = static_cast<MSR::msrpm_t*>(MmAllocateContiguousMemory(sizeof(MSR::msrpm_t), { .QuadPart = -1 }));
 	if (instance->shared_msrpm == nullptr) {
 		print("Failed to allocate msrpm\n");
 		return false;
 	}
+	memset(instance->shared_msrpm, 0, sizeof(MSR::msrpm_t));
 
 	HV->setup_host_pt();
 
@@ -123,7 +124,7 @@ bool Hypervisor::virtualize(uint32_t index)
 	efer.store();
 
 	vcpu_t* vcpu = vcpus.get(index);
-	CONTEXT* ctx = reinterpret_cast<CONTEXT*>(ExAllocatePoolWithTag(NonPagedPool, sizeof(CONTEXT), 'sgmA'));
+	CONTEXT* ctx = static_cast<CONTEXT*>(ExAllocatePoolWithTag(NonPagedPool, sizeof(CONTEXT), 'sgmA'));
 	memset(ctx, 0, sizeof(CONTEXT));
 	RtlCaptureContext(ctx);
 
@@ -164,7 +165,7 @@ bool Hypervisor::virtualize()
 		}
 		print("Virtualized [%d]\n", index);
 		return true;
-		}))
+		}, vcpus.vcpu_count))
 	{
 		print("Failed to virtualize all vcpus\n");
 		return false;

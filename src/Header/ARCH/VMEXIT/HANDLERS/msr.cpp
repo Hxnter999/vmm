@@ -16,6 +16,8 @@ HANDLER_STATUS msr_handler(vcpu_t& vcpu) {
 	register_t result{};
 	bool read = vcpu.guest_vmcb.control.exit_info_1.msr.is_read();
 
+	print("MSR: %p, R: %d\n", msr, read);
+
 	result.low = vcpu.guest_stack_frame.rax.low;
 	result.high = vcpu.guest_stack_frame.rdx.low;
 

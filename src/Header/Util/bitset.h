@@ -8,7 +8,7 @@ namespace util
 		char m_bits[bytes];
 
 	public:
-		bitset() : m_bits{ 0 } { }
+		bitset() { memset(&m_bits, 0, sizeof(this)); }
 
 		constexpr bool at(size_t index) const 
 		{

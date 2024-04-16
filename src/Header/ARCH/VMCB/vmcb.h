@@ -18,9 +18,9 @@ static_assert(sizeof(vmcb_t) == 0x1000, "vmcb size is not 0x1000");
 
 struct alignas(0x1000) vcpu_t {
 	union {
-		uint8_t host_stack[0x6000]; //0x6000 default size of KM stack
+		uint8_t host_stack[0x10'000]; //0x6000 default size of KM stack
 		struct {
-			uint8_t stack_contents[0x6000 - (sizeof(uint64_t) * 8) - sizeof(stack_frame_t)];
+			uint8_t stack_contents[0x10'000 - (sizeof(uint64_t) * 8) - sizeof(stack_frame_t)];
 			stack_frame_t guest_stack_frame;
 			uint64_t guest_vmcb_pa;
 			uint64_t host_vmcb_pa;
@@ -44,4 +44,4 @@ struct alignas(0x1000) vcpu_t {
 		ei.evector = exception;
 	}
 };
-static_assert(sizeof(vcpu_t) == 0x8000, "vcpu size is not 0x8000");
+static_assert(sizeof(vcpu_t) == 0x12000, "vcpu size is not 0x12000");

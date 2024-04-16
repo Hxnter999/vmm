@@ -7,9 +7,9 @@ class Hypervisor
 {
 	static Hypervisor* instance;
 	
-	inline bool execute_on_all_cpus(bool(*func)(uint32_t)) //this is cancer!
+	static inline bool execute_on_all_cpus(bool(*func)(uint32_t), uint32_t cpu_count) //this is cancer!
 	{
-		for (uint32_t i = 0; i < vcpus.vcpu_count; i++)
+		for (uint32_t i = 0; i < cpu_count; i++)
 		{
 			auto original_affinity = KeSetSystemAffinityThreadEx(1ll << i);
 			bool result = func(i);
@@ -35,7 +35,7 @@ class Hypervisor
 
 	struct vcpus_t {
 		vcpus_t() : vcpu_count(0), buffer(nullptr) {}
-		vcpus_t(uint32_t size) : vcpu_count(size) { buffer = reinterpret_cast<vcpu_t*>(ExAllocatePoolWithTag(NonPagedPool, size * sizeof(vcpu_t), 'sgmA')); }
+		vcpus_t(uint32_t size) : vcpu_count(size) { buffer = static_cast<vcpu_t*>(ExAllocatePoolWithTag(NonPagedPool, size * sizeof(vcpu_t), 'sgmA')); }
 
 		vcpu_t* buffer;
 		uint32_t vcpu_count;

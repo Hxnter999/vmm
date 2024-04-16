@@ -46,12 +46,13 @@ namespace MSR {
 		};
 
 	public:
-		msrpm_t() : vector1{}, vector2{}, vector3{}, vector4{} {}
+		msrpm_t() : vector{} {}
+
+		static constexpr uint64_t vector1_start = 0x0000'0000, vector1_end = 0x0000'1FFF;
+		static constexpr uint64_t vector2_start = 0xC000'0000, vector2_end = 0xC000'1FFF;
+		static constexpr uint64_t vector3_start = 0xC001'0000, vector3_end = 0xC001'1FFF;
 
 		void set(uint64_t msr, access access_bit, bool value = true) {
-			[[maybe_unused]] constexpr uint64_t vector1_start = 0x0000'0000, vector1_end = 0x0000'1FFF;
-			[[maybe_unused]] constexpr uint64_t vector2_start = 0xC000'0000, vector2_end = 0xC000'1FFF;
-			[[maybe_unused]] constexpr uint64_t vector3_start = 0xC001'0000, vector3_end = 0xC001'1FFF;
 			// bit::read = 0, bit::write = 1
 
 			util::bitset<0x800>* target = nullptr;
@@ -70,5 +71,26 @@ namespace MSR {
 
 			target->set((msr & 0x7FF) * 2 + static_cast<int>(access_bit), value);
 		}
+
+		int8_t at(uint64_t msr, access access_bit) {
+
+			util::bitset<0x800>* target = nullptr;
+			if (msr >= vector3_start && msr <= vector3_end) {
+				target = &vector3;
+			}
+			else if (msr >= vector2_start && msr <= vector2_end) {
+				target = &vector2;
+			}
+			else if (msr <= vector1_end) {
+				target = &vector1;
+			}
+			else {
+				return -1;
+			}
+
+			return target->at((msr & 0x7FF) * 2 + static_cast<int>(access_bit));
+
+		}
+
 	};
 };
