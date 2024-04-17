@@ -51,6 +51,8 @@
     <ClCompile Include="src\Header\ARCH\VMEXIT\HANDLERS\task_switch.cpp" />
     <ClCompile Include="src\Header\ARCH\VMEXIT\HANDLERS\shutdown.cpp" />
     <ClCompile Include="src\Source\setup_vmcb.cpp" />
+    <ClCompile Include="src\Header\ARCH\VMEXIT\HANDLERS\CR\cr4.cpp" />
+    <ClCompile Include="src\Source\z.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\header\arch\msrs\cstar.h" />
@@ -1826,7 +1828,6 @@
     <ClInclude Include="windows-defs-2021h20\structs\_ACPI_CACHED_TABLE.h" />
     <ClInclude Include="windows-defs-2021h20\structs\_ACPI_METHOD_ARGUMENT_V1.h" />
     <ClInclude Include="src\header\arch\msrs\tsc_ratio.h" />
-    <ClInclude Include="src\header\arch\pages\translations.h" />
     <ClInclude Include="src\Header\ARCH\VMEXIT\handlercommon.h" />
     <ClInclude Include="capstone\include\capstone\mos65xx.h" />
     <ClInclude Include="capstone\include\capstone\m68k.h" />

@@ -151,6 +151,7 @@
     <ClCompile Include="src\Header\ARCH\VMEXIT\HANDLERS\CR\cr3.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="src\Header\ARCH\VMEXIT\HANDLERS\CR\cr4.cpp" />
     <ClCompile Include="src\Header\ARCH\VMEXIT\HANDLERS\dtr.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
@@ -190,6 +191,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\Header\commons.h</PrecompiledHeaderFile>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\Header\commons.h</PrecompiledHeaderFile>
     </ClCompile>
+    <ClCompile Include="src\Source\z.cpp" />
     <ClCompile Include="zydis\dependencies\zycore\src\Allocator.c" />
     <ClCompile Include="zydis\dependencies\zycore\src\API\Memory.c" />
     <ClCompile Include="zydis\dependencies\zycore\src\API\Process.c" />
@@ -269,7 +271,6 @@
     <ClInclude Include="src\header\arch\msrs\u_cet.h" />
     <ClInclude Include="src\header\arch\pages\nptssruct.h" />
     <ClInclude Include="src\header\arch\pages\pagemanagerstruct.h" />
-    <ClInclude Include="src\header\arch\pages\translations.h" />
     <ClInclude Include="src\header\arch\rflags.h" />
     <ClInclude Include="src\header\arch\stack_frame.h" />
     <ClInclude Include="src\header\arch\vmexit\handlers.h" />

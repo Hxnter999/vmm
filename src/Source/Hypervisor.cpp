@@ -92,12 +92,6 @@ bool Hypervisor::init()
 
 	print("Initializing Hypervisor...\n");
 
-	if (!init_check()) {
-		print("SVM not supported\n");
-		return false;
-	}
-	print("SVM supported\n");
-
 	instance->vcpus = { KeQueryActiveProcessorCount(nullptr) };
 
 	instance->shared_msrpm = static_cast<MSR::msrpm_t*>(MmAllocateContiguousMemory(sizeof(MSR::msrpm_t), { .QuadPart = -1 }));
@@ -134,11 +128,12 @@ bool Hypervisor::virtualize(uint32_t index)
 	print("Failed efer check\n");
 
 	print("Setting up vmcb\n");
-	setup_vmcb(index, ctx);
+	auto& vcpu = *vcpus.get(index);
+	setup_vmcb(vcpu, ctx);
 
 	ExFreePoolWithTag(ctx, 'sgmA'); //somebody forgot to free...
 	print("Entering vm\n");
-	vmenter(&vcpus.get(index)->guest_vmcb_pa);
+	vmenter(&vcpu.guest_vmcb_pa);
 
 	// shouldnt reach this point, if so something went wrong
 	print("shouldnt reach this point, if so something went wrong\n");
@@ -258,65 +253,4 @@ svm_status Hypervisor::init_check()
 
 	print("SVM lock bit set, disabled\n");
 	return svm_status::SVM_DISABLED_WITH_KEY;
-}
-
-//should use page tables but this is from my other driver
-bool Hypervisor::get_phys(uint64_t cr3, virtual_address_t va, PHYSICAL_ADDRESS& phy)
-{
-	//0x8 bytes (sizeof)
-	struct _MMPTE_HARDWARE
-	{
-		ULONGLONG Valid : 1;                                                      //0x0
-		ULONGLONG Dirty1 : 1;                                                     //0x0
-		ULONGLONG Owner : 1;                                                      //0x0
-		ULONGLONG WriteThrough : 1;                                               //0x0
-		ULONGLONG CacheDisable : 1;                                               //0x0
-		ULONGLONG Accessed : 1;                                                   //0x0
-		ULONGLONG Dirty : 1;                                                      //0x0
-		ULONGLONG LargePage : 1;                                                  //0x0
-		ULONGLONG Global : 1;                                                     //0x0
-		ULONGLONG CopyOnWrite : 1;                                                //0x0
-		ULONGLONG Unused : 1;                                                     //0x0
-		ULONGLONG Write : 1;                                                      //0x0
-		ULONGLONG PageFrameNumber : 36;                                           //0x0
-		ULONGLONG ReservedForHardware : 4;                                        //0x0
-		ULONGLONG ReservedForSoftware : 4;                                        //0x0
-		ULONGLONG WsleAge : 4;                                                    //0x0
-		ULONGLONG WsleProtection : 3;                                             //0x0
-		ULONGLONG NoExecute : 1;                                                  //0x0
-	};
-
-
-	PHYSICAL_ADDRESS pa{};
-
-	pa.QuadPart = cr3 + va.pml4_index * sizeof(_MMPTE_HARDWARE);
-	_MMPTE_HARDWARE pml4e = { read_phys<_MMPTE_HARDWARE>(pa) };
-
-	if (!pml4e.Valid) return false;
-
-	pa.QuadPart = (pml4e.PageFrameNumber << 12) + va.pdpt_index * sizeof(_MMPTE_HARDWARE);
-	_MMPTE_HARDWARE pdpe = { read_phys<_MMPTE_HARDWARE>(pa) };
-
-	if (!pdpe.Valid) return false;
-
-	if (pdpe.LargePage) {
-		phy.QuadPart = (pdpe.PageFrameNumber << 30) + (va.pd_index << 21) + (va.pt_index << 12) + va.offset;
-	}
-
-	pa.QuadPart = (pdpe.PageFrameNumber << 12) + va.pd_index * sizeof(_MMPTE_HARDWARE);
-	_MMPTE_HARDWARE pde = { read_phys<_MMPTE_HARDWARE>(pa) };
-
-	if (!pde.Valid) return false;
-
-	if (pde.Valid) {
-		phy.QuadPart = (pde.PageFrameNumber << 21) + (va.pt_index << 12) + va.offset;
-	}
-
-	pa.QuadPart = (pde.PageFrameNumber << 12) + va.pt_index * sizeof(_MMPTE_HARDWARE);
-	_MMPTE_HARDWARE pte = { read_phys< _MMPTE_HARDWARE>(pa) };
-
-	if (!pte.Valid) return false;
-
-	phy.QuadPart = (pte.PageFrameNumber << 12) + va.offset;
-	return true;
 }

@@ -34,7 +34,12 @@ inline void print(const char* fmt, ...)
     vDbgPrintExWithPrefix("[VMM] ", 0, 0, fmt, args);
 }
 
-
+inline void sprint(const char* fmt, ...)
+{
+	va_list args;
+	__va_start(&args, fmt);
+	vDbgPrintEx(0, 0, fmt, args);
+}
 
 inline uint32_t __stdcall GetSystemFirmwareTable(uint32_t FirmwareTableProviderSignature, uint32_t FirmwareTableID, void* pFirmwareTableBuffer, uint32_t BufferSize)
 {

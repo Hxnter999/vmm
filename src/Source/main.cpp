@@ -18,7 +18,14 @@ extern "C" NTSTATUS DriverEntry(PDRIVER_OBJECT pDriverObject, PUNICODE_STRING pR
 
 	pDriverObject->DriverUnload = Unload;
 
-	if (!HV->init()) 
+	if (!Hypervisor::init_check()) 
+	{
+		print("SVM not supported\n");
+		return STATUS_FAILED_DRIVER_ENTRY;
+	}
+	print("SVM supported\n");
+
+	if (!Hypervisor::init()) 
 	{
 		print("Hypervisor failed to initialize\n");
 		return STATUS_UNSUCCESSFUL;

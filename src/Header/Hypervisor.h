@@ -23,11 +23,9 @@ class Hypervisor
 
 	bool virtualize(uint32_t index);
 
-	void setup_vmcb(uint32_t index, CONTEXT* ctx);
+	void setup_vmcb(vcpu_t& vcpu, CONTEXT const* const ctx);
 
 	void setup_host_pt();
-
-	static svm_status init_check();
 
 	uint64_t* npt;
 	MSR::msrpm_t* shared_msrpm;
@@ -50,6 +48,8 @@ public:
 	Hypervisor(Hypervisor&) = delete;
 	void operator=(const Hypervisor&) = delete;
 
+	static svm_status init_check();
+
 	MSR::msrpm_t& msrpm() { return *shared_msrpm; }
 
 	static bool init();
@@ -62,34 +62,6 @@ public:
 	bool virtualize();
 
 	bool setup_npts();
-
-	//testing needed for these functions
-	bool get_phys(cr3_t cr3, virtual_address_t va, PHYSICAL_ADDRESS& phy) {
-		return get_phys(cr3.get_phys_pml4(), va, phy);
-	}
-	bool get_phys(uint64_t cr3, virtual_address_t va, PHYSICAL_ADDRESS& phy);
-
-	template<typename T>
-	T read_phys(PHYSICAL_ADDRESS phy)
-	{
-		return *reinterpret_cast<T*>(host_pt_t::host_pa_base + phy.QuadPart);
-	}
-
-	void read_phys(PHYSICAL_ADDRESS phy, void* out, size_t size) 
-	{
-		memcpy(reinterpret_cast<void*>(host_pt_t::host_pa_base + phy.QuadPart), out, size);
-	}
-
-	template<typename T>
-	void write_phys(PHYSICAL_ADDRESS phy, const T& value)
-	{
-		*reinterpret_cast<T*>(host_pt_t::host_pa_base + phy.QuadPart) = value;
-	}
-
-	void write_phys(PHYSICAL_ADDRESS phy, void* value, size_t size) 
-	{
-		memcpy(value, reinterpret_cast<void*>(host_pt_t::host_pa_base + phy.QuadPart), size);
-	}
 
 	void devirtualize(vcpu_t* const vcpu);
 

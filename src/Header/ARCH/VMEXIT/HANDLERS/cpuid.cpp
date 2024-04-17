@@ -1,6 +1,7 @@
 #include <arch/vmexit/handlers.h>
 #include <ARCH/CPUID/standard-features/fn_processor.h>
 #include <ARCH/CPUID/extended-features/fn_identifiers.h>
+#include <CPUID/extended-features/fn_svm_features.h>
 
 HANDLER_STATUS cpuid_handler(vcpu_t& vcpu) {
 
@@ -9,7 +10,16 @@ HANDLER_STATUS cpuid_handler(vcpu_t& vcpu) {
 	int leaf_id = vcpu.guest_stack_frame.rcx.low;
 	__cpuidex(reinterpret_cast<int*>(&result.cpu_info), function_id, leaf_id);
 
-	//print("CPUID: %d, %d\n", function_id, leaf_id);
+	print("CPUID: %d, %d\n", function_id, leaf_id);
+
+	switch(function_id)
+	{
+		case CPUID::fn_svm_features::id:
+			CPUID::fn_svm_features* tm = reinterpret_cast<CPUID::fn_svm_features*>(&result);
+			tm->svm_feature_identification.svm_lock = 1;
+			break;
+	}
+
 	//switch (function_id) 
 	//{
 	//case CPUID::fn_processor::id: {
