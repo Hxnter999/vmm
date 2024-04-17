@@ -1,19 +1,17 @@
+**Test phys r/w** <- <-
 
-make um client/um logger
-	sperate unload/deinit and setup/init so a client can disconnnect and connect
-TSC scaling
+TSC scaling (cant use vmware, doesnt support it)
 
 RDPID is used to read TSC_AUX, good to know if we ever mess with it
 
 cleanup ASM
 
 Test added handlers (XSETBV)
-**Test phys r/w** <- <-
 Finish (l/s)(i/g)dt
 Add LBR virtulization
 add custom seh
 
-
+Handler debug registers
 
 "IET Divergence"
 
@@ -29,3 +27,7 @@ Emulating Debug registers and shit
 if nrip is not supported then use decomp
 
 maybe make msr .load/.save return bools (check if cpuid if its vaild e.g. tsc_ratio)
+
+new/delete operator, annoying cause hard to specify if u want contiguous or not
+
+task switch intercept

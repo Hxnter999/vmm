@@ -23,7 +23,7 @@ class Hypervisor
 
 	bool virtualize(uint32_t index);
 
-	void setup_vmcb(vcpu_t* vcpu, CONTEXT* ctx);
+	void setup_vmcb(uint32_t index, CONTEXT* ctx);
 
 	void setup_host_pt();
 

@@ -148,6 +148,9 @@
   <ItemGroup>
     <ClCompile Include="src\Header\ARCH\VMCB\vcpu_t.cpp" />
     <ClCompile Include="src\header\arch\vmexit\handlers\cpuid.cpp" />
+    <ClCompile Include="src\Header\ARCH\VMEXIT\HANDLERS\CR\cr3.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="src\Header\ARCH\VMEXIT\HANDLERS\dtr.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
@@ -162,6 +165,10 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="src\Header\ARCH\VMEXIT\HANDLERS\shutdown.cpp" />
+    <ClCompile Include="src\Header\ARCH\VMEXIT\HANDLERS\task_switch.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="src\Header\ARCH\VMEXIT\HANDLERS\xsetbv.cpp" />
     <ClCompile Include="src\header\hypercall\hypercall.cpp">
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">../commons.h</PrecompiledHeaderFile>
@@ -174,6 +181,7 @@
     <ClCompile Include="src\source\hypervisor.cpp" />
     <ClCompile Include="src\header\smbios\smbios.cpp" />
     <ClCompile Include="src\Source\operators.cpp" />
+    <ClCompile Include="src\Source\setup_vmcb.cpp" />
     <ClCompile Include="src\source\svm\svm.cpp">
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">../../Header/commons.h</PrecompiledHeaderFile>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">../../Header/commons.h</PrecompiledHeaderFile>
