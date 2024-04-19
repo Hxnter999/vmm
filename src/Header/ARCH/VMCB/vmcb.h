@@ -74,5 +74,12 @@ struct alignas(0x1000) vcpu_t {
 		ei.type = INTERRUPT_TYPE::HARDWARE_EXCEPTION;
 		ei.evector = exception;
 	}
+
+	void inject_nmi()
+	{
+		auto& ei = guest_vmcb.control.event_injection;
+		ei.valid = 1;
+		ei.type = INTERRUPT_TYPE::NMI;
+	}
 };
 static_assert(sizeof(vcpu_t) == 0x12000, "vcpu size is not 0x12000");

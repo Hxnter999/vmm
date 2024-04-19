@@ -10,7 +10,8 @@ enum class HANDLER_STATUS
 	INJECT_GP,
 	INJECT_UD,
 	INJECT_PF,
-	NO_ACTION
+	NO_ACTION,
+	INJECT_NMI
 };
 
 HANDLER_STATUS msr_handler(vcpu_t& vcpu);
@@ -33,3 +34,5 @@ HANDLER_STATUS cr3_read_handler(vcpu_t& vcpu);
 HANDLER_STATUS cr3_write_handler(vcpu_t& vcpu);
 
 HANDLER_STATUS shutdown_handler(vcpu_t& vcpu);
+
+HANDLER_STATUS nmi_handler(vcpu_t& vcpu);

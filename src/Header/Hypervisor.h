@@ -3,6 +3,10 @@
 #include <svm_status.h>
 #include <vmcb/vmcb.h>
 
+
+#include <shared.h>
+extern "C" int64_t testcall(HYPERCALL_CODE code);
+
 class Hypervisor
 {
 	static Hypervisor* instance;
@@ -27,9 +31,11 @@ class Hypervisor
 
 	void setup_host_pt();
 
+public:
+	host_pt_t shared_host_pt;
+private:
 	uint64_t* npt;
 	MSR::msrpm_t* shared_msrpm;
-	host_pt_t shared_host_pt;
 
 	struct vcpus_t {
 		vcpus_t() : vcpu_count(0), buffer(nullptr) {}
@@ -68,6 +74,17 @@ public:
 	void unload(); //this should only be called once (in Unload)
 
 	void destroy();
+
+	template<typename T>
+	static bool readPhys(void* addr, T& out) {
+		__try {
+			out = *reinterpret_cast<T*>(host_pt_t::host_pa_base + reinterpret_cast<uint64_t>(addr));
+			return true;
+		}
+		__except (EXCEPTION_EXECUTE_HANDLER) {
+			return false;
+		}
+	}
 };
 
 #define HV Hypervisor::get()

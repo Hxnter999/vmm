@@ -2,7 +2,13 @@
 
 HANDLER_STATUS dtr_save_handler(vcpu_t& vcpu)
 {
-	vcpu;
+	segment_register_t& dtr{
+		vcpu.guest_vmcb.control.exit_code == VMEXIT_IDTR_READ ? vcpu.guest_vmcb.save_state.idtr : vcpu.guest_vmcb.save_state.gdtr
+	};
+
+	if(is_arch_x64(vcpu.guest_vmcb.save_state)) {
+		
+	}
 }
 
 HANDLER_STATUS dtr_load_handler(vcpu_t& vcpu)

@@ -22,9 +22,16 @@ void Hypervisor::setup_vmcb(vcpu_t& vcpu, CONTEXT const * const ctx) //should ma
 	vcpu.guest_vmcb.control.vmsave = 1;
 	vcpu.guest_vmcb.control.clgi = 1;
 	vcpu.guest_vmcb.control.msr_prot = 1;
+	
+	////nmi intercept bit
+	//vcpu.guest_vmcb.control.nmi = 1;
+
+	////nmi virtualization
+	//vcpu.guest_vmcb.control.v_nmi_enable = 1;
 
 	vcpu.guest_vmcb.control.guest_asid = 1; // Address space identifier "ASID [cannot be] equal to zero" 15.5.1 ASID 0 is for the host
 	vcpu.guest_vmcb.control.v_intr_masking = 1; // 15.21.1 & 15.22.2
+	vcpu.guest_vmcb.control.xsetbv = 1;
 
 	//vcpu.guest_vmcb.control.cr3_read = 1;
 	//vcpu.guest_vmcb.control.cr3_write = 1;

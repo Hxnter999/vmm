@@ -9,9 +9,11 @@
 #include <msrs/hsave_pa.h>
 #include <msrs/efer.h>
 
+#include <shared.h>
+
 void Unload(PDRIVER_OBJECT pDriverObject);
 
-
+uint64_t val = 231;
 extern "C" NTSTATUS DriverEntry(PDRIVER_OBJECT pDriverObject, PUNICODE_STRING pRegistryPath)
 {
 	UNREFERENCED_PARAMETER(pRegistryPath);
@@ -49,6 +51,11 @@ extern "C" NTSTATUS DriverEntry(PDRIVER_OBJECT pDriverObject, PUNICODE_STRING pR
 		print("Virtualization failed\n");
 		return STATUS_UNSUCCESSFUL;
 	}
+
+	//auto pa = MmGetPhysicalAddress(&val);
+	//print("Physical address of val: %llx\n", pa.QuadPart);
+
+	testcall(HYPERCALL_CODE::test);
 
 	return STATUS_SUCCESS;
 }

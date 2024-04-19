@@ -35,7 +35,24 @@ namespace CPUID {
 					uint32_t pause_filter : 1;
 					uint32_t reserved11 : 1;
 					uint32_t pause_filter_threshold : 1;
-					uint32_t reserved13 : 19;
+					uint32_t avic : 1;
+					uint32_t reserved14 : 1;
+					uint32_t vnsaveevirt : 1;
+					uint32_t vgif : 1;
+					uint32_t gmet : 1;
+					uint32_t x2avic : 1;
+					uint32_t ssscheck : 1;
+					uint32_t specctrl : 1;
+					uint32_t rogpt : 1;
+					uint32_t reserved22 : 1;
+					uint32_t host_mce_override : 1;
+					uint32_t tlbictl : 1;
+					uint32_t vnmi : 1;
+					uint32_t lbsvirt : 1;
+					uint32_t extlvtavicaccesschg : 1;
+					uint32_t nestedvirtvmcbaddrchk : 1;
+					uint32_t buslockthreshold : 1;
+					uint32_t reserved30 : 2;
 				} svm_feature_identification;
 			};
 

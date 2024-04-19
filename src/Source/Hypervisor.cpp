@@ -9,7 +9,6 @@
 
 #include <PAGES/npts.h>
 
-extern "C" int64_t testcall(HYPERCALL_CODE code);
 extern "C" void vmenter(uint64_t * guest_vmcb_pa);
 
 Hypervisor* Hypervisor::instance = nullptr;
@@ -168,25 +167,6 @@ bool Hypervisor::virtualize()
 void Hypervisor::setup_host_pt() {
 	print("Setting up host page tables\n");
 	// map all the physical memory and share it between the hosts to be able to access it directly.
-	auto& pml4e = shared_host_pt.pml4[shared_host_pt.phys_pml4e];
-	pml4e.present = 1;
-	pml4e.write = 1;
-	pml4e.page_pa = MmGetPhysicalAddress(&shared_host_pt.pdpt).QuadPart >> 12;
-
-	for (int i = 0; i < 64; i++) {
-		auto& pdpte = shared_host_pt.pdpt[i];
-		pdpte.present = 1;
-		pdpte.write = 1;
-		pdpte.page_pa = MmGetPhysicalAddress(&shared_host_pt.pd[i]).QuadPart >> 12;
-
-		for (int j = 0; j < 512; j++) {
-			auto& pde = shared_host_pt.pd[i][j];
-			pde.present = 1;
-			pde.write = 1;
-			pde.large_page = 1;
-			pde.page_pa = i * 512 + j;
-		}
-	}
 
 	//auto system_process = reinterpret_cast<_EPROCESS*>(PsInitialSystemProcess);
 	//cr3_t system_cr3{ system_process->Pcb.DirectoryTableBase };
@@ -197,6 +177,26 @@ void Hypervisor::setup_host_pt() {
 	auto system_pml4 = reinterpret_cast<pml4e_t*>(MmGetVirtualForPhysical({ .QuadPart = static_cast<int64_t>(system_cr3.pml4 << 12) }));
 
 	memcpy(&shared_host_pt.pml4[256], &system_pml4[256], sizeof(pml4e_t) * 256);
+
+	auto& pml4e = shared_host_pt.pml4[shared_host_pt.phys_pml4e];
+	pml4e.present = 1;
+	pml4e.write = 1;
+	pml4e.page_pa = MmGetPhysicalAddress(&shared_host_pt.pdpt).QuadPart >> 12;
+
+	for (uint32_t i = 0; i < 64; i++) {
+		auto& pdpte = shared_host_pt.pdpt[i];
+		pdpte.present = 1;
+		pdpte.write = 1;
+		pdpte.page_pa = MmGetPhysicalAddress(&shared_host_pt.pd[i]).QuadPart >> 12;
+
+		for (uint32_t j = 0; j < 512; j++) {
+			auto& pde = shared_host_pt.pd[i][j];
+			pde.present = 1;
+			pde.write = 1;
+			pde.large_page = 1;
+			pde.page_pa = i * 512ull + j;
+		}
+	}
 }
 
 svm_status Hypervisor::init_check()
@@ -232,9 +232,15 @@ svm_status Hypervisor::init_check()
 
 	if (!svm_rev.svm_feature_identification.n_rip) // necessary otherwise we have to emulate it which is a pain
 	{
-		print("Uh oh! Next RIP not supported\n");
+		print("Uh oh! N_RIP not supported\n");
 		return svm_status::SVM_NEXT_RIP_NOT_SUPPORTED;
 	}
+
+	//if (!svm_rev.svm_feature_identification.vnmi) // necessary otherwise we have to emulate it which is a pain
+	//{
+	//	print("Uh oh! V_NMI not supported\n");
+	//	return svm_status::SVM_NEXT_RIP_NOT_SUPPORTED;
+	//}
 
 	MSR::VM_CR vm_cr{};
 	vm_cr.load();

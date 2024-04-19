@@ -16,6 +16,9 @@ inline HANDLER_STATUS cases(vcpu_t& vcpu)
 	case SVM_EXIT_CODE::VMEXIT_CPUID:
 		return cpuid_handler(vcpu);
 
+	case SVM_EXIT_CODE::VMEXIT_XSETBV:
+		return xsetbv_handler(vcpu);
+
 	case SVM_EXIT_CODE::VMEXIT_INVALID:
 		print("INVALID GUEST STATE, EXITING...\n");
 		vcpu.should_exit = true;
@@ -23,6 +26,9 @@ inline HANDLER_STATUS cases(vcpu_t& vcpu)
 
 	case SVM_EXIT_CODE::VMEXIT_NPF:
 		return npf_handler(vcpu);
+
+	case SVM_EXIT_CODE::VMEXIT_NMI:
+		return nmi_handler(vcpu);
 
 	case SVM_EXIT_CODE::VMEXIT_HV: // event injection exception
 		print("Failed to inject event\n");
@@ -49,9 +55,6 @@ inline HANDLER_STATUS cases(vcpu_t& vcpu)
 	case SVM_EXIT_CODE::VMEXIT_CLGI:
 		return HANDLER_STATUS::INJECT_UD;
 
-	case SVM_EXIT_CODE::VMEXIT_XSETBV:
-		return xsetbv_handler(vcpu);
-
 	//case SVM_EXIT_CODE::VMEXIT_CR3_WRITE:
 
 	//case SVM_EXIT_CODE::VMEXIT_CR3_READ:
@@ -64,44 +67,11 @@ inline HANDLER_STATUS cases(vcpu_t& vcpu)
 	return HANDLER_STATUS::INCREMENT_RIP;
 }
 
-bool first_call(vcpu_t& vcpu) 
-{
-	//uint64_t ripval{};
-	//vcpu.read_guest(vcpu.guest_vmcb.save_state.rip, ripval);
-	//print("%p\n", ripval);
-
-	//uint64_t z{ 10 };
-	//PHYSICAL_ADDRESS pa{};
-
-	//__try {
-	//	pa = MmGetPhysicalAddress(&z);
-	//}
-	//__except (1) {
-	//	print("Exception1\n");
-	//	return true;
-	//}
-
-	//__try {
-	//	uint64_t p =
-	//	HV->read_phys<uint64_t>(pa);
-	//	print("%llx %llx\n", p, z);
-	//}
-	//__except (1) {
-	//	print("Exception2\n");
-	//}
-
-	return true;
-}
-
 bool vmexit_handler(vcpu_t& vcpu, uint64_t last_exited) {
 
 	__svm_vmload(vcpu.host_vmcb_pa);
 
 	print("ve %llx, last_exited %llu\n", vcpu.guest_vmcb.control.exit_code, last_exited);
-
-	if (static bool first{ true }; first) {
-		first = !first_call(vcpu);
-	}
 
 	// guest rax overwriten by host after vmexit
 	vcpu.guest_stack_frame.rax.value = vcpu.guest_vmcb.save_state.rax_do_not_touch;
@@ -124,6 +94,9 @@ bool vmexit_handler(vcpu_t& vcpu, uint64_t last_exited) {
 			break;
 		case HANDLER_STATUS::INJECT_PF:
 			vcpu.inject_event<EXCEPTION_VECTOR::PF>();
+			break;
+		case HANDLER_STATUS::INJECT_NMI:
+			vcpu.inject_nmi();
 			break;
 		case HANDLER_STATUS::NO_ACTION:
 			break;

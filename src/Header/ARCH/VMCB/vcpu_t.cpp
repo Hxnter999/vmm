@@ -6,8 +6,8 @@ bool vcpu_t::gva_to_gpa(void* gva, uint64_t& modifiable_size, uint64_t& gpa) {
 	virtual_address_t va{ gva };
 	print("gva_to_gpa\n");
 	//__debugbreak();
-	auto& guest_cr3 = guest_vmcb.save_state.cr3;
-	auto base = host_pt_t::host_pa_base;
+	const auto& guest_cr3 = guest_vmcb.save_state.cr3;
+	constexpr auto base = host_pt_t::host_pa_base;
 	uint64_t offset{};
 
 	auto pml4e = reinterpret_cast<pml4e_t*>(base + (guest_cr3.pml4 << 12))[va.pml4_index];
