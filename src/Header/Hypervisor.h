@@ -11,6 +11,7 @@ class Hypervisor
 {
 	static Hypervisor* instance;
 	
+	//explicit inline lol
 	static inline bool execute_on_all_cpus(bool(*func)(uint32_t), uint32_t cpu_count) //this is cancer!
 	{
 		for (uint32_t i = 0; i < cpu_count; i++)

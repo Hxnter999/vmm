@@ -32,3 +32,5 @@ maybe make msr .load/.save return bools (check if cpuid if its vaild e.g. tsc_ra
 new/delete operator, annoying cause hard to specify if u want contiguous or not
 
 task switch intercept
+
+"registering" handlers (compile time)

@@ -178,10 +178,12 @@ void Hypervisor::setup_host_pt() {
 	//auto system_process = reinterpret_cast<_EPROCESS*>(PsInitialSystemProcess);
 	//cr3_t system_cr3{ system_process->Pcb.DirectoryTableBase };
 
-	auto system_process = reinterpret_cast<uintptr_t>(PsInitialSystemProcess);
-	auto system_cr3 = *reinterpret_cast<cr3_t*>(system_process + 0x28);
+	//auto system_process = reinterpret_cast<uintptr_t>(PsInitialSystemProcess);
+	//auto system_cr3 = *reinterpret_cast<cr3_t*>(system_process + 0x28);
 
-	auto system_pml4 = reinterpret_cast<pml4e_t*>(MmGetVirtualForPhysical({ .QuadPart = static_cast<int64_t>(system_cr3.pml4 << 12) }));
+	cr3_t system_cr3{ __readcr3() };
+
+	auto system_pml4 = reinterpret_cast<pml4e_t*>(MmGetVirtualForPhysical({ .QuadPart = system_cr3.get_phys_pml4() }));
 
 	memcpy(&shared_host_pt.pml4[256], &system_pml4[256], sizeof(pml4e_t) * 256);
 
