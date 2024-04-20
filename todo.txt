@@ -1,6 +1,7 @@
 **Test phys r/w** <- <-
 
 TSC scaling (cant use vmware, doesnt support it)
+also vmware doesnt support vnmis
 
 RDPID is used to read TSC_AUX, good to know if we ever mess with it
 

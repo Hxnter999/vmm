@@ -27,7 +27,7 @@ class Hypervisor
 
 	bool virtualize(uint32_t index);
 
-	void setup_vmcb(vcpu_t& vcpu, CONTEXT const* const ctx);
+	void setup_vmcb(vcpu_t& vcpu, const CONTEXT& ctx);
 
 	void setup_host_pt();
 
@@ -77,13 +77,8 @@ public:
 
 	template<typename T>
 	static bool readPhys(void* addr, T& out) {
-		__try {
-			out = *reinterpret_cast<T*>(host_pt_t::host_pa_base + reinterpret_cast<uint64_t>(addr));
-			return true;
-		}
-		__except (EXCEPTION_EXECUTE_HANDLER) {
-			return false;
-		}
+		out = *reinterpret_cast<T*>(host_pt_t::host_pa_base + reinterpret_cast<uint64_t>(addr));
+		return true;
 	}
 };
 

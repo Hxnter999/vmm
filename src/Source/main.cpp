@@ -57,6 +57,8 @@ extern "C" NTSTATUS DriverEntry(PDRIVER_OBJECT pDriverObject, PUNICODE_STRING pR
 
 	testcall(HYPERCALL_CODE::test);
 
+	testcall(HYPERCALL_CODE::test);
+
 	return STATUS_SUCCESS;
 }
 

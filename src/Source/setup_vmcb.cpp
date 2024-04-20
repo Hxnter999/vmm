@@ -2,7 +2,7 @@
 #include <MSRs/hsave_pa.h>
 #include <MSRs/pat.h>
 
-void Hypervisor::setup_vmcb(vcpu_t& vcpu, CONTEXT const * const ctx) //should make it a reference
+void Hypervisor::setup_vmcb(vcpu_t& vcpu, const CONTEXT& ctx) //should make it a reference
 {
 	memset(&vcpu, 0, sizeof(vcpu_t));
 
@@ -62,20 +62,20 @@ void Hypervisor::setup_vmcb(vcpu_t& vcpu, CONTEXT const * const ctx) //should ma
 	vcpu.guest_vmcb.save_state.gdtr.limit = gdtr.limit;
 
 	//TODO: need to set RSP, RIP, and RFLAGS (This is where the guest will start executing)
-	vcpu.guest_vmcb.save_state.rsp = ctx->Rsp;
-	vcpu.guest_vmcb.save_state.rip = ctx->Rip;
-	vcpu.guest_vmcb.save_state.rflags.value = ctx->EFlags;
+	vcpu.guest_vmcb.save_state.rsp = ctx.Rsp;
+	vcpu.guest_vmcb.save_state.rip = ctx.Rip;
+	vcpu.guest_vmcb.save_state.rflags.value = ctx.EFlags;
 
 	//Setup all the segment registers
-	vcpu.guest_vmcb.save_state.cs.limit = __segmentlimit(ctx->SegCs);
-	vcpu.guest_vmcb.save_state.ds.limit = __segmentlimit(ctx->SegDs);
-	vcpu.guest_vmcb.save_state.es.limit = __segmentlimit(ctx->SegEs);
-	vcpu.guest_vmcb.save_state.ss.limit = __segmentlimit(ctx->SegSs);
+	vcpu.guest_vmcb.save_state.cs.limit = __segmentlimit(ctx.SegCs);
+	vcpu.guest_vmcb.save_state.ds.limit = __segmentlimit(ctx.SegDs);
+	vcpu.guest_vmcb.save_state.es.limit = __segmentlimit(ctx.SegEs);
+	vcpu.guest_vmcb.save_state.ss.limit = __segmentlimit(ctx.SegSs);
 
-	vcpu.guest_vmcb.save_state.cs.selector.value = ctx->SegCs;
-	vcpu.guest_vmcb.save_state.ds.selector.value = ctx->SegDs;
-	vcpu.guest_vmcb.save_state.es.selector.value = ctx->SegEs;
-	vcpu.guest_vmcb.save_state.ss.selector.value = ctx->SegSs;
+	vcpu.guest_vmcb.save_state.cs.selector.value = ctx.SegCs;
+	vcpu.guest_vmcb.save_state.ds.selector.value = ctx.SegDs;
+	vcpu.guest_vmcb.save_state.es.selector.value = ctx.SegEs;
+	vcpu.guest_vmcb.save_state.ss.selector.value = ctx.SegSs;
 
 	vcpu.guest_vmcb.save_state.cs.get_attributes(gdtr.base);
 	vcpu.guest_vmcb.save_state.ds.get_attributes(gdtr.base);

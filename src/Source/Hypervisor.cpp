@@ -42,6 +42,11 @@ void Hypervisor::destroy()
 {
 	print("Destroy\n");
 
+	if (instance == nullptr) {
+		print("Hypervisor::destroy() called without instance\n");
+		return; //should never happen
+	}
+
 	if (vcpus.buffer) {
 		ExFreePoolWithTag(vcpus.buffer, 'sgmA');
 		vcpus.buffer = nullptr;
@@ -61,7 +66,10 @@ void Hypervisor::destroy()
 
 void Hypervisor::unload()
 {
-	if (instance == nullptr) return; //should never happen
+	if (instance == nullptr) {
+		print("Hypervisor::unload() called without instance\n");
+		return; //should never happen
+	}
 
 	print("Unloading Hypervisor...\n");
 
@@ -77,7 +85,6 @@ void Hypervisor::unload()
 
 bool Hypervisor::init()
 {
-
 	instance = static_cast<Hypervisor*>(ExAllocatePoolWithTag(NonPagedPool, sizeof(Hypervisor), 'sgmA'));
 	if (!instance) 
 	{
@@ -113,7 +120,7 @@ bool Hypervisor::virtualize(uint32_t index)
 	efer.svme = 1;
 	efer.store();
 
-	CONTEXT* ctx = static_cast<CONTEXT*>(ExAllocatePoolWithTag(NonPagedPool, sizeof(CONTEXT), 'sgmA'));
+	CONTEXT* ctx = static_cast<CONTEXT*>(ExAllocatePoolWithTag(NonPagedPool, sizeof(CONTEXT), 'xtc'));
 	memset(ctx, 0, sizeof(CONTEXT));
 	RtlCaptureContext(ctx);
 
@@ -128,9 +135,9 @@ bool Hypervisor::virtualize(uint32_t index)
 
 	print("Setting up vmcb\n");
 	auto& vcpu = *vcpus.get(index);
-	setup_vmcb(vcpu, ctx);
+	setup_vmcb(vcpu, *ctx);
 
-	ExFreePoolWithTag(ctx, 'sgmA'); //somebody forgot to free...
+	ExFreePoolWithTag(ctx, 'xtc'); //somebody forgot to free...
 	print("Entering vm\n");
 	vmenter(&vcpu.guest_vmcb_pa);
 

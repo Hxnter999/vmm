@@ -41,7 +41,7 @@ HANDLER_STATUS hypercall_handler(vcpu_t& vcpu) {
 		}
 		default:
 		{
-			print("Default case inn hypercall handler\n");
+			print("Default case in hypercall handler\n");
 			break;
 		}
 	}
