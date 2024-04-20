@@ -181,6 +181,8 @@ void Hypervisor::setup_host_pt() {
 	//auto system_process = reinterpret_cast<uintptr_t>(PsInitialSystemProcess);
 	//auto system_cr3 = *reinterpret_cast<cr3_t*>(system_process + 0x28);
 
+	memset(&shared_host_pt, 0, sizeof(shared_host_pt));
+
 	cr3_t system_cr3{ __readcr3() };
 
 	auto system_pml4 = reinterpret_cast<pml4e_t*>(MmGetVirtualForPhysical({ .QuadPart = system_cr3.get_phys_pml4() }));
