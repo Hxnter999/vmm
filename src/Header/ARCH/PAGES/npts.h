@@ -11,11 +11,6 @@ constexpr decltype(auto) roundup(auto&& var, auto&& num) {
 	return ((var) + (num) - 1) / (num);
 }
 
-constexpr uint64_t plm4e_address_range = 0x1000000000; //256GB
-constexpr uint64_t pdpes_address_range = 0x40000000; //1GB
-constexpr uint64_t pdes_address_range = 0x200000; //2MB
-constexpr uint64_t ptes_address_range = 0x1000; //4KB
-
 inline bool setup_huge(const uint64_t guest_phys_addr_size, uint64_t*& buffer)
 {
 	const uint64_t amount_plm4es = roundup(guest_phys_addr_size, plm4e_address_range);

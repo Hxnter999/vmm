@@ -36,7 +36,7 @@ struct alignas(0x1000) vcpu_t {
 	vmcb_t guest_vmcb;
 
 	template<typename T>
-	bool read_guest(uint64_t  gva, T& out) {
+	bool read_guest(uint64_t gva, T& out) {
 		return read_guest(reinterpret_cast<void*>(gva), out);
 	}
 
@@ -57,13 +57,17 @@ struct alignas(0x1000) vcpu_t {
 
 	bool gva_to_gpa(void* gva, uint64_t& modifiable_size, _Out_ uint64_t& gpa);
 	
+
 	bool gva_to_hva(void* gva, uint64_t& modifiable_size, _Out_ uint64_t& hva) {
 		uint64_t gpa{};
 		if(!gva_to_gpa(gva, modifiable_size, gpa))
 			return false;
 
-		hva = gpa + host_pt_t::host_pa_base;
+		hva = host_pt_t::host_pa_base + gpa;
 		return true;
+	}
+	bool gva_to_hva(uint64_t gva, uint64_t& modifiable_size, _Out_ uint64_t& hva) {
+		return gva_to_hva(reinterpret_cast<void*>(gva), modifiable_size, hva);
 	}
 
 	template<EXCEPTION_VECTOR exception>

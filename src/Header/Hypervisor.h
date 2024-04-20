@@ -32,9 +32,10 @@ class Hypervisor
 
 	void setup_host_pt();
 
-public:
-	host_pt_t shared_host_pt;
+
 private:
+	host_pt_t shared_host_pt;
+	cr3_t old_cr3;
 	uint64_t* npt;
 	MSR::msrpm_t* shared_msrpm;
 
@@ -78,7 +79,14 @@ public:
 
 	template<typename T>
 	static bool readPhys(void* addr, T& out) {
-		out = *reinterpret_cast<T*>(host_pt_t::host_pa_base + reinterpret_cast<uint64_t>(addr));
+		auto _addr = reinterpret_cast<uint64_t>(addr);
+		print("Reading physical address: %llx\n", _addr);
+		if (_addr >= plm4e_address_range + sizeof(T)) {
+			print("Address out of range\n");
+			return false;
+		}
+
+		out = *reinterpret_cast<T*>(host_pt_t::host_pa_base + _addr);
 		return true;
 	}
 };

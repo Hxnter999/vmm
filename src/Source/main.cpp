@@ -46,6 +46,10 @@ extern "C" NTSTATUS DriverEntry(PDRIVER_OBJECT pDriverObject, PUNICODE_STRING pR
 	HV->msrpm().set(MSR::HSAVE_PA::MSR_VM_HSAVE_PA, MSR::access::read);
 	HV->msrpm().set(MSR::HSAVE_PA::MSR_VM_HSAVE_PA, MSR::access::write);
 
+	print("pdes_address_range: %p\n", pdes_address_range);
+	print("pdpes_address_range: %p\n", pdpes_address_range);
+	print("plm4e_address_range: %p\n", plm4e_address_range);
+
 	if (!HV->virtualize())
 	{
 		print("Virtualization failed\n");
@@ -55,9 +59,9 @@ extern "C" NTSTATUS DriverEntry(PDRIVER_OBJECT pDriverObject, PUNICODE_STRING pR
 	//auto pa = MmGetPhysicalAddress(&val);
 	//print("Physical address of val: %llx\n", pa.QuadPart);
 
-	testcall(HYPERCALL_CODE::test);
-
-	testcall(HYPERCALL_CODE::test);
+	testcall(HYPERCALL_CODE::test2);
+ 	//auto waz = reinterpret_cast<uint64_t(*)(HYPERCALL_CODE, void*)>(testcall(HYPERCALL_CODE::test));
+	//waz(HYPERCALL_CODE::test, &val);
 
 	return STATUS_SUCCESS;
 }

@@ -9,7 +9,8 @@ enum class HYPERCALL_CODE : uint64_t
 	VIRTUALIZE,
 	DESTROY,
 	PING,
-	test
+	test,
+	test2,
 };
 
 enum class HYPERCALL_STATUS : uint64_t

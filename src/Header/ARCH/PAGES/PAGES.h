@@ -1,6 +1,11 @@
 #pragma once
 #include <commons.h>
 
+inline constexpr uint64_t ptes_address_range = 0x1000; //4KB
+inline constexpr uint64_t pdes_address_range = ptes_address_range * 512; //2MB
+inline constexpr uint64_t pdpes_address_range = pdes_address_range * 512; //1GB
+inline constexpr uint64_t plm4e_address_range = pdpes_address_range * 512; //256GB
+
 struct pml4e_t 
 {
 	uint64_t present : 1;
@@ -117,10 +122,11 @@ struct pte_t
 struct alignas(0x1000) host_pt_t {
 	pml4e_t pml4[512];
 	pdpe_t pdpt[512];
-	pde_t pd[64][512];
+	pde_t pd[512][512];
 	
 	static constexpr uint64_t phys_pml4e = 255;
 	static constexpr uint64_t host_pa_base = phys_pml4e << (12 + 9 + 9 + 9);
+	static constexpr uint64_t host_pa_end = host_pa_base + plm4e_address_range;
 };
 
 union virtual_address_t {

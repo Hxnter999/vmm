@@ -7,15 +7,17 @@ bool vcpu_t::gva_to_gpa(void* gva, uint64_t& modifiable_size, uint64_t& gpa) {
 	print("gva_to_gpa\n");
 	//__debugbreak();
 	const auto& guest_cr3 = guest_vmcb.save_state.cr3;
-	constexpr auto base = host_pt_t::host_pa_base;
 	uint64_t offset{};
 
-	auto pml4e = reinterpret_cast<pml4e_t*>(base + (guest_cr3.pml4 << 12))[va.pml4_index];
+
+	pml4e_t pml4e{};
+	if (!HV->readPhys((reinterpret_cast<pml4e_t*>(guest_cr3.pml4 << 12) + va.pml4_index), pml4e)) return false;
 	if (!pml4e.present) {
 		return false;
 	}
 
-	auto pdpte = reinterpret_cast<pdpe_t*>(base + (pml4e.page_pa << 12))[va.pdpt_index];
+	pdpe_t pdpte{};
+	if (!HV->readPhys((reinterpret_cast<pdpe_t*>(pml4e.page_pa << 12) + va.pdpt_index), pdpte)) return false;
 	if (!pdpte.present) {
 		return false;
 	}
@@ -28,7 +30,8 @@ bool vcpu_t::gva_to_gpa(void* gva, uint64_t& modifiable_size, uint64_t& gpa) {
 		return true;
 	}
 
-	auto pde = reinterpret_cast<pde_t*>(base + (pdpte.page_pa << 12))[va.pd_index];
+	pde_t pde{};
+	if (!HV->readPhys((reinterpret_cast<pde_t*>(pdpte.page_pa << 12) + va.pd_index), pde)) return false;
 	if (!pde.present) {
 		return false;
 	}
@@ -42,7 +45,8 @@ bool vcpu_t::gva_to_gpa(void* gva, uint64_t& modifiable_size, uint64_t& gpa) {
 	}
 
 	// 4kb
-	auto pte = reinterpret_cast<pte_t*>(base + (pde.page_pa << 12))[va.pt_index];
+	pte_t pte{};
+	if (!HV->readPhys((reinterpret_cast<pte_t*>(pde.page_pa << 12) + va.pt_index), pte)) return false;
 	if (!pte.present) {
 		return false;
 	}

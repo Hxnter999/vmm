@@ -27,6 +27,15 @@ extern "C" NTSTATUS ZwQuerySystemInformation(
 	ULONG SystemInformationLength,
 	ULONG * ReturnLength);
 
+template<typename T>
+concept is_pointer = requires(T t) { *t; };
+
+template<typename T>
+concept is_ptr_int = (sizeof(T) == sizeof(uintptr_t));
+
+template<typename T>
+concept is_address = is_pointer<T> && is_ptr_int<T>;
+
 inline void print(const char* fmt, ...)
 {
     va_list args;

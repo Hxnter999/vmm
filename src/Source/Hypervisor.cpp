@@ -60,6 +60,8 @@ void Hypervisor::destroy()
 		npt = nullptr;
 	}
 
+	__writecr3(old_cr3.value);
+
 	ExFreePoolWithTag(instance, 'sgmA');
 	instance = nullptr;
 }
@@ -183,9 +185,9 @@ void Hypervisor::setup_host_pt() {
 
 	memset(&shared_host_pt, 0, sizeof(shared_host_pt));
 
-	cr3_t system_cr3{ __readcr3() };
+	old_cr3 = { __readcr3() };
 
-	auto system_pml4 = reinterpret_cast<pml4e_t*>(MmGetVirtualForPhysical({ .QuadPart = system_cr3.get_phys_pml4() }));
+	auto system_pml4 = reinterpret_cast<pml4e_t*>(MmGetVirtualForPhysical({ .QuadPart = old_cr3.get_phys_pml4() }));
 
 	memcpy(&shared_host_pt.pml4[256], &system_pml4[256], sizeof(pml4e_t) * 256);
 
@@ -194,7 +196,7 @@ void Hypervisor::setup_host_pt() {
 	pml4e.write = 1;
 	pml4e.page_pa = MmGetPhysicalAddress(&shared_host_pt.pdpt).QuadPart >> 12;
 
-	for (uint32_t i = 0; i < 64; i++) {
+	for (uint32_t i = 0; i < 512; i++) {
 		auto& pdpte = shared_host_pt.pdpt[i];
 		pdpte.present = 1;
 		pdpte.write = 1;
@@ -205,7 +207,7 @@ void Hypervisor::setup_host_pt() {
 			pde.present = 1;
 			pde.write = 1;
 			pde.large_page = 1;
-			pde.page_pa = i * 512ull + j;
+			pde.large.page_pa = (i << 9) + j;
 		}
 	}
 }
