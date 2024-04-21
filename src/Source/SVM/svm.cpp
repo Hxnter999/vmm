@@ -15,10 +15,10 @@ inline HANDLER_STATUS cases(vcpu_t& vcpu)
 	case SVM_EXIT_CODE::VMEXIT_MSR:
 		return msr_handler(vcpu);
 
-	case SVM_EXIT_CODE::VMEXIT_CPUID:
+	case SVM_EXIT_CODE::VMEXIT_CPUID: //better to not intercept this (explanation in cpuid.cpp)
 		return cpuid_handler(vcpu);
 
-	case SVM_EXIT_CODE::VMEXIT_XSETBV:
+	case SVM_EXIT_CODE::VMEXIT_XSETBV: //should NEVER intercept this
 		return xsetbv_handler(vcpu);
 
 	case SVM_EXIT_CODE::VMEXIT_INVALID:

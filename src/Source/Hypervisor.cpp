@@ -65,7 +65,8 @@ void Hypervisor::destroy()
 	//	ExFreePoolWithTag(vcpus.buffer, 'sgmA');
 	//	vcpus.buffer = nullptr;
 	//}
-	//need to change the exit method to not rely on vcpus (prob pass a struct with the exit data)
+	//need to change the exit method to not rely on vcpus (prob pass a struct with the exit data) or just free in asm
+	//
 
 	print("Freeing instance...\n");
 	ExFreePoolWithTag(instance, 'sgmA');

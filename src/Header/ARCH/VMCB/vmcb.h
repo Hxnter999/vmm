@@ -76,6 +76,7 @@ struct alignas(0x1000) vcpu_t {
 		auto& ei = guest_vmcb.control.event_injection;
 		ei.valid = 1;
 		ei.type = INTERRUPT_TYPE::NMI;
+		ei.vector = 0; // ignored
 	}
 };
 static_assert(sizeof(vcpu_t) == 0x12000, "vcpu size is not 0x12000");

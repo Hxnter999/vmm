@@ -154,6 +154,8 @@ devirtualize:
 	; rsp + 8 -> guest_rsp
 	mov rsp, [rsp+8]
 	
+	;could call free here
+
 	jmp rax
 
 vmenter ENDP

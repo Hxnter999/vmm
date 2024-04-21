@@ -4,7 +4,7 @@
 #include <CPUID/extended-features/fn_svm_features.h>
 
 //better to not intercept cpuid in the case the anticheat devs are stupid and use it for their timing checks EVEN on amd
-
+//for amd timing checks its better to use IRET averaging with (for example) read msr EFER (should ALWAYS be intercepted to prevent svm from being checked)
 HANDLER_STATUS cpuid_handler(vcpu_t& vcpu) {
 
 	CPUID::cpuid_t result{};

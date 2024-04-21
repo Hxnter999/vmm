@@ -12,9 +12,7 @@ Finish (l/s)(i/g)dt
 Add LBR virtulization
 add custom seh
 
-Handler debug registers
-
-"IET Divergence"
+Handler debug registers https://howtohypervise.blogspot.com/2019/01/a-common-missight-in-most-hypervisors.html
 
 emulate more shit (im sigma)
 
