@@ -3,6 +3,8 @@
 #include <ARCH/CPUID/extended-features/fn_identifiers.h>
 #include <CPUID/extended-features/fn_svm_features.h>
 
+//better to not intercept cpuid in the case the anticheat devs are stupid and use it for their timing checks EVEN on amd
+
 HANDLER_STATUS cpuid_handler(vcpu_t& vcpu) {
 
 	CPUID::cpuid_t result{};

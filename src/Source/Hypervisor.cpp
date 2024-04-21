@@ -16,7 +16,8 @@ Hypervisor* Hypervisor::instance = nullptr;
 
 void Hypervisor::devirtualize(vcpu_t* const vcpu) //maybe move this into vcpu?
 {
-	static uint32_t current_count = vcpus.vcpu_count;
+	//if we change unloading method this will need to be changed
+	static size_t current_count = vcpus.vcpu_count;
 
 	current_count--;
 
@@ -40,6 +41,8 @@ void Hypervisor::devirtualize(vcpu_t* const vcpu) //maybe move this into vcpu?
 
 void Hypervisor::destroy() 
 {
+	__writecr3(old_cr3.value);
+
 	print("Destroy\n");
 
 	if (instance == nullptr) {
@@ -47,11 +50,6 @@ void Hypervisor::destroy()
 		return; //should never happen
 	}
 
-	print("Freeing vcpus...\n");
-	if (vcpus.buffer) {
-		ExFreePoolWithTag(vcpus.buffer, 'sgmA');
-		vcpus.buffer = nullptr;
-	}
 	print("Freeing msrpm...\n");
 	if (shared_msrpm) {
 		MmFreeContiguousMemory(shared_msrpm);
@@ -62,6 +60,12 @@ void Hypervisor::destroy()
 		MmFreeContiguousMemory(npt);
 		npt = nullptr;
 	}
+	//print("Freeing vcpus...\n");
+	//if (vcpus.buffer) {
+	//	ExFreePoolWithTag(vcpus.buffer, 'sgmA');
+	//	vcpus.buffer = nullptr;
+	//}
+	//need to change the exit method to not rely on vcpus (prob pass a struct with the exit data)
 
 	print("Freeing instance...\n");
 	ExFreePoolWithTag(instance, 'sgmA');
@@ -184,7 +188,9 @@ void Hypervisor::setup_host_pt() {
 
 	old_cr3 = { __readcr3() };
 
-	auto system_pml4 = reinterpret_cast<pml4e_t*>(MmGetVirtualForPhysical({ .QuadPart = old_cr3.get_phys_pml4() }));
+	auto system_process = reinterpret_cast<uintptr_t>(PsInitialSystemProcess);
+	auto system_cr3 = *reinterpret_cast<cr3_t*>(system_process + 0x28);
+	auto system_pml4 = reinterpret_cast<pml4e_t*>(MmGetVirtualForPhysical({ .QuadPart = system_cr3.get_phys_pml4() }));
 
 	memcpy(&shared_host_pt.pml4[256], &system_pml4[256], sizeof(pml4e_t) * 256); //copy kernel address space
 
@@ -207,6 +213,7 @@ void Hypervisor::setup_host_pt() {
 			pde.large.page_pa = (i << 9) + j;
 		}
 	}
+
 }
 
 svm_status Hypervisor::init_check()
@@ -245,12 +252,6 @@ svm_status Hypervisor::init_check()
 		print("Uh oh! N_RIP not supported\n");
 		return svm_status::SVM_NEXT_RIP_NOT_SUPPORTED;
 	}
-
-	//if (!svm_rev.svm_feature_identification.vnmi) // necessary otherwise we have to emulate it which is a pain
-	//{
-	//	print("Uh oh! V_NMI not supported\n");
-	//	return svm_status::SVM_NEXT_RIP_NOT_SUPPORTED;
-	//}
 
 	MSR::VM_CR vm_cr{};
 	vm_cr.load();

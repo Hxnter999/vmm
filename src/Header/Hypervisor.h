@@ -12,7 +12,7 @@ class Hypervisor
 	static Hypervisor* instance;
 	
 	//explicit inline lol
-	static inline bool execute_on_all_cpus(bool(*func)(uint32_t), uint32_t cpu_count) //this is cancer!
+	static inline bool execute_on_all_cpus(bool(*func)(uint32_t), size_t cpu_count) //this is cancer!
 	{
 		for (uint32_t i = 0; i < cpu_count; i++)
 		{
@@ -41,12 +41,12 @@ private:
 
 	struct vcpus_t {
 		vcpus_t() : vcpu_count(0), buffer(nullptr) {}
-		vcpus_t(uint32_t size) : vcpu_count(size) { buffer = static_cast<vcpu_t*>(ExAllocatePoolWithTag(NonPagedPool, size * sizeof(vcpu_t), 'sgmA')); }
+		vcpus_t(size_t size) : vcpu_count(size) { buffer = static_cast<vcpu_t*>(ExAllocatePoolWithTag(NonPagedPool, size * sizeof(vcpu_t), 'sgmA')); }
 
 		vcpu_t* buffer;
-		uint32_t vcpu_count;
+		size_t vcpu_count;
 
-		vcpu_t* get(uint32_t i) { return buffer + i; }
+		vcpu_t* get(size_t i) { return buffer + i; }
 		vcpu_t* begin() { return buffer; }
 		vcpu_t* end() { return buffer + vcpu_count; }
 

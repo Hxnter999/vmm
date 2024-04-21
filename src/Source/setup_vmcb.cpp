@@ -1,6 +1,7 @@
 #include <Hypervisor.h>
 #include <MSRs/hsave_pa.h>
 #include <MSRs/pat.h>
+#include <CPUID/extended-features/fn_svm_features.h>
 
 void Hypervisor::setup_vmcb(vcpu_t& vcpu, const CONTEXT& ctx) //should make it a reference
 {
@@ -23,11 +24,16 @@ void Hypervisor::setup_vmcb(vcpu_t& vcpu, const CONTEXT& ctx) //should make it a
 	vcpu.guest_vmcb.control.clgi = 1;
 	vcpu.guest_vmcb.control.msr_prot = 1;
 	
-	////nmi intercept bit
-	//vcpu.guest_vmcb.control.nmi = 1;
 
-	////nmi virtualization
-	//vcpu.guest_vmcb.control.v_nmi_enable = 1;
+	CPUID::fn_svm_features svm_rev{}; svm_rev.load();
+	if (svm_rev.svm_feature_identification.vnmi) // necessary otherwise we have to emulate it which is a pain
+	{
+		//nmi intercept bit
+		vcpu.guest_vmcb.control.nmi = 1;
+
+		//nmi virtualization
+		vcpu.guest_vmcb.control.v_nmi_enable = 1;
+    }
 
 	vcpu.guest_vmcb.control.guest_asid = 1; // Address space identifier "ASID [cannot be] equal to zero" 15.5.1 ASID 0 is for the host
 	vcpu.guest_vmcb.control.v_intr_masking = 1; // 15.21.1 & 15.22.2

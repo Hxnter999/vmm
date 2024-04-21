@@ -1,5 +1,6 @@
 #include <arch/vmexit/handlers.h>
 
+//not needed cause no unconditional exit on amd 
 
 typedef struct  
 {
