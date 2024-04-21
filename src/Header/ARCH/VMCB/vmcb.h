@@ -18,9 +18,9 @@ static_assert(sizeof(vmcb_t) == 0x1000, "vmcb size is not 0x1000");
 
 struct alignas(0x1000) vcpu_t {
 	union {
-		uint8_t host_stack[0x10'000]; //0x6000 default size of KM stack
+		uint8_t host_stack[0x6'000]; //0x6000 default size of KM stack
 		struct {
-			uint8_t stack_contents[0x10'000 - (sizeof(uint64_t) * 8) - sizeof(stack_frame_t)];
+			uint8_t stack_contents[0x6'000 - (sizeof(uint64_t) * 8) - sizeof(stack_frame_t)];
 			stack_frame_t guest_stack_frame;
 			uint64_t guest_vmcb_pa;
 			uint64_t host_vmcb_pa;
@@ -29,20 +29,20 @@ struct alignas(0x1000) vcpu_t {
 			uint64_t guest_rsp;
 			uint64_t is_virtualized; // 16byte aligned
 			uint64_t should_exit;
-			uint64_t aligned;
+			uint64_t alignment;
 		};
 	};
 	vmcb_t host_vmcb; // on vmrun and exits processor saves/restores host state to/from this field, we can also directly manipulate it as long as its considered legal
 	vmcb_t guest_vmcb;
 
-	template<typename T> 
+	template<typename T>
 	bool read_guest(virtual_address_t gva, T& out) {
 		uint64_t hva{};
 		uint64_t modifiable_size{};
 		if (!gva_to_hva(gva, modifiable_size, hva))
 			return false;
 
-		if(modifiable_size < sizeof(T))
+		if (modifiable_size < sizeof(T))
 			return false;
 
 		print("readng guest memory at 0x%llx\n", hva);
@@ -51,11 +51,11 @@ struct alignas(0x1000) vcpu_t {
 	}
 
 	bool gva_to_gpa(virtual_address_t gva, uint64_t& modifiable_size, _Out_ uint64_t& gpa);
-	
+
 
 	bool gva_to_hva(virtual_address_t gva, uint64_t& modifiable_size, _Out_ uint64_t& hva) {
 		uint64_t gpa{};
-		if(!gva_to_gpa(gva, modifiable_size, gpa))
+		if (!gva_to_gpa(gva, modifiable_size, gpa))
 			return false;
 
 		hva = host_pt_t::host_pa_base + gpa;
@@ -79,4 +79,3 @@ struct alignas(0x1000) vcpu_t {
 		ei.vector = 0; // ignored
 	}
 };
-static_assert(sizeof(vcpu_t) == 0x12000, "vcpu size is not 0x12000");

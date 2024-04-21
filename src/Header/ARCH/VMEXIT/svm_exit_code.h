@@ -215,6 +215,7 @@ enum SVM_EXIT_CODE : uint64_t {
     VMEXIT_XSETBV = 0x8D, // XSETBV instruction.
     VMEXIT_EFER_WRITE_TRAP = 0x8F, // Write of EFER MSR (occurs after guest instruction finishes)
 
+    //Only for SEV-ES
     VMEXIT_CR0_WRITE_TRAP = 0x90, // Write of CR0-15, respectively (occurs after guest instruction finishes)
     VMEXIT_CR1_WRITE_TRAP = 0x91,
     VMEXIT_CR2_WRITE_TRAP = 0x92,
@@ -232,6 +233,7 @@ enum SVM_EXIT_CODE : uint64_t {
     VMEXIT_CR14_WRITE_TRAP = 0x9E,
     VMEXIT_CR15_WRITE_TRAP = 0x9F,
 
+    //All of these need handlers
     VMEXIT_INVLPGB = 0xA0, // INVLPG instruction.
     VMEXIT_INVLPGB_ILLEGAL = 0xA1, // INVLPG instruction with an illegal operand.
     VMEXIT_INVPCID = 0xA2, // INVPCID instruction.

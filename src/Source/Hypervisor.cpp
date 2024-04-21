@@ -19,8 +19,6 @@ void Hypervisor::devirtualize(vcpu_t* const vcpu) //maybe move this into vcpu?
 	//if we change unloading method this will need to be changed
 	static size_t current_count = vcpus.vcpu_count;
 
-	current_count--;
-
 	print("Exiting [%p]...\n", vcpu);
 
 	// devirtualize current vcpu, later in the vmrun loop we restore rsp and jump to guest_rip.
@@ -35,7 +33,7 @@ void Hypervisor::devirtualize(vcpu_t* const vcpu) //maybe move this into vcpu?
 	MSR::EFER efer{}; efer.load(); efer.svme = 0; efer.store();
 	__writeeflags(vcpu->guest_vmcb.save_state.rflags.value);
 
-	if (!current_count)
+	if (!--current_count)
 		destroy();
 }
 

@@ -1,4 +1,6 @@
-**Test phys r/w** <- <-
+mtrr calculations, npt hooks
+
+add more hypercall stuff (everything should be customised from um)
 
 TSC scaling (cant use vmware, doesnt support it)
 also vmware doesnt support vnmis

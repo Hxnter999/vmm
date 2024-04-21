@@ -3,8 +3,7 @@
 #include <hypervisor.h>
 #include <MSRs/tsc_ratio.h>
 
-
-
+//could use a 0x560 byte array for all the cases
 inline HANDLER_STATUS cases(vcpu_t& vcpu) 
 {
 	switch (vcpu.guest_vmcb.control.exit_code) {
@@ -18,7 +17,7 @@ inline HANDLER_STATUS cases(vcpu_t& vcpu)
 	case SVM_EXIT_CODE::VMEXIT_CPUID: //better to not intercept this (explanation in cpuid.cpp)
 		return cpuid_handler(vcpu);
 
-	case SVM_EXIT_CODE::VMEXIT_XSETBV: //should NEVER intercept this
+	case SVM_EXIT_CODE::VMEXIT_XSETBV: //should NEVER intercept this (dont set in vmcb)
 		return xsetbv_handler(vcpu);
 
 	case SVM_EXIT_CODE::VMEXIT_INVALID:
@@ -54,7 +53,7 @@ inline HANDLER_STATUS cases(vcpu_t& vcpu)
 	case SVM_EXIT_CODE::VMEXIT_VMRUN:
 	case SVM_EXIT_CODE::VMEXIT_VMLOAD:
 	case SVM_EXIT_CODE::VMEXIT_VMSAVE:
-	case SVM_EXIT_CODE::VMEXIT_CLGI:
+	case SVM_EXIT_CODE::VMEXIT_CLGI: // why?
 		return HANDLER_STATUS::INJECT_UD;
 
 	//case SVM_EXIT_CODE::VMEXIT_CR3_WRITE:
