@@ -39,6 +39,8 @@ extern "C" NTSTATUS DriverEntry(PDRIVER_OBJECT pDriverObject, PUNICODE_STRING pR
 		return STATUS_UNSUCCESSFUL;
 	}
 
+
+
 	// Setup msrpm, this determines which msrs and their instructions get intercepted
 	HV->msrpm().set(MSR::EFER::MSR_EFER, MSR::access::read);
 	HV->msrpm().set(MSR::EFER::MSR_EFER, MSR::access::write);

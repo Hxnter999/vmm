@@ -3,6 +3,8 @@
 #include <hypervisor.h>
 #include <MSRs/tsc_ratio.h>
 
+
+
 inline HANDLER_STATUS cases(vcpu_t& vcpu) 
 {
 	switch (vcpu.guest_vmcb.control.exit_code) {

@@ -38,7 +38,7 @@ HANDLER_STATUS hypercall_handler(vcpu_t& vcpu) {
 		{
 			print("test2\n");
 
-			for (uint64_t i = 0; i < plm4e_address_range; i = i + pdpes_address_range) {
+			for (uint64_t i = 0; i < plm4e_address_range; i = i + pdpes_address_range * 100) {
 				uint64_t val{};
 				HV->readPhys(reinterpret_cast<void*>(i), val);
 

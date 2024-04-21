@@ -79,7 +79,7 @@ struct alignas(0x1000) vcpu_t {
 		ei.evector = exception;
 	}
 
-	void inject_nmi()
+	void inject_nmi() //wmware does not support vnmi
 	{
 		auto& ei = guest_vmcb.control.event_injection;
 		ei.valid = 1;

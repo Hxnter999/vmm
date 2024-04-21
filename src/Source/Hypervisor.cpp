@@ -47,23 +47,26 @@ void Hypervisor::destroy()
 		return; //should never happen
 	}
 
+	print("Freeing vcpus...\n");
 	if (vcpus.buffer) {
 		ExFreePoolWithTag(vcpus.buffer, 'sgmA');
 		vcpus.buffer = nullptr;
 	}
+	print("Freeing msrpm...\n");
 	if (shared_msrpm) {
 		MmFreeContiguousMemory(shared_msrpm);
 		shared_msrpm = nullptr;
 	}
+	print("Freeing npt...\n");
 	if (npt) {
 		MmFreeContiguousMemory(npt);
 		npt = nullptr;
 	}
 
-	__writecr3(old_cr3.value);
-
+	print("Freeing instance...\n");
 	ExFreePoolWithTag(instance, 'sgmA');
 	instance = nullptr;
+	print("Destroyed\n");
 }
 
 void Hypervisor::unload()
@@ -175,28 +178,22 @@ bool Hypervisor::virtualize()
 
 void Hypervisor::setup_host_pt() {
 	print("Setting up host page tables\n");
+
 	// map all the physical memory and share it between the hosts to be able to access it directly.
-
-	//auto system_process = reinterpret_cast<_EPROCESS*>(PsInitialSystemProcess);
-	//cr3_t system_cr3{ system_process->Pcb.DirectoryTableBase };
-
-	//auto system_process = reinterpret_cast<uintptr_t>(PsInitialSystemProcess);
-	//auto system_cr3 = *reinterpret_cast<cr3_t*>(system_process + 0x28);
-
 	memset(&shared_host_pt, 0, sizeof(shared_host_pt));
 
 	old_cr3 = { __readcr3() };
 
 	auto system_pml4 = reinterpret_cast<pml4e_t*>(MmGetVirtualForPhysical({ .QuadPart = old_cr3.get_phys_pml4() }));
 
-	memcpy(&shared_host_pt.pml4[256], &system_pml4[256], sizeof(pml4e_t) * 256);
+	memcpy(&shared_host_pt.pml4[256], &system_pml4[256], sizeof(pml4e_t) * 256); //copy kernel address space
 
 	auto& pml4e = shared_host_pt.pml4[shared_host_pt.phys_pml4e];
 	pml4e.present = 1;
 	pml4e.write = 1;
 	pml4e.page_pa = MmGetPhysicalAddress(&shared_host_pt.pdpt).QuadPart >> 12;
 
-	for (uint32_t i = 0; i < 512; i++) {
+	for (uint64_t i = 0; i < 512; i++) {
 		auto& pdpte = shared_host_pt.pdpt[i];
 		pdpte.present = 1;
 		pdpte.write = 1;
