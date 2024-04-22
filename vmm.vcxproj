@@ -192,7 +192,6 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\Header\commons.h</PrecompiledHeaderFile>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\Header\commons.h</PrecompiledHeaderFile>
     </ClCompile>
-    <ClCompile Include="src\Source\z.cpp" />
     <ClCompile Include="zydis\dependencies\zycore\src\Allocator.c" />
     <ClCompile Include="zydis\dependencies\zycore\src\API\Memory.c" />
     <ClCompile Include="zydis\dependencies\zycore\src\API\Process.c" />

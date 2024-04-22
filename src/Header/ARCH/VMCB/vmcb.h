@@ -37,16 +37,18 @@ struct alignas(0x1000) vcpu_t {
 
 	template<typename T>
 	bool read_guest(virtual_address_t gva, T& out) {
+		return read_guest(gva, &out, sizeof(T));
+	}
+
+	bool read_guest(virtual_address_t gva, void* out, size_t size) {
 		uint64_t hva{};
 		uint64_t modifiable_size{};
 		if (!gva_to_hva(gva, modifiable_size, hva))
 			return false;
-
-		if (modifiable_size < sizeof(T))
+		if (modifiable_size < size)
 			return false;
-
 		print("readng guest memory at 0x%llx\n", hva);
-		out = *reinterpret_cast<T*>(hva);
+		memcpy(out, reinterpret_cast<void*>(hva), size);
 		return true;
 	}
 

@@ -13,11 +13,11 @@
 
 void Unload(PDRIVER_OBJECT pDriverObject);
 
-uint64_t val = 231;
 extern "C" NTSTATUS DriverEntry(PDRIVER_OBJECT pDriverObject, PUNICODE_STRING pRegistryPath)
 {
 
 	constexpr double version = 0.1;
+
 	print("Hypervisor v%.1f\n", version);
 
 	UNREFERENCED_PARAMETER(pRegistryPath);
@@ -62,11 +62,6 @@ extern "C" NTSTATUS DriverEntry(PDRIVER_OBJECT pDriverObject, PUNICODE_STRING pR
 
 	//auto pa = MmGetPhysicalAddress(&val);
 	//print("Physical address of val: %llx\n", pa.QuadPart);
-
-	auto waz = reinterpret_cast<uint64_t(*)(HYPERCALL_CODE, void*)>(testcall);
-	waz(HYPERCALL_CODE::test, &val);
-	print("Val: %llx\n", val);
-	testcall(HYPERCALL_CODE::test2);
 
 	return STATUS_SUCCESS;
 }

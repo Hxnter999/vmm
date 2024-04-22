@@ -52,7 +52,6 @@
     <ClCompile Include="src\Header\ARCH\VMEXIT\HANDLERS\shutdown.cpp" />
     <ClCompile Include="src\Source\setup_vmcb.cpp" />
     <ClCompile Include="src\Header\ARCH\VMEXIT\HANDLERS\CR\cr4.cpp" />
-    <ClCompile Include="src\Source\z.cpp" />
     <ClCompile Include="src\Header\ARCH\VMEXIT\HANDLERS\nmi.cpp" />
   </ItemGroup>
   <ItemGroup>
