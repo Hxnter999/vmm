@@ -1,6 +1,5 @@
 #pragma once
 #include <commons.h>
-#include <vmexit/svm_exit_code.h>
 
 union exitinfo2_t
 {
@@ -45,7 +44,15 @@ union exitinfo2_t
 
 		// IPI 15.29.9.1
 		struct {
-			ipi_type type : 8;
+			enum class ipi_type : uint64_t // sorry
+			{
+				invalid_interrupt_type = 0,
+				ipi_target_not_running,
+				invalid_target_in_ipi,
+				invalid_backing_page_pointer,
+				invalid_ipi_vector
+			} type : 8;
+
 			uint64_t reserved8 : 24;
 			uint64_t id : 32;
 		} ipi;

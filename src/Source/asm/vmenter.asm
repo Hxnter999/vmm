@@ -5,9 +5,11 @@ testcall proc
 	ret
 testcall endp
 
-extern vmexit_handler : proc
+; extern bool vmexit_handler(vcpu* vcpu);
+extern vmexit_handler  : proc
 
-vmenter proc
+; extern void vmenter(uint64_t* guest_vmcb_pa);
+vmenter PROC
 	mov rsp, rcx
 	sub rsp, 100h ; needed at first cause the loop always adds 100h from the start
 
@@ -143,9 +145,9 @@ vmrun_loop:
 
 	jnz vmrun_loop
 
-	; devirtualize
+devirtualize:
 	; rsp -> guest_rip
-	add rsp, 118h ; 100h for xmms + sizeof(uint64_t) * 3
+	add rsp, 118h ; 100h for xmm + sizeof(uint64_t) * 3
 
 	mov rax, [rsp]
 
@@ -156,6 +158,6 @@ vmrun_loop:
 
 	jmp rax
 
-vmenter endp
+vmenter ENDP
 
 end
