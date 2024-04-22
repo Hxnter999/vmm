@@ -1,12 +1,16 @@
 #pragma once
 #include <pages/pages.h>
-#include <pages/npts.h>
-#include <vmcb/vmcb.h>
+#include <vcpu/vmcb.h>
+
+static constexpr uint64_t plm4e_address_range = 0x1000000000; //256GB
+static constexpr uint64_t pdpes_address_range = 0x40000000; //1GB
+static constexpr uint64_t pdes_address_range = 0x200000; //2MB
+static constexpr uint64_t ptes_address_range = 0x1000; //4KB
 
 inline uint64_t gva_to_gpa(vcpu_t& vcpu, uint64_t address, uint64_t& modifiable_size) {
 	virtual_address_t va{ address };
 
-	auto& guest_cr3 = vcpu.guest_vmcb.save_state.cr3;
+	auto& guest_cr3 = vcpu.guest_vmcb.state.cr3;
 	auto& base = host_pt_t::host_pa_base;
 
 	uint64_t offset{};
@@ -16,7 +20,7 @@ inline uint64_t gva_to_gpa(vcpu_t& vcpu, uint64_t address, uint64_t& modifiable_
 		return 0;
 	}
 
-	auto pdpte = reinterpret_cast<pdpe_t*>(base + (pml4e.page_pa << 12))[va.pdpt_index];
+	auto pdpte = reinterpret_cast<pdpte_t*>(base + (pml4e.page_pa << 12))[va.pdpt_index];
 	if (!pdpte.present) {
 		return 0;
 	}

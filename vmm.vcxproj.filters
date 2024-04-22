@@ -4,12 +4,11 @@
     <ClCompile Include="source\header\arch\vmexit\handlers\cpuid.cpp" />
     <ClCompile Include="source\header\arch\vmexit\handlers\msr.cpp" />
     <ClCompile Include="source\header\hypercall\hypercall.cpp" />
-    <ClCompile Include="source\asm\sce.cpp" />
     <ClCompile Include="source\hypervisor.cpp" />
     <ClCompile Include="source\main.cpp" />
     <ClCompile Include="source\header\arch\vmexit\handlers\npf.cpp" />
-    <ClCompile Include="source\svm.cpp" />
     <ClCompile Include="source\header\arch\vmexit\handlers\vmexit_handler.cpp" />
+    <ClCompile Include="source\header\arch\vmexit\handlers\svm.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\header\arch\msrs\cstar.h" />
@@ -24,7 +23,6 @@
     <ClInclude Include="source\header\arch\pages\pages.h" />
     <ClInclude Include="source\header\hypercall\hypercall.h" />
     <ClInclude Include="source\header\arch\cr\control_registers.h" />
-    <ClInclude Include="source\header\arch\pages\npts.h" />
     <ClInclude Include="source\hypervisor.h" />
     <ClInclude Include="source\header\arch\vmexit\exitinfo2.h" />
     <ClInclude Include="source\header\util\bitset.h" />
@@ -43,15 +41,14 @@
     <ClInclude Include="source\header\arch\segment\segment.h" />
     <ClInclude Include="source\header\arch\vmexit\svm_exit_code.h" />
     <ClInclude Include="source\header\svm_status.h" />
-    <ClInclude Include="source\header\arch\vmcb\vmcb.h" />
-    <ClInclude Include="source\header\arch\vmcb\vmcb_control.h" />
-    <ClInclude Include="source\header\arch\vmcb\vmcb_state_save.h" />
+    <ClInclude Include="source\header\arch\vcpu\vmcb.h" />
+    <ClInclude Include="source\header\arch\vcpu\vmcb_control.h" />
+    <ClInclude Include="source\header\arch\vcpu\vmcb_state_save.h" />
     <ClInclude Include="source\header\arch\msrs\vm_cr.h" />
     <ClInclude Include="windows-defs\structs\_RTL_PROCESS_MODULE_INFORMATION.h" />
     <ClInclude Include="windows-defs\structs\_RTL_PROCESS_MODULES.h" />
     <ClInclude Include="source\header\arch\msrs\tsc_ratio.h" />
     <ClInclude Include="source\header\arch\pages\translations.h" />
-    <ClInclude Include="source\svm.h" />
     <ClInclude Include="source\header\arch\vmexit\handlers.h" />
   </ItemGroup>
   <ItemGroup>

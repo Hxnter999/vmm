@@ -147,18 +147,17 @@
     <ClCompile Include="source\header\arch\vmexit\handlers\cpuid.cpp" />
     <ClCompile Include="source\header\arch\vmexit\handlers\msr.cpp" />
     <ClCompile Include="source\header\arch\vmexit\handlers\npf.cpp" />
+    <ClCompile Include="source\header\arch\vmexit\handlers\svm.cpp" />
     <ClCompile Include="source\header\arch\vmexit\handlers\vmexit_handler.cpp" />
     <ClCompile Include="source\header\hypercall\hypercall.cpp">
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">../commons.h</PrecompiledHeaderFile>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">../commons.h</PrecompiledHeaderFile>
     </ClCompile>
-    <ClCompile Include="source\asm\sce.cpp" />
     <ClCompile Include="source\hypervisor.cpp" />
     <ClCompile Include="source\main.cpp">
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\Header\commons.h</PrecompiledHeaderFile>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\Header\commons.h</PrecompiledHeaderFile>
     </ClCompile>
-    <ClCompile Include="source\svm.cpp" />
     <MASM Include="source\asm\vmenter.asm">
       <FileType>Document</FileType>
     </MASM>
@@ -179,7 +178,6 @@
     <ClInclude Include="source\header\arch\vmexit\handlers.h" />
     <ClInclude Include="source\header\hypercall\hypercall.h" />
     <ClInclude Include="source\header\arch\cr\control_registers.h" />
-    <ClInclude Include="source\header\arch\pages\npts.h" />
     <ClInclude Include="source\hypervisor.h" />
     <ClInclude Include="source\header\arch\vmexit\exitinfo2.h" />
     <ClInclude Include="source\header\util\bitset.h" />
@@ -198,11 +196,10 @@
     <ClInclude Include="source\header\arch\segment\segment.h" />
     <ClInclude Include="source\header\arch\vmexit\svm_exit_code.h" />
     <ClInclude Include="source\header\svm_status.h" />
-    <ClInclude Include="source\header\arch\vmcb\vmcb.h" />
-    <ClInclude Include="source\header\arch\vmcb\vmcb_control.h" />
-    <ClInclude Include="source\header\arch\vmcb\vmcb_state_save.h" />
+    <ClInclude Include="source\header\arch\vcpu\vmcb.h" />
+    <ClInclude Include="source\header\arch\vcpu\vmcb_control.h" />
+    <ClInclude Include="source\header\arch\vcpu\vmcb_state_save.h" />
     <ClInclude Include="source\header\arch\msrs\vm_cr.h" />
-    <ClInclude Include="source\svm.h" />
     <ClInclude Include="windows-defs\structs\_RTL_PROCESS_MODULES.h" />
     <ClInclude Include="windows-defs\structs\_RTL_PROCESS_MODULE_INFORMATION.h" />
   </ItemGroup>

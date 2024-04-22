@@ -1,6 +1,6 @@
 #pragma once
-#include "../ARCH/VMCB/vmcb.h"
-#include "../ARCH/MSRs/efer.h"
+#include <vcpu/vmcb.h>
+#include <msrs/efer.h>
 
 enum class hypercall_code : uint64_t
 {

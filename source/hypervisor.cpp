@@ -8,7 +8,6 @@
 #include <msrs/pat.h>
 #include <msrs/vm_cr.h>
 #include <hypercall/hypercall.h>
-#include <pages/npts.h>
 #include <vmexit/handlers.h>
 
 extern "C" int64_t testcall(hypercall_code code);
@@ -17,92 +16,6 @@ extern "C" void vmenter(uint64_t* guest_vmcb_pa);
 
 Hypervisor* Hypervisor::instance = nullptr;
 
-//Hypervisor* Hypervisor::get()
-//{
-//	//naive because we know when its first called
-//	if (instance == nullptr)
-//	{
-//		instance = static_cast<Hypervisor*>(ExAllocatePoolWithTag(NonPagedPool, sizeof(Hypervisor), 'hv'));
-//		instance->init();
-//	}
-//	return instance;
-//}
-
-void Hypervisor::devirtualize(vcpu_t* const vcpu)
-{
-	print("Exiting [%d]...\n", (vcpu - vcpus.begin()) / sizeof(vcpu_t*));
-
-	//for (auto& cvcpu : vcpus) // alert all other vcpus
-	//	cvcpu.should_exit = true;
-
-	// devirtualize current vcpu, later in the vmrun loop we restore rsp and jump to guest_rip.
-	vcpu->guest_rip = vcpu->guest_vmcb.control.nrip;
-	vcpu->guest_rsp = vcpu->guest_vmcb.save_state.rsp;
-
-	__svm_vmload(vcpu->guest_vmcb_pa);
-
-	_disable();
-	__svm_stgi();
-
-	MSR::EFER efer{}; efer.load(); efer.svme = 0; efer.store();
-	__writeeflags(vcpu->guest_vmcb.save_state.rflags.value);
-}
-
-void Hypervisor::unload()
-{
-	if (instance == nullptr) return; //should never happen
-
-	print("Unloading Hypervisor...\n");
-
-	execute_on_all_cpus([](uint32_t index) -> bool {
-		print("Devirtualizing [%d]...\n", index);
-		testcall(hypercall_code::UNLOAD);
-		return true;
-		});
-
-	if (vcpus.buffer) {
-		ExFreePoolWithTag(vcpus.buffer, 'hv');
-		vcpus.buffer = nullptr;
-	}
-	if (shared_msrpm) {
-		MmFreeContiguousMemory(shared_msrpm);
-		shared_msrpm = nullptr;
-	}
-	if (npt) {
-		MmFreeContiguousMemory(npt);
-		npt = nullptr;
-	}
-
-	ExFreePoolWithTag(instance, 'hv');
-	instance = nullptr;
-}
-
-bool Hypervisor::init()
-{
-	HV->map_physical_memory();
-
-	vcpus = {};
-	shared_msrpm = nullptr;
-	npt = nullptr;
-
-	print("Initializing Hypervisor...\n");
-
-	if (!init_check()) {
-		print("SVM not supported\n");
-		return false;
-	}
-	print("SVM supported\n");
-
-	vcpus = { KeQueryActiveProcessorCount(nullptr) };
-
-	shared_msrpm = reinterpret_cast<MSR::msrpm_t*>(MmAllocateContiguousMemory(sizeof(MSR::msrpm_t), { .QuadPart = -1 }));
-	if (shared_msrpm == nullptr) {
-		print("Failed to allocate msrpm\n");
-		return false;
-	}
-
-	return true;
-}
 
 bool Hypervisor::virtualize(uint32_t index)
 {
@@ -112,6 +25,10 @@ bool Hypervisor::virtualize(uint32_t index)
 	efer.load();
 	efer.svme = 1;
 	efer.store();
+
+	MSR::HSAVE_PA hsave_pa{};
+	hsave_pa.bits = MmGetPhysicalAddress(&vcpu.host_vmcb).QuadPart;
+	hsave_pa.store();
 
 	CONTEXT* ctx = reinterpret_cast<CONTEXT*>(ExAllocatePoolWithTag(NonPagedPool, sizeof(CONTEXT), 'sgma'));
 	memset(ctx, 0, sizeof(CONTEXT));
@@ -127,7 +44,7 @@ bool Hypervisor::virtualize(uint32_t index)
 
 	print("Setting up guest\n");
 	setup_guest(vcpu, ctx);
-
+	
 	print("Setting up host\n");
 	setup_host(vcpu);
 
@@ -138,104 +55,159 @@ bool Hypervisor::virtualize(uint32_t index)
 	return false;
 }
 
-bool Hypervisor::setup_npts()
+void Hypervisor::setup_npt(vcpu_t& vcpu) 
 {
-	return initnpts(npt);
+	auto& npt = vcpu.npts;
+
+	for (size_t i = 0; i < npt.free_page_count; i++) {
+		npt.free_page_pa[i] = MmGetPhysicalAddress(npt.free_pages[i]).QuadPart >> 12;
+	}
+	
+	npt.dummy_page_pa = MmGetPhysicalAddress(npt.dummy).QuadPart >> 12;
+
+	// TODO: read the mtrr later...
+	auto& pml4e = npt.pml4[0];
+	pml4e.present = 1;
+	pml4e.write = 1;
+	pml4e.usermode = 1;
+	pml4e.page_pa = MmGetPhysicalAddress(&npt.pdpt).QuadPart >> 12;
+
+	for (int i = 0; i < 64; i++) {
+		auto& pdpte = npt.pdpt[i];
+		pdpte.present = 1;
+		pdpte.write = 1;
+		pdpte.usermode = 1;
+		pdpte.page_pa = MmGetPhysicalAddress(&npt.pd[i]).QuadPart >> 12;
+
+		for (int j = 0; j < 512; j++) {
+			auto& pde = npt.pd[i][j];
+			pde.present = 1;
+			pde.write = 1;
+			pde.usermode = 1;
+			pde.large_page = 1;
+			pde.page_pa = (i << 9) + j;
+		}
+	}
 }
 
-bool Hypervisor::virtualize()
-{
-	if (!execute_on_all_cpus([](uint32_t index) -> bool {
-		print("Virtualizing [%d]...\n", index);
-		if (!instance->virtualize(index))
-		{
-			print("Failed to virtualize\n");
-			return false;
-		}
-		print("Virtualized [%d]\n", index);
-		return true;
-		}))
-	{
-		print("Failed to virtualize all vcpus\n");
-		return false;
-	}
+void Hypervisor::setup_msrpm(vcpu_t& vcpu) {
+	vcpu.msrpm.set(MSR::EFER::MSR_EFER, MSR::access::read);
+	vcpu.msrpm.set(MSR::EFER::MSR_EFER, MSR::access::write);
 
-	return true;
+	vcpu.msrpm.set(MSR::HSAVE_PA::MSR_VM_HSAVE_PA, MSR::access::read);
+	vcpu.msrpm.set(MSR::HSAVE_PA::MSR_VM_HSAVE_PA, MSR::access::write);
 }
 
 void Hypervisor::setup_guest(vcpu_t& vcpu, CONTEXT* ctx) //should make it a reference
 {
-	vcpu.is_virtualized = true;
-
-	MSR::HSAVE_PA hsave_pa{};
-	hsave_pa.bits = MmGetPhysicalAddress(&vcpu.host_vmcb).QuadPart;
-	hsave_pa.store();
-
-	vcpu.guest_vmcb.control.msrpm_base_pa = MmGetPhysicalAddress(shared_msrpm).QuadPart;
-
 	// ------------------- Setup guest state -------------------
-	vcpu.guest_vmcb.control.vmrun = 1; // VMRUN intercepts muse be enabled 15.5.1
+	vcpu.guest_vmcb.control.vmrun = 1; 
 	vcpu.guest_vmcb.control.vmmcall = 1; // explicit vmexits back to host
 	vcpu.guest_vmcb.control.vmload = 1;
 	vcpu.guest_vmcb.control.vmsave = 1;
 	//vcpu.guest_vmcb.control.clgi = 1;
-	vcpu.guest_vmcb.control.msr_prot = 1;
 
 	vcpu.guest_vmcb.control.guest_asid = 1; // Address space identifier, 0 is reserved for host.
 	vcpu.guest_vmcb.control.v_intr_masking = 1; // 15.21.1 & 15.22.2
 
-	if (npt) {
+	/*if (npt) {
 		vcpu.guest_vmcb.control.np_enable = 1;
 		vcpu.guest_vmcb.control.n_cr3 = MmGetPhysicalAddress(npt).QuadPart;
 		print("NPT: %p\n", MmGetPhysicalAddress(npt).QuadPart);
-	}
+	}*/
+
+	// if ur considering disabling this, change the code in the virtualize routine which uses msr intercepts to check if were currently running in guest mode and exits the function to void virtualization loop
+	vcpu.guest_vmcb.control.msr_prot = 1;
+	vcpu.guest_vmcb.control.msrpm_base_pa = MmGetPhysicalAddress(&vcpu.msrpm).QuadPart;
+	setup_msrpm(vcpu);
+
+	vcpu.guest_vmcb.control.np_enable = 1;
+	vcpu.guest_vmcb.control.n_cr3 = MmGetPhysicalAddress(&vcpu.npts).QuadPart;
+	setup_npt(vcpu);
 
 	// Set up the guest state
-	vcpu.guest_vmcb.save_state.cr0.value = __readcr0();
-	vcpu.guest_vmcb.save_state.cr2.value = __readcr2();
-	vcpu.guest_vmcb.save_state.cr3.value = __readcr3();
-	vcpu.guest_vmcb.save_state.cr4.value = __readcr4();
-	vcpu.guest_vmcb.save_state.efer.bits = __readmsr(MSR::EFER::MSR_EFER);
-	vcpu.guest_vmcb.save_state.g_pat = __readmsr(MSR::PAT::MSR_PAT); 
+	vcpu.guest_vmcb.state.cr0.value = __readcr0();
+	vcpu.guest_vmcb.state.cr2.value = __readcr2();
+	vcpu.guest_vmcb.state.cr3.value = __readcr3();
+	vcpu.guest_vmcb.state.cr4.value = __readcr4();
+	vcpu.guest_vmcb.state.efer.bits = __readmsr(MSR::EFER::MSR_EFER);
+	vcpu.guest_vmcb.state.g_pat = __readmsr(MSR::PAT::MSR_PAT); 
 
 	descriptor_table_register idtr{}, gdtr{}; __sidt(&idtr); _sgdt(&gdtr);
-	vcpu.guest_vmcb.save_state.idtr.base = idtr.base;
-	vcpu.guest_vmcb.save_state.idtr.limit = idtr.limit;
+	vcpu.guest_vmcb.state.idtr.base = idtr.base;
+	vcpu.guest_vmcb.state.idtr.limit = idtr.limit;
 
-	vcpu.guest_vmcb.save_state.gdtr.base = gdtr.base;
-	vcpu.guest_vmcb.save_state.gdtr.limit = gdtr.limit;
+	vcpu.guest_vmcb.state.gdtr.base = gdtr.base;
+	vcpu.guest_vmcb.state.gdtr.limit = gdtr.limit;
 
 	// This is where the guest will start executing
-	vcpu.guest_vmcb.save_state.rsp = ctx->Rsp;
-	vcpu.guest_vmcb.save_state.rip = ctx->Rip;
-	vcpu.guest_vmcb.save_state.rflags.value = ctx->EFlags;
+	vcpu.guest_vmcb.state.rsp = ctx->Rsp;
+	vcpu.guest_vmcb.state.rip = ctx->Rip;
+	vcpu.guest_vmcb.state.rflags.value = ctx->EFlags;
 
 	// Setup all the segment registers
-	vcpu.guest_vmcb.save_state.cs.limit = __segmentlimit(ctx->SegCs);
-	vcpu.guest_vmcb.save_state.ds.limit = __segmentlimit(ctx->SegDs);
-	vcpu.guest_vmcb.save_state.es.limit = __segmentlimit(ctx->SegEs);
-	vcpu.guest_vmcb.save_state.ss.limit = __segmentlimit(ctx->SegSs);
+	vcpu.guest_vmcb.state.cs.limit = __segmentlimit(ctx->SegCs);
+	vcpu.guest_vmcb.state.ds.limit = __segmentlimit(ctx->SegDs);
+	vcpu.guest_vmcb.state.es.limit = __segmentlimit(ctx->SegEs);
+	vcpu.guest_vmcb.state.ss.limit = __segmentlimit(ctx->SegSs);
 
-	vcpu.guest_vmcb.save_state.cs.selector.value = ctx->SegCs;
-	vcpu.guest_vmcb.save_state.ds.selector.value = ctx->SegDs;
-	vcpu.guest_vmcb.save_state.es.selector.value = ctx->SegEs;
-	vcpu.guest_vmcb.save_state.ss.selector.value = ctx->SegSs;
+	vcpu.guest_vmcb.state.cs.selector.value = ctx->SegCs;
+	vcpu.guest_vmcb.state.ds.selector.value = ctx->SegDs;
+	vcpu.guest_vmcb.state.es.selector.value = ctx->SegEs;
+	vcpu.guest_vmcb.state.ss.selector.value = ctx->SegSs;
 
-	vcpu.guest_vmcb.save_state.cs.get_attributes(gdtr.base);
-	vcpu.guest_vmcb.save_state.ds.get_attributes(gdtr.base);
-	vcpu.guest_vmcb.save_state.es.get_attributes(gdtr.base);
-	vcpu.guest_vmcb.save_state.ss.get_attributes(gdtr.base);
+	vcpu.guest_vmcb.state.cs.get_attributes(gdtr.base);
+	vcpu.guest_vmcb.state.ds.get_attributes(gdtr.base);
+	vcpu.guest_vmcb.state.es.get_attributes(gdtr.base);
+	vcpu.guest_vmcb.state.ss.get_attributes(gdtr.base);
 
 	vcpu.guest_vmcb_pa = MmGetPhysicalAddress(&vcpu.guest_vmcb).QuadPart;
 	vcpu.host_vmcb_pa = MmGetPhysicalAddress(&vcpu.host_vmcb).QuadPart;
 	vcpu.self = &vcpu;
-	
-
-	
+	print("guest-host-pa : %p - %p\n", vcpu.guest_vmcb_pa, vcpu.host_vmcb_pa);
 
 	__svm_vmsave(vcpu.host_vmcb_pa);
 	__svm_vmsave(vcpu.guest_vmcb_pa); // needed here cause the vmrun loop loads guest state before everything, if there isnt a guest saved already it wont work properly
 }
+
+
+void Hypervisor::setup_host(vcpu_t& vcpu) {
+
+	// ------------------- Isolate the host ---------------------
+
+	// -------
+
+	HV->map_physical_memory();
+	auto& host_cr3 = vcpu.host_vmcb.state.cr3;
+	host_cr3.value = 0;
+	host_cr3.pml4 = MmGetPhysicalAddress(&shared_host_pt.pml4).QuadPart >> 12;
+
+	print("Writing host cr3: %zX\n", host_cr3.value);
+	__writecr3(host_cr3.value);
+
+	// -------
+
+	/*MSR::PAT host_pat{};
+	host_pat.load();
+
+	host_pat.pa0 = MSR::PAT::page_attribute_type::write_back;
+	host_pat.pa1 = MSR::PAT::page_attribute_type::write_through;
+	host_pat.pa2 = MSR::PAT::page_attribute_type::uncacheable_no_write_combinining;
+	host_pat.pa3 = MSR::PAT::page_attribute_type::uncacheable;
+
+	host_pat.pa4 = MSR::PAT::page_attribute_type::write_back;
+	host_pat.pa5 = MSR::PAT::page_attribute_type::write_through;
+	host_pat.pa6 = MSR::PAT::page_attribute_type::uncacheable_no_write_combinining;
+	host_pat.pa7 = MSR::PAT::page_attribute_type::uncacheable;
+
+	host_pat.store();*/
+
+	// -------
+
+
+
+
+};
 
 void Hypervisor::map_physical_memory() {
 	print("Setting up host page tables\n");
@@ -269,42 +241,99 @@ void Hypervisor::map_physical_memory() {
 	memcpy(&shared_host_pt.pml4[256], &system_pml4[256], sizeof(pml4e_t) * 256);
 }
 
-void Hypervisor::setup_host(vcpu_t& vcpu) {
+void Hypervisor::devirtualize(vcpu_t* const vcpu)
+{
+	print("Exiting [%d]...\n", (vcpu - vcpus.begin()) / sizeof(vcpu_t*));
 
-	// ------------------- Isolate the host ---------------------
+	//for (auto& cvcpu : vcpus) // alert all other vcpus
+	//	cvcpu.should_exit = true;
 
-	// -------
+	// devirtualize current vcpu, later in the vmrun loop we restore rsp and jump to guest_rip.
+	vcpu->guest_rip = vcpu->guest_vmcb.control.nrip;
+	vcpu->guest_rsp = vcpu->guest_vmcb.state.rsp;
 
-	auto& host_cr3 = vcpu.host_vmcb.save_state.cr3;
-	host_cr3.value = 0;
-	host_cr3.pml4 = MmGetPhysicalAddress(&shared_host_pt.pml4).QuadPart >> 12;
+	__svm_vmload(vcpu->guest_vmcb_pa);
 
-	print("Writing host cr3: %zX\n", host_cr3.value);
-	__writecr3(host_cr3.value);
+	_disable();
+	__svm_stgi();
 
-	// -------
+	MSR::EFER efer{}; efer.load(); efer.svme = 0; efer.store();
+	__writeeflags(vcpu->guest_vmcb.state.rflags.value);
+}
 
-	 MSR::PAT host_pat{};
-	 host_pat.load(); 
-	 
-	 host_pat.pa0 = MSR::PAT::page_attribute_type::write_back;
-	 host_pat.pa1 = MSR::PAT::page_attribute_type::write_through;
-	 host_pat.pa2 = MSR::PAT::page_attribute_type::uncacheable_no_write_combinining;
-	 host_pat.pa3 = MSR::PAT::page_attribute_type::uncacheable;
-	 
-	 host_pat.pa4 = MSR::PAT::page_attribute_type::write_back;
-	 host_pat.pa5 = MSR::PAT::page_attribute_type::write_through;
-	 host_pat.pa6 = MSR::PAT::page_attribute_type::uncacheable_no_write_combinining;
-	 host_pat.pa7 = MSR::PAT::page_attribute_type::uncacheable;
-	 
-	 host_pat.store();
+void Hypervisor::unload()
+{
+	if (instance == nullptr) return; //should never happen
 
-	// -------
+	print("Unloading Hypervisor...\n");
 
+	execute_on_all_cpus([](uint32_t index) -> bool {
+		print("Devirtualizing [%d]...\n", index);
+		testcall(hypercall_code::UNLOAD);
+		return true;
+		});
 
+	if (vcpus.buffer) {
+		ExFreePoolWithTag(vcpus.buffer, 'hv');
+		vcpus.buffer = nullptr;
+	}
+	//if (shared_msrpm) {
+	//	MmFreeContiguousMemory(shared_msrpm);
+	//	shared_msrpm = nullptr;
+	//}
+	/*if (npt) {
+		MmFreeContiguousMemory(npt);
+		npt = nullptr;
+	}*/
 
-	
-};
+	ExFreePoolWithTag(instance, 'hv');
+	instance = nullptr;
+}
+
+bool Hypervisor::init()
+{
+	vcpus = {};
+	//shared_msrpm = nullptr;
+	//npt = nullptr;
+
+	print("Initializing Hypervisor...\n");
+
+	if (!init_check()) {
+		print("SVM not supported\n");
+		return false;
+	}
+	print("SVM supported\n");
+
+	vcpus = { KeQueryActiveProcessorCount(nullptr) };
+
+	//shared_msrpm = reinterpret_cast<MSR::msrpm_t*>(MmAllocateContiguousMemory(sizeof(MSR::msrpm_t), { .QuadPart = -1 }));
+	//if (shared_msrpm == nullptr) {
+	//	print("Failed to allocate msrpm\n");
+	//	return false;
+	//}
+
+	return true;
+}
+
+bool Hypervisor::virtualize()
+{
+	if (!execute_on_all_cpus([](uint32_t index) -> bool {
+		print("Virtualizing [%d]...\n", index);
+		if (!instance->virtualize(index))
+		{
+			print("Failed to virtualize\n");
+			return false;
+		}
+		print("Virtualized [%d]\n", index);
+		return true;
+		}))
+	{
+		print("Failed to virtualize all vcpus\n");
+		return false;
+	}
+
+	return true;
+}
 
 svm_status Hypervisor::init_check()
 {

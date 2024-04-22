@@ -14,7 +14,7 @@ enum class tlb_control_id : uint64_t {
 	flush_guest_non_global_tlb = 7 // flush this guest's non-global tlb
 };
 
-struct vmcb_control {
+struct vmcb_control_t {
 	union {
 		uint32_t value0;
 		struct {

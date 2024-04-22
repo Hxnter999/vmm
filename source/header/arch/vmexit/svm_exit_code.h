@@ -1,6 +1,15 @@
 #pragma once
 #include <commons.h>
 
+enum class ipi_type : uint64_t
+{
+    invalid_interrupt_type = 0,
+    ipi_target_not_running,
+    invalid_target_in_ipi,
+    invalid_backing_page_pointer,
+    invalid_ipi_vector
+};
+
 enum svm_exit_code : uint64_t {
     VMEXIT_CR0_READ = 0x0, // Read of CR 0 through 15, respectively.
     VMEXIT_CR1_READ = 0x1,

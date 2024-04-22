@@ -10,7 +10,7 @@
 #include <msrs/cstar.h>
 #include <msrs/sfmask.h>
 
-struct vmcb_state_save {
+struct vmcb_state_save_t {
 	// 000h
 	segment_register_t es; // only lower 32 bits of base are implemented
 
@@ -141,9 +141,12 @@ struct vmcb_state_save {
 	uint64_t last_excp_from;
 
 	// 290h
-	uint64_t dbgextncfg;
+	uint64_t last_excp_to;
 
 	// 298h
+	uint64_t dbg_extn_ctl;
+
+	// 2a0h
 	uint8_t reserved2a0[72];
 
 	// 2e0h
@@ -152,9 +155,9 @@ struct vmcb_state_save {
 	// 2e8h
 	uint8_t reserved2e8[904];
 
-	// 670h - 770h
-	uint8_t lbr_srack_from[128];
-	uint8_t lbr_srack_to[128];
+	// 670h
+	uint8_t lbr_stack_from[128];
+	uint8_t lbr_stack_to[128];
 
 	// 770h
 	uint64_t lbr_select;
@@ -172,7 +175,13 @@ struct vmcb_state_save {
 	uint64_t ibs_op_rip;
 
 	// 798h
-	uint64_t ibs_op_data[3];
+	uint64_t ibs_op_data;
+
+	// 7a0h
+	uint64_t ibs_op_data2;
+
+	// 7a8h
+	uint64_t ibs_op_data3;
 
 	// 7b0h
 	uint64_t ibs_dc_linear_address;
@@ -184,5 +193,5 @@ struct vmcb_state_save {
 	uint64_t ic_ibs_extd_ctl;
 
 	// 7c8h
-	uint8_t reserved7c8[0x438];
+	uint8_t reserved7c8[1072];
 };

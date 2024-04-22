@@ -1,7 +1,7 @@
 #include <vmexit/handlers.h>
 
 void msr_handler(vcpu_t& vcpu) {
-	vcpu.guest_vmcb.save_state.rip = vcpu.guest_vmcb.control.nrip;
+	vcpu.guest_vmcb.state.rip = vcpu.guest_vmcb.control.nrip;
 
 	// MSR return value is split between 2 registers, we have to handle them both before passing it back into the guest.
 	register_t result{};
@@ -13,8 +13,10 @@ void msr_handler(vcpu_t& vcpu) {
 
 	if (msr == MSR::EFER::MSR_EFER) {
 		MSR::EFER efer{};
-		if (read) {
-			efer.load(); efer.svme = 0; result.value = efer.bits;
+		if (read) { // hide svme bit
+			efer = vcpu.guest_vmcb.state.efer;
+			efer.svme = 0;
+			result.value = efer.bits;
 		}
 		else {
 			efer.bits = result.value;
@@ -24,7 +26,7 @@ void msr_handler(vcpu_t& vcpu) {
 			
 			// allternatively, write the msr anyway but flip svme, incase the guest is trying to enable/disable multiple things at once we dont want to discard everything.
 			efer.svme = 1;
-			vcpu.guest_vmcb.save_state.efer.bits = efer.bits;
+			vcpu.guest_vmcb.state.efer.bits = efer.bits;
 		}
 	}
 	else if (msr == MSR::HSAVE_PA::MSR_VM_HSAVE_PA) {
