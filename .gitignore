@@ -34,8 +34,9 @@
 
 #vs files
 .vs/
+x64/
 
-
+*.command
 *.lock
 *.recipe 
 *.ilk
