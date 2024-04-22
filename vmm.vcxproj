@@ -175,6 +175,7 @@
     <ClInclude Include="source\header\arch\rflags.h" />
     <ClInclude Include="source\header\arch\stack_frame.h" />
     <ClInclude Include="source\header\arch\pages\pages.h" />
+    <ClInclude Include="source\header\arch\vcpu\vcpu.h" />
     <ClInclude Include="source\header\arch\vmexit\handlers.h" />
     <ClInclude Include="source\header\hypercall\hypercall.h" />
     <ClInclude Include="source\header\arch\cr\control_registers.h" />

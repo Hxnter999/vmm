@@ -1,5 +1,5 @@
 #pragma once
-#include <vcpu/vmcb.h>
+#include <vcpu/vcpu.h>
 #include <msrs/efer.h>
 
 enum class hypercall_code : uint64_t

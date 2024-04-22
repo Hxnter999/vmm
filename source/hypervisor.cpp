@@ -19,7 +19,7 @@ Hypervisor* Hypervisor::instance = nullptr;
 
 bool Hypervisor::virtualize(uint32_t index)
 {
-	vcpu_t& vcpu = vcpus.get(index);
+	vcpu_t& vcpu = vcpus[index];
 
 	MSR::EFER efer{};
 	efer.load();
@@ -30,7 +30,7 @@ bool Hypervisor::virtualize(uint32_t index)
 	hsave_pa.bits = MmGetPhysicalAddress(&vcpu.host_vmcb).QuadPart;
 	hsave_pa.store();
 
-	CONTEXT* ctx = reinterpret_cast<CONTEXT*>(ExAllocatePoolWithTag(NonPagedPool, sizeof(CONTEXT), 'sgma'));
+	CONTEXT* ctx = static_cast<CONTEXT*>(ExAllocatePoolWithTag(NonPagedPool, sizeof(CONTEXT), 'sgma'));
 	memset(ctx, 0, sizeof(CONTEXT));
 	RtlCaptureContext(ctx);
 
@@ -110,12 +110,6 @@ void Hypervisor::setup_guest(vcpu_t& vcpu, CONTEXT* ctx) //should make it a refe
 	vcpu.guest_vmcb.control.guest_asid = 1; // Address space identifier, 0 is reserved for host.
 	vcpu.guest_vmcb.control.v_intr_masking = 1; // 15.21.1 & 15.22.2
 
-	/*if (npt) {
-		vcpu.guest_vmcb.control.np_enable = 1;
-		vcpu.guest_vmcb.control.n_cr3 = MmGetPhysicalAddress(npt).QuadPart;
-		print("NPT: %p\n", MmGetPhysicalAddress(npt).QuadPart);
-	}*/
-
 	// if ur considering disabling this, change the code in the virtualize routine which uses msr intercepts to check if were currently running in guest mode and exits the function to void virtualization loop
 	vcpu.guest_vmcb.control.msr_prot = 1;
 	vcpu.guest_vmcb.control.msrpm_base_pa = MmGetPhysicalAddress(&vcpu.msrpm).QuadPart;
@@ -164,7 +158,6 @@ void Hypervisor::setup_guest(vcpu_t& vcpu, CONTEXT* ctx) //should make it a refe
 	vcpu.guest_vmcb_pa = MmGetPhysicalAddress(&vcpu.guest_vmcb).QuadPart;
 	vcpu.host_vmcb_pa = MmGetPhysicalAddress(&vcpu.host_vmcb).QuadPart;
 	vcpu.self = &vcpu;
-	print("guest-host-pa : %p - %p\n", vcpu.guest_vmcb_pa, vcpu.host_vmcb_pa);
 
 	__svm_vmsave(vcpu.host_vmcb_pa);
 	__svm_vmsave(vcpu.guest_vmcb_pa); // needed here cause the vmrun loop loads guest state before everything, if there isnt a guest saved already it wont work properly
@@ -187,7 +180,7 @@ void Hypervisor::setup_host(vcpu_t& vcpu) {
 
 	// -------
 
-	/*MSR::PAT host_pat{};
+	MSR::PAT host_pat{};
 	host_pat.load();
 
 	host_pat.pa0 = MSR::PAT::page_attribute_type::write_back;
@@ -200,7 +193,7 @@ void Hypervisor::setup_host(vcpu_t& vcpu) {
 	host_pat.pa6 = MSR::PAT::page_attribute_type::uncacheable_no_write_combinining;
 	host_pat.pa7 = MSR::PAT::page_attribute_type::uncacheable;
 
-	host_pat.store();*/
+	host_pat.store();
 
 	// -------
 
@@ -243,7 +236,7 @@ void Hypervisor::map_physical_memory() {
 
 void Hypervisor::devirtualize(vcpu_t* const vcpu)
 {
-	print("Exiting [%d]...\n", (vcpu - vcpus.begin()) / sizeof(vcpu_t*));
+	print("Exiting [%d]...\n", (vcpu->self - &vcpus[0]) / sizeof(vcpu_t*));
 
 	//for (auto& cvcpu : vcpus) // alert all other vcpus
 	//	cvcpu.should_exit = true;
@@ -273,9 +266,9 @@ void Hypervisor::unload()
 		return true;
 		});
 
-	if (vcpus.buffer) {
-		ExFreePoolWithTag(vcpus.buffer, 'hv');
-		vcpus.buffer = nullptr;
+	if (vcpus) {
+		ExFreePoolWithTag(vcpus, 'hv');
+		vcpus = nullptr;
 	}
 	//if (shared_msrpm) {
 	//	MmFreeContiguousMemory(shared_msrpm);
@@ -292,10 +285,6 @@ void Hypervisor::unload()
 
 bool Hypervisor::init()
 {
-	vcpus = {};
-	//shared_msrpm = nullptr;
-	//npt = nullptr;
-
 	print("Initializing Hypervisor...\n");
 
 	if (!init_check()) {
@@ -304,13 +293,11 @@ bool Hypervisor::init()
 	}
 	print("SVM supported\n");
 
-	vcpus = { KeQueryActiveProcessorCount(nullptr) };
-
-	//shared_msrpm = reinterpret_cast<MSR::msrpm_t*>(MmAllocateContiguousMemory(sizeof(MSR::msrpm_t), { .QuadPart = -1 }));
-	//if (shared_msrpm == nullptr) {
-	//	print("Failed to allocate msrpm\n");
-	//	return false;
-	//}
+	vcpu_count = { KeQueryActiveProcessorCount(nullptr) };
+	if (vcpus == nullptr) {
+		print("Failed to allocate vcpus\n");
+		return false;
+	}
 
 	return true;
 }

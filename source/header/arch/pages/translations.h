@@ -1,6 +1,6 @@
 #pragma once
 #include <pages/pages.h>
-#include <vcpu/vmcb.h>
+#include <vcpu/vcpu.h>
 
 static constexpr uint64_t plm4e_address_range = 0x1000000000; //256GB
 static constexpr uint64_t pdpes_address_range = 0x40000000; //1GB

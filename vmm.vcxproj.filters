@@ -50,6 +50,7 @@
     <ClInclude Include="source\header\arch\msrs\tsc_ratio.h" />
     <ClInclude Include="source\header\arch\pages\translations.h" />
     <ClInclude Include="source\header\arch\vmexit\handlers.h" />
+    <ClInclude Include="source\header\arch\vcpu\vcpu.h" />
   </ItemGroup>
   <ItemGroup>
     <MASM Include="source\asm\vmenter.asm" />
