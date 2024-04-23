@@ -101,9 +101,10 @@ vmrun_loop:
 	jnz vmrun_loop
 
 	; devirtualize
-	; rsp -> guest_rip
+	; rsp -> xmm0
 	add rsp, 118h ; 100h for xmms + sizeof(uint64_t) * 3
 
+	; rsp -> guest_rip
 	mov rax, [rsp]
 
 	; rsp + 8 -> guest_rsp

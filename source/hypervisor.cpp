@@ -65,7 +65,7 @@ void Hypervisor::setup_npt(vcpu_t& vcpu)
 	
 	npt.dummy_page_pa = MmGetPhysicalAddress(npt.dummy).QuadPart >> 12;
 
-	// TODO: read the mtrr later...
+	// TODO: read the mtrr later and set page attributes accordingly
 	auto& pml4e = npt.pml4[0];
 	pml4e.present = 1;
 	pml4e.write = 1;
@@ -231,15 +231,14 @@ void Hypervisor::map_physical_memory() {
 
 	auto system_pml4 = reinterpret_cast<pml4e_t*>(MmGetVirtualForPhysical({ .QuadPart = static_cast<int64_t>(system_cr3.pml4 << 12) }));
 
+	// NOTE: this is a shallow copy, a deep copy would be required if an aggressive anticheat trashed the deeper levels of the page tables before a VMEXIT
+	// its resource intensive both for us and the anticheat to setup a deep copy. Since they also have to do it, we can just assume were gonna be fine for now.
 	memcpy(&shared_host_pt.pml4[256], &system_pml4[256], sizeof(pml4e_t) * 256);
 }
 
 void Hypervisor::devirtualize(vcpu_t* const vcpu)
 {
 	print("Exiting [%d]...\n", (vcpu->self - &vcpus[0]) / sizeof(vcpu_t*));
-
-	//for (auto& cvcpu : vcpus) // alert all other vcpus
-	//	cvcpu.should_exit = true;
 
 	// devirtualize current vcpu, later in the vmrun loop we restore rsp and jump to guest_rip.
 	vcpu->guest_rip = vcpu->guest_vmcb.control.nrip;
@@ -248,7 +247,7 @@ void Hypervisor::devirtualize(vcpu_t* const vcpu)
 	__svm_vmload(vcpu->guest_vmcb_pa);
 
 	_disable();
-	__svm_stgi();
+	__svm_stgi(); // enable GIF since its implicitly disabled on vmexit
 
 	MSR::EFER efer{}; efer.load(); efer.svme = 0; efer.store();
 	__writeeflags(vcpu->guest_vmcb.state.rflags.value);
@@ -270,14 +269,6 @@ void Hypervisor::unload()
 		ExFreePoolWithTag(vcpus, 'hv');
 		vcpus = nullptr;
 	}
-	//if (shared_msrpm) {
-	//	MmFreeContiguousMemory(shared_msrpm);
-	//	shared_msrpm = nullptr;
-	//}
-	/*if (npt) {
-		MmFreeContiguousMemory(npt);
-		npt = nullptr;
-	}*/
 
 	ExFreePoolWithTag(instance, 'hv');
 	instance = nullptr;
