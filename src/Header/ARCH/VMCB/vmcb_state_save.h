@@ -75,13 +75,13 @@ struct vmcb_state_save {
 	rflags_t rflags;
 
 	// 178h
-	uint64_t rip;
+	register_t rip;
 
 	// 180h
 	uint8_t reserved180[0x58];
 
 	// 1d8h
-	uint64_t rsp;
+	register_t rsp;
 
 	// 1e0h
 	MSR::S_CET s_cet;

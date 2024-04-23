@@ -21,7 +21,9 @@ HANDLER_STATUS cr4_read_handler(vcpu_t& vcpu) {
 		//guh!
 	}
 
-	ZydisRegister& z = operands[0].reg.value; // register that cr4 is being moved into
+	auto& reg = vcpu.convert(operands[0].reg.value);
+
+
 }
 
 HANDLER_STATUS cr4_write_handler(vcpu_t& vcpu) {

@@ -1909,6 +1909,7 @@
     <ClInclude Include="src\Header\ARCH\MSRs\tsc.h" />
     <ClInclude Include="src\Header\ARCH\MSRs\tsc_aux.h" />
     <ClInclude Include="src\Header\Util\lliterator.h" />
+    <ClInclude Include="src\Header\ARCH\register_t.h" />
   </ItemGroup>
   <ItemGroup>
     <MASM Include="src\source\asm\vmenter.asm" />

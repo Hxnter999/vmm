@@ -69,6 +69,8 @@ struct alignas(0x1000) vcpu_t {
 		return true;
 	}
 
+	register_t& convert(ZydisRegister reg);
+
 	template<EXCEPTION_VECTOR exception>
 	void inject_event()
 	{

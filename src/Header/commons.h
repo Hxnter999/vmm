@@ -11,6 +11,7 @@
 #include <Zydis/Zydis.h>
 
 
+
 /* stdint */
 typedef signed char        int8_t;
 typedef short              int16_t;
@@ -21,11 +22,14 @@ typedef unsigned short     uint16_t;
 typedef unsigned int       uint32_t;
 typedef unsigned long long uint64_t;
 
+
 extern "C" NTSTATUS ZwQuerySystemInformation(
 	uint32_t SystemInformationClass,
 	PVOID SystemInformation,
 	ULONG SystemInformationLength,
 	ULONG * ReturnLength);
+
+#include <register_t.h>
 
 template<typename T>
 concept is_pointer = requires(T t) { *t; };

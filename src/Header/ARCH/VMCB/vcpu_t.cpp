@@ -55,3 +55,26 @@ bool vcpu_t::gva_to_gpa(virtual_address_t gva, uint64_t& modifiable_size, uint64
 	gpa = (pte.page_pa << 12) + offset;
 	return true;
 }
+
+register_t& vcpu_t::convert(ZydisRegister reg) {
+	switch (reg) {
+	case ZYDIS_REGISTER_RAX: return 	guest_stack_frame.rax;
+	case ZYDIS_REGISTER_RCX: return 	guest_stack_frame.rcx;
+	case ZYDIS_REGISTER_RDX: return 	guest_stack_frame.rdx;
+	case ZYDIS_REGISTER_RBX: return 	guest_stack_frame.rbx;
+	case ZYDIS_REGISTER_RSP: return 	guest_vmcb.save_state.rsp;
+	//case ZYDIS_REGISTER_RBP: return 	guest_stack_frame.rbp;
+	case ZYDIS_REGISTER_RSI: return 	guest_stack_frame.rsi;
+	case ZYDIS_REGISTER_RDI: return 	guest_stack_frame.rdi;
+	case ZYDIS_REGISTER_R8: return 	guest_stack_frame.r8;
+	case ZYDIS_REGISTER_R9: return 	guest_stack_frame.r9;
+	case ZYDIS_REGISTER_R10: return 	guest_stack_frame.r10;
+	case ZYDIS_REGISTER_R11: return 	guest_stack_frame.r11;
+	case ZYDIS_REGISTER_R12: return 	guest_stack_frame.r12;
+	case ZYDIS_REGISTER_R13: return 	guest_stack_frame.r13;
+	case ZYDIS_REGISTER_R14: return 	guest_stack_frame.r14;
+	case ZYDIS_REGISTER_R15: return 	guest_stack_frame.r15;
+	case ZYDIS_REGISTER_RIP: return 	guest_vmcb.save_state.rip;
+	//case ZYDIS_REGISTER_RFLAGS: return 	guest_vmcb.save_state.rflags;
+	}
+}
