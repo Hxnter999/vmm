@@ -1,8 +1,8 @@
 #include "Hypervisor.h"
 
-#include <cpuid/standard-features/fn_vendor.h>
-#include <cpuid/extended-features/fn_identifiers.h>
-#include <cpuid/extended-features/fn_svm_features.h>
+#include <cpuid/fn_vendor.h>
+#include <cpuid/fn_identifiers.h>
+#include <cpuid/fn_svm_features.h>
 #include <msrs/msrs.h>
 #include <msrs/hsave.h>
 #include <msrs/pat.h>

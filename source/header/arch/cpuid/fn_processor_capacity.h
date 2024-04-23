@@ -4,6 +4,7 @@
 namespace CPUID {
 	// 8000_0008
 	struct fn_processor_capacity : BASE_CPUID {
+		static constexpr int32_t ID = 0x80000008;
 		union
 		{
 			struct {

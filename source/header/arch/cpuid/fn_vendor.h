@@ -5,6 +5,7 @@
 namespace CPUID {
 
 	struct fn_vendor : BASE_CPUID {
+		static constexpr int32_t ID = 0x80000000;
 		union
 		{
 			struct {
