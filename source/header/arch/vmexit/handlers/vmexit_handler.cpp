@@ -59,7 +59,7 @@ bool vmexit_handler(vcpu_t& vcpu) {
 	vcpu.guest_vmcb.state.rax = vcpu.guest_stack_frame.rax.value;
 
 	if (vcpu.should_exit) { // TODO: devirtualize by firing IPIs and handling them and remove this dogshit
-		HV->devirtualize(&vcpu); // devirtualize current vcpu and alert all others
+		hv.devirtualize(&vcpu); // devirtualize current vcpu and alert all others
 		return false;
 	};
 

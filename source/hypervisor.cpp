@@ -9,13 +9,10 @@
 #include <msrs/vm_cr.h>
 #include <hypercall/hypercall.h>
 #include <vmexit/handlers.h>
+#include <util/memory.h>
 
 extern "C" int64_t testcall(hypercall_code code);
 extern "C" void vmenter(uint64_t* guest_vmcb_pa);
-
-
-Hypervisor* Hypervisor::instance = nullptr;
-
 
 bool Hypervisor::virtualize(uint32_t index)
 {
@@ -30,8 +27,7 @@ bool Hypervisor::virtualize(uint32_t index)
 	hsave_pa.bits = MmGetPhysicalAddress(&vcpu.host_vmcb).QuadPart;
 	hsave_pa.store();
 
-	CONTEXT* ctx = static_cast<CONTEXT*>(ExAllocatePoolWithTag(NonPagedPool, sizeof(CONTEXT), 'sgma'));
-	memset(ctx, 0, sizeof(CONTEXT));
+	auto ctx = util::allocate_pool<CONTEXT>();
 	RtlCaptureContext(ctx);
 
 	print("Checking efer\n");
@@ -170,10 +166,10 @@ void Hypervisor::setup_host(vcpu_t& vcpu) {
 
 	// -------
 
-	HV->map_physical_memory();
+	hv.map_physical_memory();
 	auto& host_cr3 = vcpu.host_vmcb.state.cr3;
 	host_cr3.value = 0;
-	host_cr3.pml4 = MmGetPhysicalAddress(&shared_host_pt.pml4).QuadPart >> 12;
+	host_cr3.pml4 = MmGetPhysicalAddress(&shared_host_pt->pml4).QuadPart >> 12;
 
 	print("Writing host cr3: %zX\n", host_cr3.value);
 	__writecr3(host_cr3.value);
@@ -206,19 +202,19 @@ void Hypervisor::map_physical_memory() {
 	print("Setting up host page tables\n");
 
 	// map all the physical memory and share it between the hosts to be able to access physical memory directly.
-	auto& pml4e = shared_host_pt.pml4[shared_host_pt.host_pml4e];
+	auto& pml4e = shared_host_pt->pml4[shared_host_pt->host_pml4e];
 	pml4e.present = 1;
 	pml4e.write = 1;
-	pml4e.page_pa = MmGetPhysicalAddress(&shared_host_pt.pdpt).QuadPart >> 12;
+	pml4e.page_pa = MmGetPhysicalAddress(&shared_host_pt->pdpt).QuadPart >> 12;
 
 	for (int i = 0; i < 64; i++) {
-		auto& pdpte = shared_host_pt.pdpt[i];
+		auto& pdpte = shared_host_pt->pdpt[i];
 		pdpte.present = 1;
 		pdpte.write = 1;
-		pdpte.page_pa = MmGetPhysicalAddress(&shared_host_pt.pd[i]).QuadPart >> 12;
+		pdpte.page_pa = MmGetPhysicalAddress(&shared_host_pt->pd[i]).QuadPart >> 12;
 
 		for (int j = 0; j < 512; j++) {
-			auto& pde = shared_host_pt.pd[i][j];
+			auto& pde = shared_host_pt->pd[i][j];
 			pde.present = 1;	
 			pde.write = 1;
 			pde.large_page = 1;
@@ -233,7 +229,7 @@ void Hypervisor::map_physical_memory() {
 
 	// NOTE: this is a shallow copy, a deep copy would be required if an aggressive anticheat trashed the deeper levels of the page tables before a VMEXIT
 	// its resource intensive both for us and the anticheat to setup a deep copy. Since they also have to do it, we can just assume were gonna be fine for now.
-	memcpy(&shared_host_pt.pml4[256], &system_pml4[256], sizeof(pml4e_t) * 256);
+	memcpy(&shared_host_pt->pml4[256], &system_pml4[256], sizeof(pml4e_t) * 256);
 }
 
 void Hypervisor::devirtualize(vcpu_t* const vcpu)
@@ -255,8 +251,6 @@ void Hypervisor::devirtualize(vcpu_t* const vcpu)
 
 void Hypervisor::unload()
 {
-	if (instance == nullptr) return; //should never happen
-
 	print("Unloading Hypervisor...\n");
 
 	execute_on_all_cpus([](uint32_t index) -> bool {
@@ -266,12 +260,9 @@ void Hypervisor::unload()
 		});
 
 	if (vcpus) {
-		ExFreePoolWithTag(vcpus, 'hv');
+		util::free_pool(vcpus);
 		vcpus = nullptr;
 	}
-
-	ExFreePoolWithTag(instance, 'hv');
-	instance = nullptr;
 }
 
 bool Hypervisor::init()
@@ -285,8 +276,15 @@ bool Hypervisor::init()
 	print("SVM supported\n");
 
 	vcpu_count = { KeQueryActiveProcessorCount(nullptr) };
+	vcpus = util::allocate_pool<vcpu_t>(vcpu_count * sizeof(vcpu_t));
 	if (vcpus == nullptr) {
 		print("Failed to allocate vcpus\n");
+		return false;
+	}
+
+	shared_host_pt = util::allocate_pool<host_pt_t>();
+	if (shared_host_pt == nullptr) {
+		print("Failed to allocate host page tables\n");
 		return false;
 	}
 
@@ -297,7 +295,7 @@ bool Hypervisor::virtualize()
 {
 	if (!execute_on_all_cpus([](uint32_t index) -> bool {
 		print("Virtualizing [%d]...\n", index);
-		if (!instance->virtualize(index))
+		if (!hv.virtualize(index))
 		{
 			print("Failed to virtualize\n");
 			return false;
@@ -355,8 +353,8 @@ svm_status Hypervisor::init_check()
 
 	if (!vm_cr.svmdis)
 	{
-		print("SVM not enabled but can be (;\n");
-		return svm_status::SVM_IS_CAPABLE_OF_BEING_ENABLE; // Yippe!
+		print("SVM not enabled but can be enabled\n");
+		return svm_status::SVM_IS_CAPABLE_OF_BEING_ENABLE;
 	}
 
 	if (!svm_rev.svm_feature_identification.svm_lock)

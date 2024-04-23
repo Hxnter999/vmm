@@ -5,7 +5,7 @@
 
 class Hypervisor
 {
-	host_pt_t shared_host_pt;
+	host_pt_t* shared_host_pt;
 	vcpu_t* vcpus;
 	uint32_t vcpu_count;
 
@@ -22,9 +22,6 @@ class Hypervisor
 		return true;
 	}
 
-	Hypervisor() = default;
-
-
 	bool virtualize(uint32_t index);
 
 	void setup_guest(vcpu_t& vcpu, CONTEXT* ctx); 
@@ -40,8 +37,8 @@ class Hypervisor
 	static svm_status init_check();
 
 public:
-	static Hypervisor* instance;
 
+	Hypervisor() = default;
 	Hypervisor(Hypervisor&) = delete;
 	void operator=(const Hypervisor&) = delete;
 
@@ -49,10 +46,9 @@ public:
 
 	bool virtualize();
 
-
 	void devirtualize(vcpu_t* const vcpu);
 
 	void unload(); //this should only be called once (in Unload)
 };
 
-#define HV Hypervisor::instance	
+inline Hypervisor hv{};

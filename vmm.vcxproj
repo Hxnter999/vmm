@@ -179,6 +179,7 @@
     <ClInclude Include="source\header\arch\vmexit\handlers.h" />
     <ClInclude Include="source\header\hypercall\hypercall.h" />
     <ClInclude Include="source\header\arch\cr\control_registers.h" />
+    <ClInclude Include="source\header\util\memory.h" />
     <ClInclude Include="source\hypervisor.h" />
     <ClInclude Include="source\header\arch\vmexit\exitinfo2.h" />
     <ClInclude Include="source\header\util\bitset.h" />

@@ -6,21 +6,21 @@
 #include <msrs/pat.h>
 #include <msrs/hsave.h>
 #include <msrs/efer.h>
+#include <util/memory.h>
 
 void Unload(PDRIVER_OBJECT pDriverObject);
 
 extern "C" NTSTATUS DriverEntry(PDRIVER_OBJECT pDriverObject, PUNICODE_STRING)
 {
 	pDriverObject->DriverUnload = Unload;
-	Hypervisor::instance = static_cast<Hypervisor*>(ExAllocatePoolWithTag(NonPagedPool, sizeof(Hypervisor), 'hv'));
 	
-	if (!HV->init())
+	if (!hv.init())
 	{
 		print("Hypervisor failed to initialize\n");
 		return STATUS_UNSUCCESSFUL;
 	}
 
-	if (!HV->virtualize())
+	if (!hv.virtualize())
 	{
 		print("Virtualization failed\n");
 		return STATUS_UNSUCCESSFUL;
@@ -34,7 +34,7 @@ void Unload(PDRIVER_OBJECT pDriverObject)
 {
 	UNREFERENCED_PARAMETER(pDriverObject);
 
-	HV->unload();
+	hv.unload();
 
 	print("---------\n\n");
 }
