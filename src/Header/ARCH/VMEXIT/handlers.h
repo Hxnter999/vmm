@@ -33,6 +33,9 @@ HANDLER_STATUS xsetbv_handler(vcpu_t& vcpu);
 HANDLER_STATUS cr3_read_handler(vcpu_t& vcpu);
 HANDLER_STATUS cr3_write_handler(vcpu_t& vcpu);
 
+HANDLER_STATUS cr4_read_handler(vcpu_t& vcpu);
+HANDLER_STATUS cr4_write_handler(vcpu_t& vcpu);
+
 HANDLER_STATUS shutdown_handler(vcpu_t& vcpu);
 
 HANDLER_STATUS nmi_handler(vcpu_t& vcpu);

@@ -9,6 +9,9 @@ HANDLER_STATUS dtr_save_handler(vcpu_t& vcpu)
 	if(is_arch_x64(vcpu.guest_vmcb.save_state)) {
 		
 	}
+	else {
+
+	}
 }
 
 HANDLER_STATUS dtr_load_handler(vcpu_t& vcpu)

@@ -40,6 +40,11 @@ struct alignas(0x1000) vcpu_t {
 		return read_guest(gva, &out, sizeof(T));
 	}
 
+	template<typename T>
+	bool read_rip(T* out) {
+		return read_guest(guest_vmcb.save_state.rip, out, sizeof(T));
+	}
+
 	bool read_guest(virtual_address_t gva, void* out, size_t size) {
 		uint64_t hva{};
 		uint64_t modifiable_size{};
