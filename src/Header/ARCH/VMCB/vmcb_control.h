@@ -7,9 +7,10 @@
 #include <vmexit/svm_exit_code.h>
 #include <vmexit/exit_int_info.h>
 
-enum class tlb_control_id : uint64_t {
+enum class TLB_CONTROL_ID : uint8_t {
 	do_nothing = 0,
 	flush_entire_tlb = 1, // every entry, every asid; should only be used by legacy hypervisor
+	//support for following are indicated by CPUID Fn8000_000A_EDX[FlushByAsid] = 1.
 	flush_guest_tlb = 3, // flush this guest's tlb 
 	flush_guest_non_global_tlb = 7 // flush this guest's non-global tlb
 };
@@ -234,7 +235,7 @@ struct vmcb_control {
 		struct {
 			uint64_t guest_asid : 32; // guest asid
 			// tlb_control: tlb control bits
-			tlb_control_id tlb_control : 8;
+			TLB_CONTROL_ID tlb_control : 8;
 			uint64_t reserved40 : 24;
 		};
 	};

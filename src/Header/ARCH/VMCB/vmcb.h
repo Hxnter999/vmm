@@ -87,4 +87,10 @@ struct alignas(0x1000) vcpu_t {
 		ei.type = INTERRUPT_TYPE::NMI;
 		ei.vector = 0; // ignored
 	}
+
+	template<TLB_CONTROL_ID control_byte>
+	void flush_tlb() {
+		auto& tlb_control = guest_vmcb.control.tlb_control;
+		tlb_control.flush_tlb = control_byte;
+	}
 };
