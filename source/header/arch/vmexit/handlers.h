@@ -1,5 +1,4 @@
 #pragma once
-#include <hypervisor.h>
 #include <hypercall/hypercall.h>
 #include <cpuid/cpuid_t.h>
 #include <msrs/efer.h>

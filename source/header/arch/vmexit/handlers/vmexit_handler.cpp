@@ -1,4 +1,5 @@
 #include <vmexit/handlers.h>
+#include <vmm.h>
 
 bool vmexit_handler(vcpu_t& vcpu) {
 	__svm_vmload(vcpu.host_vmcb_pa);
@@ -59,7 +60,7 @@ bool vmexit_handler(vcpu_t& vcpu) {
 	vcpu.guest_vmcb.state.rax = vcpu.guest_stack_frame.rax.value;
 
 	if (vcpu.should_exit) { // TODO: devirtualize by firing IPIs and handling them and remove this dogshit
-		hv.devirtualize(&vcpu); // devirtualize current vcpu and alert all others
+		unload_single_vcpu(vcpu); // devirtualize current vcpu and alert all others
 		return false;
 	};
 
