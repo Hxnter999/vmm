@@ -50,3 +50,7 @@
 *.lock
 *.suo
 *.db
+
+#cert files
+*.cer
+*.exp
