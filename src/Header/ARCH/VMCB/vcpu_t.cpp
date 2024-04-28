@@ -76,5 +76,7 @@ register_t& vcpu_t::convert(ZydisRegister reg) {
 	case ZYDIS_REGISTER_R15: return 	guest_stack_frame.r15;
 	case ZYDIS_REGISTER_RIP: return 	guest_vmcb.save_state.rip;
 	//case ZYDIS_REGISTER_RFLAGS: return 	guest_vmcb.save_state.rflags;
+	default:
+		return guest_vmcb.save_state.rip; // just so i can compile for now
 	}
 }

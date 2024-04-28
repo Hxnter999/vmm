@@ -7,7 +7,7 @@
 #include <vmexit/svm_exit_code.h>
 #include <vmexit/exit_int_info.h>
 
-enum class TLB_CONTROL_ID : uint8_t {
+enum class TLB_CONTROL_ID : uint64_t {
 	do_nothing = 0,
 	flush_entire_tlb = 1, // every entry, every asid; should only be used by legacy hypervisor
 	//support for following are indicated by CPUID Fn8000_000A_EDX[FlushByAsid] = 1.

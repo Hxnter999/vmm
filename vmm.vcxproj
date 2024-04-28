@@ -151,7 +151,9 @@
     <ClCompile Include="src\Header\ARCH\VMEXIT\HANDLERS\CR\cr3.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="src\Header\ARCH\VMEXIT\HANDLERS\CR\cr4.cpp" />
+    <ClCompile Include="src\Header\ARCH\VMEXIT\HANDLERS\CR\cr4.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="src\Header\ARCH\VMEXIT\HANDLERS\dtr.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
