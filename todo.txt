@@ -1,5 +1,7 @@
 mtrr calculations, npt hooks
 
+fix setup_allusive as it doesnt work rn (really easy fix just a reminder)
+
 add more hypercall stuff (everything should be customised from um)
 
 TSC scaling (cant use vmware, doesnt support it)
