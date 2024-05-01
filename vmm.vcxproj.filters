@@ -19,8 +19,7 @@
     <ClInclude Include="source\header\arch\msrs\s_cet.h" />
     <ClInclude Include="source\header\arch\msrs\u_cet.h" />
     <ClInclude Include="source\header\arch\rflags.h" />
-    <ClInclude Include="source\header\arch\stack_frame.h" />
-    <ClInclude Include="source\header\arch\pages\pages.h" />
+    <ClInclude Include="source\header\arch\context.h" />
     <ClInclude Include="source\header\hypercall\hypercall.h" />
     <ClInclude Include="source\header\arch\cr\control_registers.h" />
     <ClInclude Include="source\header\arch\vmexit\exitinfo2.h" />
@@ -47,13 +46,15 @@
     <ClInclude Include="windows-defs\structs\_RTL_PROCESS_MODULE_INFORMATION.h" />
     <ClInclude Include="windows-defs\structs\_RTL_PROCESS_MODULES.h" />
     <ClInclude Include="source\header\arch\msrs\tsc_ratio.h" />
-    <ClInclude Include="source\header\arch\pages\translations.h" />
+    <ClInclude Include="source\header\arch\paging\translation.h" />
     <ClInclude Include="source\header\arch\vmexit\handlers.h" />
     <ClInclude Include="source\header\arch\vcpu\vcpu.h" />
     <ClInclude Include="source\header\util\memory.h" />
     <ClInclude Include="source\vmm.h" />
+    <ClInclude Include="source\header\arch\paging\pages.h" />
   </ItemGroup>
   <ItemGroup>
-    <MASM Include="source\asm\vmenter.asm" />
+    <MASM Include="source\asm\vmlaunch.asm" />
+    <MASM Include="source\asm\vmmcall.asm" />
   </ItemGroup>
 </Project>

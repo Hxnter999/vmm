@@ -1,9 +1,9 @@
 #pragma once
 #include <vcpu/vmcb_control.h>
 #include <vcpu/vmcb_state_save.h>
-#include <stack_frame.h>
+#include <context.h>
 #include <msrs/msrs.h>
-#include <pages/pages.h>
+#include <paging/pages.h>
 
 struct vmcb_t {
 	// table b-1 (control area)

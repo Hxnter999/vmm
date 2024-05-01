@@ -8,19 +8,19 @@ void msr_handler(vcpu_t& vcpu) {
 
 	bool read = vcpu.guest_vmcb.control.exit_info_1.msr.is_read();
 
-	uint32_t msr = vcpu.guest_stack_frame.rcx.low;
+	uint32_t msr = vcpu.guest_context.rcx.low;
 	// MSR return value is split between 2 registers, we have to handle them both before passing it back into the guest.
 
 	if (read) {
 		register_t result = rdmsr_handler(vcpu, msr);
-		vcpu.guest_stack_frame.rax.value = result.low;
-		vcpu.guest_stack_frame.rdx.value = result.high;
+		vcpu.guest_context.rax.value = result.low;
+		vcpu.guest_context.rdx.value = result.high;
 	}
 
 	else {
 		wrmsr_handler(vcpu, msr, { 
-			.low = vcpu.guest_stack_frame.rax.low, 
-			.high = vcpu.guest_stack_frame.rdx.low 
+			.low = vcpu.guest_context.rax.low, 
+			.high = vcpu.guest_context.rdx.low 
 		});
 	}
 }

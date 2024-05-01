@@ -5,7 +5,7 @@ bool vmexit_handler(vcpu_t& vcpu) {
 	__svm_vmload(vcpu.host_vmcb_pa);
 
 	// guest rax overwriten by host after vmexit
-	vcpu.guest_stack_frame.rax.value = vcpu.guest_vmcb.state.rax;
+	vcpu.guest_context.rax.value = vcpu.guest_vmcb.state.rax;
 	switch (vcpu.guest_vmcb.control.exit_code) {
 
 	case svm_exit_code::VMEXIT_VMMCALL:
@@ -57,7 +57,7 @@ bool vmexit_handler(vcpu_t& vcpu) {
 		break;
 	}
 	// the cpu handles guest rax for us
-	vcpu.guest_vmcb.state.rax = vcpu.guest_stack_frame.rax.value;
+	vcpu.guest_vmcb.state.rax = vcpu.guest_context.rax.value;
 
 	if (vcpu.should_exit) { // TODO: devirtualize by firing IPIs and handling them and remove this dogshit
 		unload_single_vcpu(vcpu); // devirtualize current vcpu and alert all others

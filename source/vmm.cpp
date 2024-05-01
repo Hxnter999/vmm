@@ -10,8 +10,8 @@
 #include <util/memory.h>
 #include <hypercall/hypercall.h>
 
-extern "C" void vmenter(uint64_t* guest_vmcb_pa);
-extern "C" int64_t testcall(hypercall_code code);
+extern "C" void __vmlaunch(uint64_t* guest_vmcb_pa);
+extern "C" uint64_t __vmmcall(hypercall_code code);
 
 using per_cpu_callback_t = bool(*)(uint32_t);
 inline bool execute_on_all_cpus(per_cpu_callback_t callback)
@@ -36,7 +36,7 @@ void setup_msrpm(vcpu_t& vcpu) {
 
 void map_physical_memory();
 void setup_npt(vcpu_t& vcpu);
-void setup_guest(vcpu_t& vcpu, CONTEXT* ctx);
+void setup_guest(vcpu_t& vcpu, CONTEXT& ctx);
 void setup_host(vcpu_t& vcpu);
 svm_status check_svm_support();
 
@@ -52,12 +52,13 @@ bool setup_vcpu(uint32_t index)
 	MSR::HSAVE_PA hsave_pa{};
 	hsave_pa.bits = MmGetPhysicalAddress(&vcpu.host_vmcb).QuadPart;
 	hsave_pa.store();
-
-	auto ctx = util::allocate_pool<CONTEXT>();
-	RtlCaptureContext(ctx);
+ 
+	CONTEXT& ctx = *reinterpret_cast<CONTEXT*>(vcpu.host_stack); // use the currently unused space we have already allocated
+	RtlCaptureContext(&ctx);
 
 	print("Checking efer\n");
 	// efer.svme will be 0 when we read it in a virtualized state, this is because the host hides svme from the guest
+	// this can be cleaned up and optimized by doing it thru assembling and passing the address of a label to RIP that returns true, but this is fine for now
 	MSR::EFER guest_efer{}; guest_efer.load();
 	if (!guest_efer.svme) {
 		__debugbreak();
@@ -71,7 +72,7 @@ bool setup_vcpu(uint32_t index)
 	setup_host(vcpu);
 
 	print("Entering vm\n");
-	vmenter(&vcpu.guest_vmcb_pa);
+	__vmlaunch(&vcpu.guest_vmcb_pa);
 
 	// shouldnt reach this point, if so something went wrong
 	return false;
@@ -115,7 +116,7 @@ bool virtualize() {
 	return true;
 }
 
-void setup_guest(vcpu_t& vcpu, CONTEXT* ctx) //should make it a reference
+void setup_guest(vcpu_t& vcpu, CONTEXT& ctx)
 {
 	// ------------------- Setup guest state -------------------
 	vcpu.guest_vmcb.control.vmrun = 1;
@@ -125,14 +126,15 @@ void setup_guest(vcpu_t& vcpu, CONTEXT* ctx) //should make it a reference
 	//vcpu.guest_vmcb.control.clgi = 1;
 
 	vcpu.guest_vmcb.control.guest_asid = 1; // Address space identifier, 0 is reserved for host.
-	vcpu.guest_vmcb.control.v_intr_masking = 1; // 15.21.1 & 15.22.2
+	vcpu.guest_vmcb.control.v_intr_masking = 1; // 15.21.1; Virtualize TPR and eflags.if, host eflags.if controls physical interrupts and guest eflags.if controls virtual interrupts
 
 	// if ur considering disabling this, change the code in the virtualize routine which uses msr intercepts to check if were currently running in guest mode and exits the function to avoid virtualization loop
 	vcpu.guest_vmcb.control.msr_prot = 1;
 	vcpu.guest_vmcb.control.msrpm_base_pa = MmGetPhysicalAddress(&vcpu.msrpm).QuadPart;
 	setup_msrpm(vcpu);
 
-	vcpu.guest_vmcb.control.np_enable = 1;
+	// nested paging should not be disabled as it controls virtualization of critical guest state including control registers
+	vcpu.guest_vmcb.control.np_enable = 1; 
 	vcpu.guest_vmcb.control.n_cr3 = MmGetPhysicalAddress(&vcpu.npts).QuadPart;
 	setup_npt(vcpu);
 
@@ -142,7 +144,7 @@ void setup_guest(vcpu_t& vcpu, CONTEXT* ctx) //should make it a reference
 	vcpu.guest_vmcb.state.cr3.value = __readcr3();
 	vcpu.guest_vmcb.state.cr4.value = __readcr4();
 	vcpu.guest_vmcb.state.efer.bits = __readmsr(MSR::EFER::MSR_EFER);
-	vcpu.guest_vmcb.state.g_pat = __readmsr(MSR::PAT::MSR_PAT);
+	vcpu.guest_vmcb.state.g_pat = __readmsr(MSR::PAT::MSR_PAT); // only for nested paging
 
 	descriptor_table_register idtr{}, gdtr{}; __sidt(&idtr); _sgdt(&gdtr);
 	vcpu.guest_vmcb.state.idtr.base = idtr.base;
@@ -152,20 +154,20 @@ void setup_guest(vcpu_t& vcpu, CONTEXT* ctx) //should make it a reference
 	vcpu.guest_vmcb.state.gdtr.limit = gdtr.limit;
 
 	// This is where the guest will start executing
-	vcpu.guest_vmcb.state.rsp = ctx->Rsp;
-	vcpu.guest_vmcb.state.rip = ctx->Rip;
-	vcpu.guest_vmcb.state.rflags.value = ctx->EFlags;
+	vcpu.guest_vmcb.state.rsp = ctx.Rsp;
+	vcpu.guest_vmcb.state.rip = ctx.Rip;
+	vcpu.guest_vmcb.state.rflags.value = ctx.EFlags;
 
 	// Setup all the segment registers
-	vcpu.guest_vmcb.state.cs.limit = __segmentlimit(ctx->SegCs);
-	vcpu.guest_vmcb.state.ds.limit = __segmentlimit(ctx->SegDs);
-	vcpu.guest_vmcb.state.es.limit = __segmentlimit(ctx->SegEs);
-	vcpu.guest_vmcb.state.ss.limit = __segmentlimit(ctx->SegSs);
+	vcpu.guest_vmcb.state.cs.limit = __segmentlimit(ctx.SegCs);
+	vcpu.guest_vmcb.state.ds.limit = __segmentlimit(ctx.SegDs);
+	vcpu.guest_vmcb.state.es.limit = __segmentlimit(ctx.SegEs);
+	vcpu.guest_vmcb.state.ss.limit = __segmentlimit(ctx.SegSs);
 
-	vcpu.guest_vmcb.state.cs.selector.value = ctx->SegCs;
-	vcpu.guest_vmcb.state.ds.selector.value = ctx->SegDs;
-	vcpu.guest_vmcb.state.es.selector.value = ctx->SegEs;
-	vcpu.guest_vmcb.state.ss.selector.value = ctx->SegSs;
+	vcpu.guest_vmcb.state.cs.selector.value = ctx.SegCs;
+	vcpu.guest_vmcb.state.ds.selector.value = ctx.SegDs;
+	vcpu.guest_vmcb.state.es.selector.value = ctx.SegEs;
+	vcpu.guest_vmcb.state.ss.selector.value = ctx.SegSs;
 
 	vcpu.guest_vmcb.state.cs.get_attributes(gdtr.base);
 	vcpu.guest_vmcb.state.ds.get_attributes(gdtr.base);
@@ -306,7 +308,7 @@ void devirtualize() {
 
 	execute_on_all_cpus([](uint32_t index) -> bool {
 		print("Devirtualizing [%d]...\n", index);
-		testcall(hypercall_code::UNLOAD);
+		__vmmcall(hypercall_code::UNLOAD);
 		return true;
 		});
 

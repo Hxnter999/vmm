@@ -1,5 +1,5 @@
 #pragma once
-#include <pages/pages.h>
+#include <paging/pages.h>
 #include <vcpu/vcpu.h>
 
 inline uint64_t gva_to_gpa(vcpu_t& vcpu, uint64_t address, uint64_t& offset_to_next_page) {

@@ -1,18 +1,13 @@
 .code
-
-testcall proc
-	vmmcall
-	ret
-testcall endp
-
 extern vmexit_handler : proc
 
-vmenter proc
+__vmlaunch proc
 	mov rsp, rcx
 	sub rsp, 100h ; needed at first cause the loop always adds 100h from the start
 
 vmrun_loop:
-    add rsp, 100h ; have to do it after the conditional jump since it will overwrite the zero flag
+	; rsp -> xmm0
+    add rsp, 100h ; have to do it after the conditional jump since it will modify eflags.zf
 
 	; rsp -> guest_vmcb_pa
 	mov rax, [rsp]
@@ -55,13 +50,15 @@ vmrun_loop:
 	push r8
 	push rdi
 	push rsi
+	push rbp
+	push rsp ; pointless but for consistency
 	push rbx
 	push rdx
 	push rcx
 	push rax
 
-	; rsp -> stack_frame
-	mov rcx, [rsp + 180h] ; sizeof(stack_contents) + sizeof(uint64_t) * 2
+	; rsp -> guest_context
+	mov rcx, [rsp + 190h] ; sizeof(guest_context) + sizeof(uint64_t) * 2
 	call vmexit_handler
 	test al, al
 
@@ -69,6 +66,8 @@ vmrun_loop:
 	pop rcx
 	pop rdx
 	pop rbx
+	pop rbp ; dummy pop, supposed to be rsp
+	pop rbp
 	pop rsi
 	pop rdi
 	pop r8
@@ -100,7 +99,8 @@ vmrun_loop:
 
 	jnz vmrun_loop
 
-	; devirtualize
+	; devirtualize:
+
 	; rsp -> xmm0
 	add rsp, 118h ; 100h for xmms + sizeof(uint64_t) * 3
 
@@ -111,7 +111,6 @@ vmrun_loop:
 	mov rsp, [rsp+8]
 	
 	jmp rax
-
-vmenter endp
+__vmlaunch endp
 
 end

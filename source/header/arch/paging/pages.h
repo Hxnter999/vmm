@@ -1,7 +1,7 @@
 #pragma once
 #include <commons.h>
 
-struct pml4e_t 
+struct pml4e_t
 {
 	uint64_t present : 1;
 	uint64_t write : 1;
@@ -15,10 +15,9 @@ struct pml4e_t
 	uint64_t page_pa : 40;
 	uint64_t available : 11;
 	uint64_t no_execute : 1;
-
 };
 
-struct pdpte_1gb_t 
+struct pdpte_1gb_t
 {
 	uint64_t present : 1;
 	uint64_t write : 1;
@@ -38,7 +37,7 @@ struct pdpte_1gb_t
 	uint64_t no_execute : 1;
 };
 
-struct pdpte_t 
+struct pdpte_t
 {
 	uint64_t present : 1;
 	uint64_t write : 1;
@@ -55,7 +54,7 @@ struct pdpte_t
 	uint64_t no_execute : 1;
 };
 
-struct pde_2mb_t 
+struct pde_2mb_t
 {
 	uint64_t present : 1;
 	uint64_t write : 1;
@@ -66,7 +65,7 @@ struct pde_2mb_t
 	uint64_t dirty : 1; // only if huge
 	uint64_t large_page : 1;
 	uint64_t global : 1; // only if huge
-	uint64_t available_to_software : 3;	
+	uint64_t available_to_software : 3;
 	uint64_t pat : 1;
 	uint64_t reserved : 8;
 	uint64_t page_pa : 31;
@@ -110,12 +109,12 @@ struct pte_t
 	uint64_t no_execute : 1;
 };
 
-// alternatively use huge pages for both
+// alternatively use 1gb pages for both, host page tables and nested page tables
 struct alignas(0x1000) host_pt_t {
 	pml4e_t pml4[512];
 	pdpte_t pdpt[512];
 	pde_2mb_t pd[64][512];
-	
+
 	static constexpr uint64_t host_pml4e = 255; // the pml4 entry that we use for the host
 	static constexpr uint64_t host_pa_base = host_pml4e << (12 + 9 + 9 + 9); // base address of the entry
 };

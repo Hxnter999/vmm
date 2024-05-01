@@ -55,22 +55,29 @@ struct register_t {
 	}
 };
 
-struct stack_frame_t
+struct context_t
 {
-	register_t rax; // rax is in vmcb
-	register_t rcx;
-	register_t rdx;
-	register_t rbx;
-	register_t rsi;
-	register_t rdi;
-	register_t r8;
-	register_t r9;
-	register_t r10;
-	register_t r11;
-	register_t r12;
-	register_t r13;
-	register_t r14;
-	register_t r15;
+	union {
+		uint64_t gpr[16];
+		struct {
+			register_t rax;
+			register_t rcx;
+			register_t rdx;
+			register_t rbx;
+			register_t rsp; // this isnt used, rsp is in vmcb
+			register_t rbp;
+			register_t rsi;
+			register_t rdi;
+			register_t r8;
+			register_t r9;
+			register_t r10;
+			register_t r11;
+			register_t r12;
+			register_t r13;
+			register_t r14;
+			register_t r15;
+		};
+	};
 
 	M128A xmm0;
 	M128A xmm1;

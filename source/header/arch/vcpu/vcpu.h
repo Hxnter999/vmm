@@ -4,9 +4,9 @@
 struct alignas(0x1000) vcpu_t {
 	union {
 		uint8_t host_stack[0x6000]; //0x6000 is more than enough for the host stack
-		struct { // for ease of access in vmrun loop
-			uint8_t stack_contents[0x6000 - (sizeof(uint64_t) * 8) - sizeof(stack_frame_t)];
-			stack_frame_t guest_stack_frame;
+		struct { // for ease of access in vmlaunch
+			uint8_t stack_contents[0x6000 - (sizeof(uint64_t) * 6) - sizeof(context_t)];
+			context_t guest_context;
 
 			uint64_t guest_vmcb_pa;
 			uint64_t host_vmcb_pa;
@@ -39,4 +39,4 @@ struct alignas(0x1000) vcpu_t {
 		ei.vector = e;
 	}
 };
-//static_assert(sizeof(vcpu_t) == 0x8000, "vcpu size is not 0x8000");
+static_assert(sizeof(vcpu_t) == (sizeof(vmcb_t) * 2) + sizeof(npt_data_t) + sizeof(MSR::msrpm_t) + 0x6000, "vcpu_t size mismatch");
