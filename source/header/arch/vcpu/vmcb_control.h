@@ -252,7 +252,7 @@ struct vmcb_control_t {
 			uint64_t v_intr_prio : 4; // virtual interrupt priority
 			uint64_t v_ign_tpr : 1; // if set, the current virtual interrupt is ignores v_tpr
 			uint64_t reserved21 : 3;
-			uint64_t v_intr_masking : 1; // virtualize masking of INTR interrupts
+			uint64_t v_intr_masking : 1; // virtualize masking of INTR interrupts, virtualizes the IF flag and cr8 access to v_tpr
 			uint64_t v_gif_enable : 1; // if set, virtual gif is enabled for the guest
 			uint64_t v_nmi_enable : 1; // nmi virtualization enabled
 			uint64_t reserved27 : 3;
@@ -355,7 +355,7 @@ struct vmcb_control_t {
 	};
 
 	// 0c8h
-	uint64_t nrip; // nrip—next sequential instruction pointer, only provided on INSTRUCTION intercepts
+	uint64_t nrip; // next sequential instruction pointer, only provided on INSTRUCTION intercepts
 
 	// 0d0h
 	// 0:7 number of bytes fetched. 8:127 intruction bytes, only used in when theres a #NPF

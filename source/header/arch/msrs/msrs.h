@@ -2,11 +2,10 @@
 #include <commons.h>
 #include <util/bitset.h>
 #include <intrin.h>
-#pragma warning(disable : 4996)
 
 namespace MSR {
 
-	enum class access {
+	enum class access : int8_t {
 		read = 0,
 		write = 1
 	};
@@ -46,29 +45,30 @@ namespace MSR {
 		};
 
 	public:
-		msrpm_t() : vector1{}, vector2{}, vector3{}, vector4{} {}
+		[[maybe_unused]] static constexpr uint32_t vector1_start = 0x0000'0000, vector1_end = 0x0000'1FFF;
+		[[maybe_unused]] static constexpr uint32_t vector2_start = 0xC000'0000, vector2_end = 0xC000'1FFF;
+		[[maybe_unused]] static constexpr uint32_t vector3_start = 0xC001'0000, vector3_end = 0xC001'1FFF;
+		[[maybe_unused]] static constexpr uint32_t reserved_start = 0x4000'0000, reserved_end = 0x4000'1FFF; // unsure about the end value outside of vmware or the exceptions that occur
 
-		void set(uint64_t msr, access access_bit, bool value = true) {
-			[[maybe_unused]] constexpr uint64_t vector1_start = 0x0000'0000, vector1_end = 0x0000'1FFF;
-			[[maybe_unused]] constexpr uint64_t vector2_start = 0xC000'0000, vector2_end = 0xC000'1FFF;
-			[[maybe_unused]] constexpr uint64_t vector3_start = 0xC001'0000, vector3_end = 0xC001'1FFF;
-			// bit::read = 0, bit::write = 1
-
+		void set(uint32_t msr, access access_bit, bool value = true) {
 			util::bitset<0x800>* target = nullptr;
 			if (msr >= vector3_start && msr <= vector3_end) {
 				target = &vector3;
+				msr -= vector3_start;
 			}
 			else if (msr >= vector2_start && msr <= vector2_end) {
 				target = &vector2;
+				msr -= vector2_start;
 			}
 			else if (msr <= vector1_end) {
 				target = &vector1;
+				msr -= vector1_start;
 			}
 			else {
 				return;
 			}
 
-			target->set((msr & 0x7FF) * 2 + static_cast<int>(access_bit), value);
+			target->set(msr * 2 + static_cast<int>(access_bit), value);
 		}
 	};
 };

@@ -1,13 +1,6 @@
-#include <commons.h>
-
-#include <vcpu/vcpu.h>
-#include <msrs/vm_cr.h>
-#include <msrs/pat.h>
-#include <msrs/hsave.h>
-#include <msrs/efer.h>
-#include <util/memory.h>
 #include <vmm.h>
-void Unload(PDRIVER_OBJECT pDriverObject);
+
+void Unload(PDRIVER_OBJECT);
 
 extern "C" NTSTATUS DriverEntry(PDRIVER_OBJECT pDriverObject, PUNICODE_STRING)
 {

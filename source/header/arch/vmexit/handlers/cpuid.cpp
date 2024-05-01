@@ -1,4 +1,5 @@
 #include <vmexit/handlers.h>
+#include <cpuid/cpuid_t.h>
 
 void cpuid_handler(vcpu_t& vcpu) {
 	vcpu.guest_vmcb.state.rip = vcpu.guest_vmcb.control.nrip;

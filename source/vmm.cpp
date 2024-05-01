@@ -127,6 +127,7 @@ void setup_guest(vcpu_t& vcpu, CONTEXT& ctx)
 
 	vcpu.guest_vmcb.control.guest_asid = 1; // Address space identifier, 0 is reserved for host.
 	vcpu.guest_vmcb.control.v_intr_masking = 1; // 15.21.1; Virtualize TPR and eflags.if, host eflags.if controls physical interrupts and guest eflags.if controls virtual interrupts
+	//vcpu.guest_vmcb.control.cpuid = 1; // intercept cpuid instructions
 
 	// if ur considering disabling this, change the code in the virtualize routine which uses msr intercepts to check if were currently running in guest mode and exits the function to avoid virtualization loop
 	vcpu.guest_vmcb.control.msr_prot = 1;

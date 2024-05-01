@@ -17,7 +17,7 @@ vmrun_loop:
 	vmsave rax
 	
 	; rsp -> guest_vmcb_pa
-	; every push gets it closer to stack_contents
+	; every push gets it closer to stack_contents, implicitly modifying rsp data and decrementing it
 
 	; cant push xmm directly so we simulate a push by subtracting and manually moving
 	sub rsp, 100h
