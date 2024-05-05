@@ -9,7 +9,7 @@ namespace MSR {
 		static constexpr uint32_t MSR_VM_HSAVE_PA = 0xC0010117;
 
 		union {
-			struct {
+			struct { // a page aligned physical address
 				uint64_t must_be_zero : 12;
 				uint64_t host_save_area_pa : 52;
 			};

@@ -4,7 +4,7 @@
 #include <vmexit/exitinfo1.h>
 #include <vmexit/exitinfo2.h>
 #include <msrs/msrs.h>
-#include <vmexit/svm_exit_code.h>
+#include <vmexit/vmexit_code.h>
 #include <vmexit/exit_int_info.h>
 
 enum class tlb_control_id : uint64_t {
@@ -191,8 +191,23 @@ struct vmcb_control_t {
 			uint32_t mwait_cond : 1; // intercept mwait/mwaitx instruction if monitor hardware is armed
 			uint32_t xsetbv : 1; // intercept xsetbv instruction
 			uint32_t rdpru : 1; // intercept rdpru instruction
-			uint32_t write_effer : 1; // intercept writes of efer (occurs after guest instruction finishes
-			uint32_t write_cr0_15 : 16; // intercept writes of cr0-15 (occurs after guest instruction finishes
+			uint32_t efer_write_trap : 1; // TRAP intercepts occur after guest instructions finish executing
+			uint32_t cr0_write_trap : 1;
+			uint32_t cr1_write_trap : 1;
+			uint32_t cr2_write_trap : 1;
+			uint32_t cr3_write_trap : 1;
+			uint32_t cr4_write_trap : 1;
+			uint32_t cr5_write_trap : 1;
+			uint32_t cr6_write_trap : 1;
+			uint32_t cr7_write_trap : 1;
+			uint32_t cr8_write_trap : 1;
+			uint32_t cr9_write_trap : 1;
+			uint32_t cr10_write_trap : 1;
+			uint32_t cr11_write_trap : 1;
+			uint32_t cr12_write_trap : 1;
+			uint32_t cr13_write_trap : 1;
+			uint32_t cr14_write_trap : 1;
+			uint32_t cr15_write_trap : 1;
 		};
 	};
 
@@ -274,7 +289,7 @@ struct vmcb_control_t {
 	};
 
 	// 070h
-	svm_exit_code exit_code;
+	vmexit_code exit_code;
 
 	// 078h
 	exitinfo1_t exit_info_1;

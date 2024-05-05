@@ -9,9 +9,9 @@
 #include <msrs/pat.h>
 #include <util/memory.h>
 #include <hypercall/hypercall.h>
+#include <ntdef/def.h>
 
 extern "C" void __vmlaunch(uint64_t* guest_vmcb_pa);
-extern "C" uint64_t __vmmcall(hypercall_code code);
 
 using per_cpu_callback_t = bool(*)(uint32_t);
 inline bool execute_on_all_cpus(per_cpu_callback_t callback)
@@ -26,23 +26,24 @@ inline bool execute_on_all_cpus(per_cpu_callback_t callback)
 	return true;
 }
 
-void setup_msrpm(vcpu_t& vcpu) {
-	vcpu.msrpm.set(MSR::EFER::MSR_EFER, MSR::access::read);
-	vcpu.msrpm.set(MSR::EFER::MSR_EFER, MSR::access::write);
-
-	vcpu.msrpm.set(MSR::HSAVE_PA::MSR_VM_HSAVE_PA, MSR::access::read);
-	vcpu.msrpm.set(MSR::HSAVE_PA::MSR_VM_HSAVE_PA, MSR::access::write);
+void setup_msrpm(vcpu_t& cpu) {
+	memset(&cpu.msrpm, 0, sizeof(cpu.msrpm));
+	cpu.msrpm.set(MSR::EFER::MSR_EFER, MSR::access::read);
+	cpu.msrpm.set(MSR::EFER::MSR_EFER, MSR::access::write);
+	
+	//cpu.msrpm.set(MSR::HSAVE_PA::MSR_VM_HSAVE_PA, MSR::access::read);
+	//cpu.msrpm.set(MSR::HSAVE_PA::MSR_VM_HSAVE_PA, MSR::access::write);
 }
 
 void map_physical_memory();
-void setup_npt(vcpu_t& vcpu);
-void setup_guest(vcpu_t& vcpu, CONTEXT& ctx);
-void setup_host(vcpu_t& vcpu);
+void setup_npt(vcpu_t& cpu);
+void setup_guest(vcpu_t& cpu, CONTEXT& ctx);
+void setup_host(vcpu_t& cpu);
 svm_status check_svm_support();
 
 bool setup_vcpu(uint32_t index)
 {
-	vcpu_t& vcpu = global::vcpus[index];
+	vcpu_t& cpu = global::vcpus[index];
 
 	MSR::EFER efer{};
 	efer.load();
@@ -50,10 +51,10 @@ bool setup_vcpu(uint32_t index)
 	efer.store();
 
 	MSR::HSAVE_PA hsave_pa{};
-	hsave_pa.bits = MmGetPhysicalAddress(&vcpu.host_vmcb).QuadPart;
+	hsave_pa.bits = MmGetPhysicalAddress(&cpu.host).QuadPart;
 	hsave_pa.store();
  
-	CONTEXT& ctx = *reinterpret_cast<CONTEXT*>(vcpu.host_stack); // use the currently unused space we have already allocated
+	CONTEXT& ctx = *reinterpret_cast<CONTEXT*>(cpu.host_stack); // use the currently unused space we have already allocated
 	RtlCaptureContext(&ctx);
 
 	print("Checking efer\n");
@@ -61,18 +62,19 @@ bool setup_vcpu(uint32_t index)
 	// this can be cleaned up and optimized by doing it thru assembling and passing the address of a label to RIP that returns true, but this is fine for now
 	MSR::EFER guest_efer{}; guest_efer.load();
 	if (!guest_efer.svme) {
-		__debugbreak();
+		//__debugbreak();
 		return true;
 	}
 
 	print("Setting up guest\n");
-	setup_guest(vcpu, ctx);
+	setup_guest(cpu, ctx);
 
 	print("Setting up host\n");
-	setup_host(vcpu);
+	setup_host(cpu);
 
+	memset(&cpu.host_stack, 0, sizeof(CONTEXT));
 	print("Entering vm\n");
-	__vmlaunch(&vcpu.guest_vmcb_pa);
+	__vmlaunch(&cpu.guest_vmcb_pa);
 
 	// shouldnt reach this point, if so something went wrong
 	return false;
@@ -85,7 +87,7 @@ bool virtualize() {
 
 	// Allocate the necessary memory for the required structures
 	vcpu_count = { KeQueryActiveProcessorCount(nullptr) };
-	vcpus = util::allocate_pool<vcpu_t>(vcpu_count * sizeof(vcpu_t));
+	vcpus = util::allocate_pool<vcpu_t>(NonPagedPoolNx, vcpu_count * sizeof(vcpu_t));
 	if (vcpus == nullptr) {
 		print("Failed to allocate vcpus\n");
 		return false;
@@ -116,74 +118,79 @@ bool virtualize() {
 	return true;
 }
 
-void setup_guest(vcpu_t& vcpu, CONTEXT& ctx)
+void setup_guest(vcpu_t& cpu, CONTEXT& ctx)
 {
-	// ------------------- Setup guest state -------------------
-	vcpu.guest_vmcb.control.vmrun = 1;
-	vcpu.guest_vmcb.control.vmmcall = 1; // explicit vmexits back to host
-	vcpu.guest_vmcb.control.vmload = 1;
-	vcpu.guest_vmcb.control.vmsave = 1;
-	//vcpu.guest_vmcb.control.clgi = 1;
+	// ------------------- Setup control area -------------------
+	// Intercept all the AMD-SVM instructions and properly handle their exceptions cause the efer.svme is hidden from the guest
+	cpu.guest.control.vmmcall = true; // explicit vmexits back to host
+	cpu.guest.control.vmrun = true;
+	cpu.guest.control.vmload = true;
+	cpu.guest.control.vmsave = true;
+	cpu.guest.control.clgi = true;
+	cpu.guest.control.stgi = true;
+	cpu.guest.control.skinit = true;
+	//cpu.guest.control.cpuid = true;
 
-	vcpu.guest_vmcb.control.guest_asid = 1; // Address space identifier, 0 is reserved for host.
-	vcpu.guest_vmcb.control.v_intr_masking = 1; // 15.21.1; Virtualize TPR and eflags.if, host eflags.if controls physical interrupts and guest eflags.if controls virtual interrupts
-	//vcpu.guest_vmcb.control.cpuid = 1; // intercept cpuid instructions
+	cpu.guest.control.guest_asid = 1; // Address space identifier, 0 is reserved for host.
+	cpu.guest.control.v_intr_masking = true; // 15.21.1; Virtualize TPR and eflags.if, host eflags.if controls physical interrupts and guest eflags.if controls virtual interrupts
 
-	// if ur considering disabling this, change the code in the virtualize routine which uses msr intercepts to check if were currently running in guest mode and exits the function to avoid virtualization loop
-	vcpu.guest_vmcb.control.msr_prot = 1;
-	vcpu.guest_vmcb.control.msrpm_base_pa = MmGetPhysicalAddress(&vcpu.msrpm).QuadPart;
-	setup_msrpm(vcpu);
+	/* if ur considering disabling this, change the code in the virtualize routine which uses msr intercepts to check 
+	if were currently running in guest mode and exits the function to avoid virtualization loop */
+	cpu.guest.control.msr_prot = true;
+	cpu.guest.control.msrpm_base_pa = MmGetPhysicalAddress(&cpu.msrpm).QuadPart;
+	setup_msrpm(cpu);
 
 	// nested paging should not be disabled as it controls virtualization of critical guest state including control registers
-	vcpu.guest_vmcb.control.np_enable = 1; 
-	vcpu.guest_vmcb.control.n_cr3 = MmGetPhysicalAddress(&vcpu.npts).QuadPart;
-	setup_npt(vcpu);
+	cpu.guest.control.np_enable = true; 
+	cpu.guest.control.n_cr3 = MmGetPhysicalAddress(&cpu.npts).QuadPart;
+	setup_npt(cpu);
 
-	// Set up the guest state
-	vcpu.guest_vmcb.state.cr0.value = __readcr0();
-	vcpu.guest_vmcb.state.cr2.value = __readcr2();
-	vcpu.guest_vmcb.state.cr3.value = __readcr3();
-	vcpu.guest_vmcb.state.cr4.value = __readcr4();
-	vcpu.guest_vmcb.state.efer.bits = __readmsr(MSR::EFER::MSR_EFER);
-	vcpu.guest_vmcb.state.g_pat = __readmsr(MSR::PAT::MSR_PAT); // only for nested paging
+
+	// ------------------- Setup state area -------------------
+	cpu.guest.state.cr0.value = __readcr0();
+	cpu.guest.state.cr2.value = __readcr2();
+	cpu.guest.state.cr3.value = __readcr3();
+	cpu.guest.state.cr4.value = __readcr4();
+	cpu.guest.state.efer.bits = __readmsr(MSR::EFER::MSR_EFER);
+	cpu.guest.state.g_pat = __readmsr(MSR::PAT::MSR_PAT); // only for nested paging
 
 	descriptor_table_register idtr{}, gdtr{}; __sidt(&idtr); _sgdt(&gdtr);
-	vcpu.guest_vmcb.state.idtr.base = idtr.base;
-	vcpu.guest_vmcb.state.idtr.limit = idtr.limit;
+	cpu.guest.state.idtr.base = idtr.base;
+	cpu.guest.state.idtr.limit = idtr.limit;
 
-	vcpu.guest_vmcb.state.gdtr.base = gdtr.base;
-	vcpu.guest_vmcb.state.gdtr.limit = gdtr.limit;
+	cpu.guest.state.gdtr.base = gdtr.base;
+	cpu.guest.state.gdtr.limit = gdtr.limit;
 
 	// This is where the guest will start executing
-	vcpu.guest_vmcb.state.rsp = ctx.Rsp;
-	vcpu.guest_vmcb.state.rip = ctx.Rip;
-	vcpu.guest_vmcb.state.rflags.value = ctx.EFlags;
+	cpu.guest.state.rsp = ctx.Rsp;
+	cpu.guest.state.rip = ctx.Rip;
+	cpu.guest.state.rflags.value = ctx.EFlags;
 
 	// Setup all the segment registers
-	vcpu.guest_vmcb.state.cs.limit = __segmentlimit(ctx.SegCs);
-	vcpu.guest_vmcb.state.ds.limit = __segmentlimit(ctx.SegDs);
-	vcpu.guest_vmcb.state.es.limit = __segmentlimit(ctx.SegEs);
-	vcpu.guest_vmcb.state.ss.limit = __segmentlimit(ctx.SegSs);
+	cpu.guest.state.cs.limit = __segmentlimit(ctx.SegCs);
+	cpu.guest.state.ds.limit = __segmentlimit(ctx.SegDs);
+	cpu.guest.state.es.limit = __segmentlimit(ctx.SegEs);
+	cpu.guest.state.ss.limit = __segmentlimit(ctx.SegSs);
 
-	vcpu.guest_vmcb.state.cs.selector.value = ctx.SegCs;
-	vcpu.guest_vmcb.state.ds.selector.value = ctx.SegDs;
-	vcpu.guest_vmcb.state.es.selector.value = ctx.SegEs;
-	vcpu.guest_vmcb.state.ss.selector.value = ctx.SegSs;
+	cpu.guest.state.cs.selector.value = ctx.SegCs;
+	cpu.guest.state.ds.selector.value = ctx.SegDs;
+	cpu.guest.state.es.selector.value = ctx.SegEs;
+	cpu.guest.state.ss.selector.value = ctx.SegSs;
 
-	vcpu.guest_vmcb.state.cs.get_attributes(gdtr.base);
-	vcpu.guest_vmcb.state.ds.get_attributes(gdtr.base);
-	vcpu.guest_vmcb.state.es.get_attributes(gdtr.base);
-	vcpu.guest_vmcb.state.ss.get_attributes(gdtr.base);
+	cpu.guest.state.cs.get_attributes(gdtr.base);
+	cpu.guest.state.ds.get_attributes(gdtr.base);
+	cpu.guest.state.es.get_attributes(gdtr.base);
+	cpu.guest.state.ss.get_attributes(gdtr.base);
 
-	vcpu.guest_vmcb_pa = MmGetPhysicalAddress(&vcpu.guest_vmcb).QuadPart;
-	vcpu.host_vmcb_pa = MmGetPhysicalAddress(&vcpu.host_vmcb).QuadPart;
-	vcpu.self = &vcpu;
+	cpu.guest_vmcb_pa = MmGetPhysicalAddress(&cpu.guest).QuadPart;
+	cpu.host_vmcb_pa = MmGetPhysicalAddress(&cpu.host).QuadPart;
+	cpu.self = &cpu;
 
-	__svm_vmsave(vcpu.host_vmcb_pa);
-	__svm_vmsave(vcpu.guest_vmcb_pa); // needed here cause the vmrun loop loads guest state before everything, if there isnt a guest saved already it wont work properly
+	__svm_vmsave(cpu.host_vmcb_pa);
+	__svm_vmsave(cpu.guest_vmcb_pa); // needed here cause the vmrun loop loads guest state before everything, if there isnt a guest saved already it wont work properly
 }
 
-void setup_host(vcpu_t& vcpu) {
+void setup_host(vcpu_t& cpu) {
 
 	// ------------------- Isolate the host ---------------------
 	// We make changes directly to the host and the cpu is gonna implicitly store them in the host vmcb whenever we vmrun and reload them when we vmexit
@@ -191,7 +198,7 @@ void setup_host(vcpu_t& vcpu) {
 	// -------
 
 	map_physical_memory();
-	auto& host_cr3 = vcpu.host_vmcb.state.cr3;
+	auto& host_cr3 = cpu.host.state.cr3;
 	host_cr3.value = 0;
 	host_cr3.pml4 = MmGetPhysicalAddress(&global::shared_host_pt->pml4).QuadPart >> 12;
 
@@ -217,9 +224,9 @@ void setup_host(vcpu_t& vcpu) {
 	// -------
 };
 
-void setup_npt(vcpu_t& vcpu)
+void setup_npt(vcpu_t& cpu)
 {
-	auto& npt = vcpu.npts;
+	auto& npt = cpu.npts;
 
 	for (size_t i = 0; i < npt.free_page_count; i++) {
 		npt.free_page_pa[i] = MmGetPhysicalAddress(npt.free_pages[i]).QuadPart >> 12;
@@ -276,10 +283,10 @@ void map_physical_memory() {
 		}
 	}
 
-	auto system_process = reinterpret_cast<uintptr_t>(PsInitialSystemProcess);
-	auto system_cr3 = *reinterpret_cast<cr3_t*>(system_process + 0x28);
+	global::system_process = reinterpret_cast<_EPROCESS*>(PsInitialSystemProcess);
+	global::system_cr3 = { global::system_process->Pcb.DirectoryTableBase};
 
-	auto system_pml4 = reinterpret_cast<pml4e_t*>(MmGetVirtualForPhysical({ .QuadPart = static_cast<int64_t>(system_cr3.pml4 << 12) }));
+	auto system_pml4 = reinterpret_cast<pml4e_t*>(MmGetVirtualForPhysical({ .QuadPart = static_cast<int64_t>(global::system_cr3.pml4 << 12) }));
 
 	// NOTE: this is a shallow copy, a deep copy would be required if an aggressive anticheat trashed the deeper levels of the page tables before a VMEXIT
 	// its resource intensive both for us and the anticheat to setup a deep copy. Since they also have to do it, we can just assume were gonna be fine for now.
@@ -287,21 +294,21 @@ void map_physical_memory() {
 }
 
 // The unload routines are temporary, the code is gonna change in the future.
-void unload_single_vcpu(vcpu_t& vcpu) 
+void unload_single_vcpu(vcpu_t& cpu) 
 {
 	print("Exiting...\n");
 
-	// devirtualize current vcpu, later in the vmrun loop we restore rsp and jump to guest_rip.
-	vcpu.guest_rip = vcpu.guest_vmcb.control.nrip;
-	vcpu.guest_rsp = vcpu.guest_vmcb.state.rsp;
+	// devirtualize current cpu, later in the vmrun loop we restore rsp and jump to guest_rip.
+	cpu.guest_rip = cpu.guest.control.nrip;
+	cpu.guest_rsp = cpu.guest.state.rsp;
 
-	__svm_vmload(vcpu.guest_vmcb_pa);
+	__svm_vmload(cpu.guest_vmcb_pa);
 
 	_disable();
 	__svm_stgi(); // re-enable GIF since its implicitly disabled for the host on vmexit
 
 	MSR::EFER efer{}; efer.load(); efer.svme = 0; efer.store();
-	__writeeflags(vcpu.guest_vmcb.state.rflags.value);
+	__writeeflags(cpu.guest.state.rflags.value);
 }
 
 void devirtualize() {
@@ -309,13 +316,17 @@ void devirtualize() {
 
 	execute_on_all_cpus([](uint32_t index) -> bool {
 		print("Devirtualizing [%d]...\n", index);
-		__vmmcall(hypercall_code::UNLOAD);
+		__vmmcall({ .code = hypercall_code::unload, .key = hypercall_key });
 		return true;
 		});
 
-	if (global::vcpus) {
+	if (global::vcpus) { 
 		util::free_pool(global::vcpus);
 		global::vcpus = nullptr;
+	}
+	if (global::shared_host_pt) {
+		util::free_pool(global::shared_host_pt);
+		global::shared_host_pt = nullptr;
 	}
 }
 

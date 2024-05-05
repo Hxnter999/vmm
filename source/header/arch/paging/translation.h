@@ -2,15 +2,15 @@
 #include <paging/pages.h>
 #include <vcpu/vcpu.h>
 
-inline uint64_t gva_to_gpa(vcpu_t& vcpu, uint64_t address, uint64_t& offset_to_next_page) {
-	static constexpr uint64_t plm4e_address_range = 0x1000000000; //256GB
-	static constexpr uint64_t pdpes_address_range = 0x40000000; //1GB
-	static constexpr uint64_t pdes_address_range = 0x200000; //2MB
-	static constexpr uint64_t ptes_address_range = 0x1000; //4KB
+// we pass guest cr3 as an arguement so we can translate from other contexts outside the current guest
+inline uint64_t gva_to_gpa(cr3_t guest_cr3, uint64_t address, uint64_t& offset_to_next_page) {
+	static constexpr uint64_t plm4_address_range = 0x1000000000; //256GB
+	static constexpr uint64_t pdpt_address_range = 0x40000000; //1GB
+	static constexpr uint64_t pd_address_range = 0x200000; //2MB
+	static constexpr uint64_t pt_address_range = 0x1000; //4KB
 
 	virtual_address_t va{ address };
 
-	auto& guest_cr3 = vcpu.guest_vmcb.state.cr3;
 	auto& base = host_pt_t::host_pa_base;
 
 	uint64_t offset{};
@@ -28,7 +28,7 @@ inline uint64_t gva_to_gpa(vcpu_t& vcpu, uint64_t address, uint64_t& offset_to_n
 	// 1gb
 	if (pdpte.huge_page) {
 		offset = (va.pd_index << (12 + 9)) + (va.pt_index << 12) + va.offset;
-		offset_to_next_page = pdpes_address_range - offset;
+		offset_to_next_page = pdpt_address_range - offset;
 		return (pdpte.page_pa << (12 + 9 + 9)) + offset;
 	}
 
@@ -40,7 +40,7 @@ inline uint64_t gva_to_gpa(vcpu_t& vcpu, uint64_t address, uint64_t& offset_to_n
 	// 2mb
 	if (pde.large_page) {
 		offset = (va.pt_index << 12) + va.offset;
-		offset_to_next_page = pdes_address_range - offset;
+		offset_to_next_page = pd_address_range - offset;
 		return (pde.page_pa << (12 + 9)) + offset;
 	}
 
@@ -51,14 +51,14 @@ inline uint64_t gva_to_gpa(vcpu_t& vcpu, uint64_t address, uint64_t& offset_to_n
 	}
 
 	offset = va.offset;
-	offset_to_next_page = ptes_address_range - offset;
+	offset_to_next_page = pt_address_range - offset;
 	return (pte.page_pa << 12) + offset;
 }
 
-inline uint64_t gva_to_hva(vcpu_t& vcpu, uint64_t address, uint64_t& offset_to_next_page) {
-	uint64_t gpa = gva_to_gpa(vcpu, address, offset_to_next_page);
-	if (!gpa) 
+inline uint64_t gva_to_hva(cr3_t guest_cr3, uint64_t address, uint64_t& offset_to_next_page) {
+	uint64_t gpa = gva_to_gpa(guest_cr3, address, offset_to_next_page);
+	if (!gpa)
 		return 0;
-	
+
 	return gpa + host_pt_t::host_pa_base;
 }

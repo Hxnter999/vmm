@@ -1,34 +1,36 @@
 #include <commons.h>
 #include <hypercall/hypercall.h>
-#include <paging/translation.h>
+#include <hypercall/helpers.h>
 
-void hypercall_handler(vcpu_t& vcpu) {
-	vcpu.guest_vmcb.state.rip = vcpu.guest_vmcb.control.nrip;
+// hypercall should pass the request structure into rcx and the rest of the required parameters for the request into r8-r15
+void hypercall_handler(vcpu_t& cpu) {
+	hypercall_t request {cpu.ctx.rcx.value};
+	/*if (request.key != hypercall_key) {
+		cpu.inject_event(exception_vector::UD, 0);
+		return;
+	}*/
 
-	switch (static_cast<hypercall_code>(vcpu.guest_context.rcx.value)) {
-	case hypercall_code::UNLOAD:
-	{
-		vcpu.should_exit = true;
+	switch (request.code) {
+
+	case hypercall_code::unload:
+		cpu.should_exit = true;
 		break;
-	}
-	case hypercall_code::PING:
-	{
-		print("PONG\n");
+	case hypercall_code::ping:
+		cpu.ctx.rax.value = hypercall_key;
 		break;
-	}
-	case hypercall_code::test:
-	{
-		uint64_t gva = vcpu.guest_context.rdx.value;
-		print("gva %p\n", gva);
-		uint64_t offset{};
-		
-		uintptr_t hva = gva_to_hva(vcpu, gva, offset); // host virtual address, can be accessed directly.
-		print("hva %p | size: %d\n", hva, offset);
+	
+	case hypercall_code::get_process_cr3:
+		get_process_cr3(cpu);
 		break;
-	}
+
+	case hypercall_code::get_physical_address:
+		get_physical_address(cpu);
+		break;
+
 	default:
-	{
 		break;
+	
 	}
-	}
+
+	cpu.skip_instruction();
 }

@@ -18,7 +18,6 @@ extern "C" NTSTATUS DriverEntry(PDRIVER_OBJECT pDriverObject, PUNICODE_STRING)
 		print("Failed to virtualize\n");
 		return STATUS_UNSUCCESSFUL;
 	}
-
 	
 	return STATUS_SUCCESS;
 }

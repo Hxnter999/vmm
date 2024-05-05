@@ -109,6 +109,18 @@ struct pte_t
 	uint64_t no_execute : 1;
 };
 
+union virtual_address_t {
+	uint64_t address;
+	struct {
+		uint64_t offset : 12;
+		uint64_t pt_index : 9;
+		uint64_t pd_index : 9;
+		uint64_t pdpt_index : 9;
+		uint64_t pml4_index : 9;
+		uint64_t reserved : 16;
+	};
+};
+
 // alternatively use 1gb pages for both, host page tables and nested page tables
 struct alignas(0x1000) host_pt_t {
 	pml4e_t pml4[512];
@@ -131,18 +143,32 @@ struct alignas(0x1000) npt_data_t {
 	uint64_t free_page_pa[free_page_count];
 	uint64_t free_pages_used;
 
+	// point hidden pages to a dummy page
 	uint8_t dummy[0x1000];
 	uint64_t dummy_page_pa;
+
+	pdpte_t* get_pdpt(uint64_t physical_address) {
+		virtual_address_t gpa{ physical_address };
+
+		if (gpa.pml4_index != 0)
+			return nullptr;
+
+		if (gpa.pdpt_index >= 64) // we only setup 64 entries
+			return nullptr;
+
+		return &pdpt[gpa.pdpt_index];
+	}
+
+	pde_2mb_t* get_pd(uint64_t physical_address) {
+		virtual_address_t gpa{ physical_address };
+
+		if (gpa.pml4_index != 0)
+			return nullptr;
+
+		if (gpa.pdpt_index >= 64)
+			return nullptr;
+
+		return &pd[gpa.pdpt_index][gpa.pd_index];
+	}
 };
 
-union virtual_address_t {
-	uint64_t address;
-	struct {
-		uint64_t offset : 12;
-		uint64_t pt_index : 9;
-		uint64_t pd_index : 9;
-		uint64_t pdpt_index : 9;
-		uint64_t pml4_index : 9;
-		uint64_t reserved : 16;
-	};
-};

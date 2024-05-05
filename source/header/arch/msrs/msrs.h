@@ -48,7 +48,7 @@ namespace MSR {
 		[[maybe_unused]] static constexpr uint32_t vector1_start = 0x0000'0000, vector1_end = 0x0000'1FFF;
 		[[maybe_unused]] static constexpr uint32_t vector2_start = 0xC000'0000, vector2_end = 0xC000'1FFF;
 		[[maybe_unused]] static constexpr uint32_t vector3_start = 0xC001'0000, vector3_end = 0xC001'1FFF;
-		[[maybe_unused]] static constexpr uint32_t reserved_start = 0x4000'0000, reserved_end = 0x4000'1FFF; // unsure about the end value outside of vmware or the exceptions that occur
+		[[maybe_unused]] static constexpr uint32_t reserved_start = 0x4000'0000, reserved_end = 0x5000'0000; // unsure about the end value outside of vmware or the exceptions that occur
 
 		void set(uint32_t msr, access access_bit, bool value = true) {
 			util::bitset<0x800>* target = nullptr;
@@ -71,4 +71,5 @@ namespace MSR {
 			target->set(msr * 2 + static_cast<int>(access_bit), value);
 		}
 	};
+	static_assert(sizeof(msrpm_t) == 0x2000, "msrpm_t size mismatch");
 };

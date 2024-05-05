@@ -6,7 +6,7 @@ struct alignas(0x1000) vcpu_t {
 		uint8_t host_stack[0x6000]; //0x6000 is more than enough for the host stack
 		struct { // for ease of access in vmlaunch
 			uint8_t stack_contents[0x6000 - (sizeof(uint64_t) * 6) - sizeof(context_t)];
-			context_t guest_context;
+			context_t ctx;
 
 			uint64_t guest_vmcb_pa;
 			uint64_t host_vmcb_pa;
@@ -26,17 +26,35 @@ struct alignas(0x1000) vcpu_t {
 		};
 	};
 
-	vmcb_t host_vmcb; // on vmrun and exits processor saves/restores host state to/from this field, we can also directly manipulate it as long as its considered legal
-	vmcb_t guest_vmcb;
+	vmcb_t host; // on vmrun and exits processor saves/restores host state to/from this field, we can also directly manipulate it as long as its considered legal
+	vmcb_t guest;
 	npt_data_t npts;
 	MSR::msrpm_t msrpm;
 
-	void inject_event(exception_vector e, bool valid = true, interrupt_type type = interrupt_type::HARDWARE_EXCEPTION)
+	// Its cleaner to put these methods in the vmcb struct but i just want them to be in the same place due to some of them being guest specific
+	void inject_event(exception_vector e, uint32_t error_code)
 	{
-		auto& ei = guest_vmcb.control.event_injection;
-		ei.valid = valid;
-		ei.type = type;
+		auto& ei = guest.control.event_injection;
+		ei.valid = true;
+		ei.type = interrupt_type::HARDWARE_EXCEPTION;
 		ei.vector = e;
+		ei.error_code = error_code;
+	}
+
+	inline void flush_tlb(tlb_control_id type) {
+		guest.control.tlb_control = type;
+	}
+	
+	/*
+	The cpu will implicitly advance RIP in the following cases:
+	- PAUSE instruction
+	- HLT instruction
+	- Write trap instructions (EFER & CR0-15)
+	- IDLE_HLT
+	- VMGEXIT
+	*/
+	inline void skip_instruction() { // Handle x86 later if needed
+		guest.state.rip = guest.control.nrip;
 	}
 };
 static_assert(sizeof(vcpu_t) == (sizeof(vmcb_t) * 2) + sizeof(npt_data_t) + sizeof(MSR::msrpm_t) + 0x6000, "vcpu_t size mismatch");

@@ -1,66 +1,84 @@
 #include <vmexit/handlers.h>
 #include <vmm.h>
 
-bool vmexit_handler(vcpu_t& vcpu) {
-	__svm_vmload(vcpu.host_vmcb_pa);
+bool vmexit_handler(vcpu_t& cpu) {
+	__svm_vmload(cpu.host_vmcb_pa);
 
-	// guest rax overwriten by host after vmexit
-	vcpu.guest_context.rax.value = vcpu.guest_vmcb.state.rax;
-	switch (vcpu.guest_vmcb.control.exit_code) {
+	// we copy rax and rsp into guest context so we can easily index gpr array and only modify guest ctx when register modificatios are required
+	// this makes cleaner code if u modify from cpu.ctx rather than cpu.guest.state
+	cpu.ctx.rax.value = cpu.guest.state.rax;
+	cpu.ctx.rsp.value = cpu.guest.state.rsp;
 
-	case svm_exit_code::VMEXIT_VMMCALL:
-		hypercall_handler(vcpu);
+	switch (cpu.guest.control.exit_code) {
+
+	case vmexit_code::VMMCALL:
+		print("VMMCALL\n");
+		hypercall_handler(cpu);
 		break;
 
-	case svm_exit_code::VMEXIT_MSR:
-		msr_handler(vcpu);
+	case vmexit_code::MSR:
+		msr_handler(cpu);
 		break;
 
-	case svm_exit_code::VMEXIT_CPUID:
-		cpuid_handler(vcpu);
+	case vmexit_code::CPUID:
+		cpuid_handler(cpu);
 		break;
 
-	case svm_exit_code::VMEXIT_INVALID:
+	case vmexit_code::INVALID:
 		print("INVALID GUEST STATE, EXITING...\n");
-		vcpu.should_exit = true;
+		cpu.should_exit = true;
 		break;
 
-	case svm_exit_code::VMEXIT_NPF:
-		print("[NPF] %zX\n", vcpu.guest_vmcb.control.exit_info_1.info);
-		print("[NPF] %zX\n", vcpu.guest_vmcb.control.exit_info_2.nested_page_fault.faulting_gpa);
-		npf_handler(vcpu);
+	case vmexit_code::NPF:
+		print("[NPF] %zX\n", cpu.guest.control.exit_info_1.info);
+		print("[NPF] %zX\n", cpu.guest.control.exit_info_2.nested_page_fault.faulting_gpa);
+		npf_handler(cpu);
 		break;
 
-	case svm_exit_code::VMEXIT_HV: // event injection exception
+	case vmexit_code::HV: // event injection exception
 		print("Failed to inject event\n");
-		vcpu.guest_vmcb.control.event_injection.bits = 0; // reset to avoid infinite loop incase cpu doesnt clear it
+		cpu.guest.control.event_injection.bits = 0; // reset to avoid infinite loop incase cpu doesnt clear it
 		break;
 
-	case svm_exit_code::VMEXIT_VMLOAD:
-		svm_handler(vcpu);
+	case vmexit_code::VMLOAD:
+		svm_handler(cpu);
 		break;
 
-	case svm_exit_code::VMEXIT_VMSAVE:
-		svm_handler(vcpu);
+	case vmexit_code::VMSAVE:
+		svm_handler(cpu);
 		break;
 
-	case svm_exit_code::VMEXIT_VMRUN:
-		svm_handler(vcpu);
+	case vmexit_code::VMRUN:
+		svm_handler(cpu);
 		break;
 
-	case svm_exit_code::VMEXIT_CLGI:
-		svm_handler(vcpu);
+	case vmexit_code::CLGI:
+		svm_handler(cpu);
+		break;
+
+	case vmexit_code::STGI:
+		svm_handler(cpu);
+		break;
+
+	case vmexit_code::SKINIT:
+		svm_handler(cpu);
+		break;
+
+	case vmexit_code::CR4_WRITE:
+		cr4_handler(cpu);
 		break;
 
 	default:
-		print("UNHANDLED EXIT CODE: %-4X || INFO1: %p | INFO2: %p\n", vcpu.guest_vmcb.control.exit_code, vcpu.guest_vmcb.control.exit_info_1.info, vcpu.guest_vmcb.control.exit_info_2.info);
+		print("UNHANDLED EXIT CODE: %-4X || INFO1: %p | INFO2: %p\n", cpu.guest.control.exit_code, cpu.guest.control.exit_info_1.info, cpu.guest.control.exit_info_2.info);
 		break;
 	}
-	// the cpu handles guest rax for us
-	vcpu.guest_vmcb.state.rax = vcpu.guest_context.rax.value;
 
-	if (vcpu.should_exit) { // TODO: devirtualize by firing IPIs and handling them and remove this dogshit
-		unload_single_vcpu(vcpu); // devirtualize current vcpu and alert all others
+	// copy over the changes into the vmcb so the cpu can load them on next vmrun
+	cpu.guest.state.rax = cpu.ctx.rax.value;
+	cpu.guest.state.rsp = cpu.ctx.rsp.value;
+
+	if (cpu.should_exit) { // TODO: devirtualize by firing IPIs and handling them and remove this dogshit
+		unload_single_vcpu(cpu); // devirtualize current vcpu and alert all others
 		return false;
 	};
 

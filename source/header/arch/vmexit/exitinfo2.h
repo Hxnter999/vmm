@@ -1,6 +1,6 @@
 #pragma once
 #include <commons.h>
-#include <vmexit/svm_exit_code.h>
+#include <vmexit/vmexit_code.h>
 
 union exitinfo2_t
 {

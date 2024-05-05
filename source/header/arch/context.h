@@ -58,13 +58,13 @@ struct register_t {
 struct context_t
 {
 	union {
-		uint64_t gpr[16];
+		register_t gpr[16];
 		struct {
 			register_t rax;
 			register_t rcx;
 			register_t rdx;
 			register_t rbx;
-			register_t rsp; // this isnt used, rsp is in vmcb
+			register_t rsp; // this isnt used, rsp is in vmcb. Changes to this are not reflected in the guest
 			register_t rbp;
 			register_t rsi;
 			register_t rdi;

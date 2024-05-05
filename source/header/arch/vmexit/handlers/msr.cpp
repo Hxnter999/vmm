@@ -3,46 +3,45 @@
 #include <msrs/msrs.h>
 #include <msrs/hsave.h>
 
-static register_t rdmsr_handler(vcpu_t& vcpu, uint32_t msr);
-static void wrmsr_handler(vcpu_t& vcpu, uint32_t msr, register_t result);
+static register_t rdmsr_handler(vcpu_t& cpu, uint32_t msr);
+static void wrmsr_handler(vcpu_t& cpu, uint32_t msr, register_t result);
 
-void msr_handler(vcpu_t& vcpu) {
-	vcpu.guest_vmcb.state.rip = vcpu.guest_vmcb.control.nrip;
-
+void msr_handler(vcpu_t& cpu) {
 	// MSR return value is split between 2 registers, we have to handle them both before passing it back into the guest.
-	uint32_t msr = vcpu.guest_context.rcx.low;
+	uint32_t msr = cpu.ctx.rcx.low;
 
 	// TODO:
 	// since the hypervisor reserved msrs implicitly cause a vmexit, if we actually want to return values we must check if they are within range so we dont cause a host exception
 	// later inject an exception, im unsure currently if thats required so..
 	if (msr >= MSR::msrpm_t::reserved_start && msr <= MSR::msrpm_t::reserved_end) {
-		vcpu.guest_context.rax.value = 0;
-		vcpu.guest_context.rdx.value = 0;
-		return;
+		//cpu.inject_event(exception_vector::GP, 0);
+		print("synthetic rdmsr: %x\n", msr);
+		//return;
 	}
+	
+	cpu.skip_instruction();
 
-	bool read = vcpu.guest_vmcb.control.exit_info_1.msr.is_read();
+	bool read = cpu.guest.control.exit_info_1.msr.is_read();
 	if (read) {
-		print("rdmsr: %x\n", msr);
-		register_t result = rdmsr_handler(vcpu, msr);
-		vcpu.guest_context.rax.value = result.low;
-		vcpu.guest_context.rdx.value = result.high;
+		register_t result = rdmsr_handler(cpu, msr);
+		cpu.ctx.rax.value = result.low;
+		cpu.ctx.rdx.value = result.high;
 	}
 
 	else {
-		wrmsr_handler(vcpu, msr, { 
-			.low = vcpu.guest_context.rax.low, 
-			.high = vcpu.guest_context.rdx.low 
+		wrmsr_handler(cpu, msr, { 
+			.low = cpu.ctx.rax.low, 
+			.high = cpu.ctx.rdx.low 
 		});
 	}
 }
 
-static register_t rdmsr_handler(vcpu_t& vcpu, uint32_t msr) {
+static register_t rdmsr_handler(vcpu_t& cpu, uint32_t msr) {
 	switch (msr) {
 	case MSR::EFER::MSR_EFER: 
 	{
 		MSR::EFER efer{};
-		efer = vcpu.guest_vmcb.state.efer;
+		efer = cpu.guest.state.efer;
 		efer.svme = 0;
 		return { efer.bits };
 	}
@@ -57,7 +56,7 @@ static register_t rdmsr_handler(vcpu_t& vcpu, uint32_t msr) {
 	}
 }
 
-static void wrmsr_handler(vcpu_t& vcpu, uint32_t msr, register_t result) {
+static void wrmsr_handler(vcpu_t& cpu, uint32_t msr, register_t result) {
 	switch (msr) {
 	case MSR::EFER::MSR_EFER: 
 	{
@@ -66,7 +65,7 @@ static void wrmsr_handler(vcpu_t& vcpu, uint32_t msr, register_t result) {
 
 		// write the msr anyway but flip svme, incase the guest is trying to modify multiple things at once we dont want to discard everything.
 		efer.svme = 1;
-		vcpu.guest_vmcb.state.efer.bits = efer.bits;
+		cpu.guest.state.efer.bits = efer.bits;
 		break;
 	}
 	case MSR::HSAVE_PA::MSR_VM_HSAVE_PA:

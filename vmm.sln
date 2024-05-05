@@ -9,6 +9,8 @@ Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|ARM64 = Debug|ARM64
 		Debug|x64 = Debug|x64
+		Hunter|ARM64 = Hunter|ARM64
+		Hunter|x64 = Hunter|x64
 		Release|ARM64 = Release|ARM64
 		Release|x64 = Release|x64
 	EndGlobalSection
@@ -19,6 +21,12 @@ Global
 		{0A0E0EC5-2C28-4150-A252-FC45DE35702B}.Debug|x64.ActiveCfg = Debug|x64
 		{0A0E0EC5-2C28-4150-A252-FC45DE35702B}.Debug|x64.Build.0 = Debug|x64
 		{0A0E0EC5-2C28-4150-A252-FC45DE35702B}.Debug|x64.Deploy.0 = Debug|x64
+		{0A0E0EC5-2C28-4150-A252-FC45DE35702B}.Hunter|ARM64.ActiveCfg = Hunter|ARM64
+		{0A0E0EC5-2C28-4150-A252-FC45DE35702B}.Hunter|ARM64.Build.0 = Hunter|ARM64
+		{0A0E0EC5-2C28-4150-A252-FC45DE35702B}.Hunter|ARM64.Deploy.0 = Hunter|ARM64
+		{0A0E0EC5-2C28-4150-A252-FC45DE35702B}.Hunter|x64.ActiveCfg = Hunter|x64
+		{0A0E0EC5-2C28-4150-A252-FC45DE35702B}.Hunter|x64.Build.0 = Hunter|x64
+		{0A0E0EC5-2C28-4150-A252-FC45DE35702B}.Hunter|x64.Deploy.0 = Hunter|x64
 		{0A0E0EC5-2C28-4150-A252-FC45DE35702B}.Release|ARM64.ActiveCfg = Release|ARM64
 		{0A0E0EC5-2C28-4150-A252-FC45DE35702B}.Release|ARM64.Build.0 = Release|ARM64
 		{0A0E0EC5-2C28-4150-A252-FC45DE35702B}.Release|ARM64.Deploy.0 = Release|ARM64

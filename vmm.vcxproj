@@ -5,6 +5,14 @@
       <Configuration>Debug</Configuration>
       <Platform>x64</Platform>
     </ProjectConfiguration>
+    <ProjectConfiguration Include="Hunter|ARM64">
+      <Configuration>Hunter</Configuration>
+      <Platform>ARM64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Hunter|x64">
+      <Configuration>Hunter</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
     <ProjectConfiguration Include="Release|x64">
       <Configuration>Release</Configuration>
       <Platform>x64</Platform>
@@ -47,6 +55,15 @@
     <DriverTargetPlatform>Universal</DriverTargetPlatform>
     <Driver_SpectreMitigation>false</Driver_SpectreMitigation>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Hunter|x64'" Label="Configuration">
+    <TargetVersion>Windows10</TargetVersion>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>WindowsKernelModeDriver10.0</PlatformToolset>
+    <ConfigurationType>Driver</ConfigurationType>
+    <DriverType>KMDF</DriverType>
+    <DriverTargetPlatform>Universal</DriverTargetPlatform>
+    <Driver_SpectreMitigation>false</Driver_SpectreMitigation>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'" Label="Configuration">
     <TargetVersion>Windows10</TargetVersion>
     <UseDebugLibraries>true</UseDebugLibraries>
@@ -56,6 +73,14 @@
     <DriverTargetPlatform>Universal</DriverTargetPlatform>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'" Label="Configuration">
+    <TargetVersion>Windows10</TargetVersion>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>WindowsKernelModeDriver10.0</PlatformToolset>
+    <ConfigurationType>Driver</ConfigurationType>
+    <DriverType>KMDF</DriverType>
+    <DriverTargetPlatform>Universal</DriverTargetPlatform>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Hunter|ARM64'" Label="Configuration">
     <TargetVersion>Windows10</TargetVersion>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>WindowsKernelModeDriver10.0</PlatformToolset>
@@ -86,11 +111,25 @@
     <ApiValidator_Enable>false</ApiValidator_Enable>
     <ExternalIncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath)</ExternalIncludePath>
     <IncludePath>$(ProtectDir)source\;$(ProjectDir)source\header\arch\;$(ProjectDir)source\header\;windows-defs-2021h20\structs;$(IncludePath)</IncludePath>
+    <OutDir>$(SolutionDir)$(Platform)\$(ConfigurationName)\</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Hunter|x64'">
+    <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
+    <IntDir>$(Platform)\$(ConfigurationName)\intermediates\</IntDir>
+    <EnableInf2cat>false</EnableInf2cat>
+    <EnableMicrosoftCodeAnalysis>false</EnableMicrosoftCodeAnalysis>
+    <ApiValidator_Enable>false</ApiValidator_Enable>
+    <ExternalIncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath)</ExternalIncludePath>
+    <IncludePath>$(ProtectDir)source\;$(ProjectDir)source\header\arch\;$(ProjectDir)source\header\;windows-defs-2021h20\structs;$(IncludePath)</IncludePath>
+    <OutDir>..\..\..\Desktop\VMWare-Shared-Folder\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
     <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
+    <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Hunter|ARM64'">
     <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -130,7 +169,31 @@
       <DisableSpecificWarnings>4201;4996;4200;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
   </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Hunter|x64'">
+    <DriverSign>
+      <FileDigestAlgorithm>sha256</FileDigestAlgorithm>
+    </DriverSign>
+    <Link>
+      <EntryPointSymbol>DriverEntry</EntryPointSymbol>
+    </Link>
+    <Inf>
+      <SpecifyArchitecture>false</SpecifyArchitecture>
+    </Inf>
+    <ClCompile>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile>
+      <PrecompiledHeaderFile>commons.h</PrecompiledHeaderFile>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <DisableSpecificWarnings>4201;4996;4200;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+  </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
+    <DriverSign>
+      <FileDigestAlgorithm>sha256</FileDigestAlgorithm>
+    </DriverSign>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Hunter|ARM64'">
     <DriverSign>
       <FileDigestAlgorithm>sha256</FileDigestAlgorithm>
     </DriverSign>
@@ -145,6 +208,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\header\arch\vmexit\handlers\cpuid.cpp" />
+    <ClCompile Include="source\header\arch\vmexit\handlers\cr4.cpp" />
     <ClCompile Include="source\header\arch\vmexit\handlers\msr.cpp" />
     <ClCompile Include="source\header\arch\vmexit\handlers\npf.cpp" />
     <ClCompile Include="source\header\arch\vmexit\handlers\svm.cpp" />
@@ -152,10 +216,12 @@
     <ClCompile Include="source\header\hypercall\hypercall.cpp">
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">../commons.h</PrecompiledHeaderFile>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">../commons.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Hunter|x64'">../commons.h</PrecompiledHeaderFile>
     </ClCompile>
     <ClCompile Include="source\main.cpp">
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\Header\commons.h</PrecompiledHeaderFile>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\Header\commons.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Hunter|x64'">..\Header\commons.h</PrecompiledHeaderFile>
     </ClCompile>
     <ClCompile Include="source\vmm.cpp" />
     <MASM Include="source\asm\vmlaunch.asm">
@@ -178,6 +244,8 @@
     <ClInclude Include="source\header\arch\context.h" />
     <ClInclude Include="source\header\arch\vcpu\vcpu.h" />
     <ClInclude Include="source\header\arch\vmexit\handlers.h" />
+    <ClInclude Include="source\header\arch\vmexit\vmexit_code.h" />
+    <ClInclude Include="source\header\hypercall\helpers.h" />
     <ClInclude Include="source\header\hypercall\hypercall.h" />
     <ClInclude Include="source\header\arch\cr\control_registers.h" />
     <ClInclude Include="source\header\util\memory.h" />
@@ -196,12 +264,52 @@
     <ClInclude Include="source\header\arch\msrs\msrs.h" />
     <ClInclude Include="source\header\arch\msrs\pat.h" />
     <ClInclude Include="source\header\arch\segment\segment.h" />
-    <ClInclude Include="source\header\arch\vmexit\svm_exit_code.h" />
     <ClInclude Include="source\header\svm_status.h" />
     <ClInclude Include="source\header\arch\vcpu\vmcb.h" />
     <ClInclude Include="source\header\arch\vcpu\vmcb_control.h" />
     <ClInclude Include="source\header\arch\vcpu\vmcb_state_save.h" />
     <ClInclude Include="source\header\arch\msrs\vm_cr.h" />
+    <ClInclude Include="source\ntdef\def.h" />
+    <ClInclude Include="source\ntdef\_ALPC_PROCESS_CONTEXT.h" />
+    <ClInclude Include="source\ntdef\_COUNTER_READING.h" />
+    <ClInclude Include="source\ntdef\_EPROCESS.h" />
+    <ClInclude Include="source\ntdef\_EPROCESS_VALUES.h" />
+    <ClInclude Include="source\ntdef\_EX_FAST_REF.h" />
+    <ClInclude Include="source\ntdef\_EX_PUSH_LOCK.h" />
+    <ClInclude Include="source\ntdef\_EX_PUSH_LOCK_AUTO_EXPAND.h" />
+    <ClInclude Include="source\ntdef\_EX_PUSH_LOCK_AUTO_EXPAND_STATE.h" />
+    <ClInclude Include="source\ntdef\_JOBOBJECT_WAKE_FILTER.h" />
+    <ClInclude Include="source\ntdef\_KAFFINITY_EX.h" />
+    <ClInclude Include="source\ntdef\_KDESCRIPTOR.h" />
+    <ClInclude Include="source\ntdef\_KEXECUTE_OPTIONS.h" />
+    <ClInclude Include="source\ntdef\_KIDTENTRY64.h" />
+    <ClInclude Include="source\ntdef\_KPRCB.h" />
+    <ClInclude Include="source\ntdef\_KPROCESS.h" />
+    <ClInclude Include="source\ntdef\_KPROCESSOR_STATE.h" />
+    <ClInclude Include="source\ntdef\_KPROCESS_PPM_POLICY.h" />
+    <ClInclude Include="source\ntdef\_KPROCESS_STATE.h" />
+    <ClInclude Include="source\ntdef\_KSPECIAL_REGISTERS.h" />
+    <ClInclude Include="source\ntdef\_KSTACK_CONTROL.h" />
+    <ClInclude Include="source\ntdef\_KSTACK_COUNT.h" />
+    <ClInclude Include="source\ntdef\_KTHREAD.h" />
+    <ClInclude Include="source\ntdef\_KTHREAD_COUNTERS.h" />
+    <ClInclude Include="source\ntdef\_KTHREAD_PPM_POLICY.h" />
+    <ClInclude Include="source\ntdef\_KTHREAD_STATE.h" />
+    <ClInclude Include="source\ntdef\_KTHREAD_TAG.h" />
+    <ClInclude Include="source\ntdef\_KTIMER.h" />
+    <ClInclude Include="source\ntdef\_KWAIT_STATUS_REGISTER.h" />
+    <ClInclude Include="source\ntdef\_LDR_DLL_LOAD_REASON.h" />
+    <ClInclude Include="source\ntdef\_MMSUPPORT_FLAGS.h" />
+    <ClInclude Include="source\ntdef\_MMSUPPORT_FULL.h" />
+    <ClInclude Include="source\ntdef\_MMSUPPORT_INSTANCE.h" />
+    <ClInclude Include="source\ntdef\_MMSUPPORT_SHARED.h" />
+    <ClInclude Include="source\ntdef\_PS_DYNAMIC_ENFORCED_ADDRESS_RANGES.h" />
+    <ClInclude Include="source\ntdef\_PS_INTERLOCKED_TIMER_DELAY_VALUES.h" />
+    <ClInclude Include="source\ntdef\_PS_PROCESS_WAKE_INFORMATION.h" />
+    <ClInclude Include="source\ntdef\_PS_PROTECTION.h" />
+    <ClInclude Include="source\ntdef\_RTL_AVL_TREE.h" />
+    <ClInclude Include="source\ntdef\_SE_AUDIT_PROCESS_CREATION_INFO.h" />
+    <ClInclude Include="source\ntdef\_SYSTEM_INFORMATION_CLASS.h" />
     <ClInclude Include="source\vmm.h" />
     <ClInclude Include="windows-defs\structs\_RTL_PROCESS_MODULES.h" />
     <ClInclude Include="windows-defs\structs\_RTL_PROCESS_MODULE_INFORMATION.h" />
