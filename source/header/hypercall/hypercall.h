@@ -8,7 +8,9 @@ enum class hypercall_code : uint64_t
 	unload = 0,
 	ping,
 	get_process_cr3,
-	get_physical_address
+	get_physical_address,
+	hide_physical_page,
+	unhide_physical_page
 };
 
 struct hypercall_t {

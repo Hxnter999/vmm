@@ -27,6 +27,14 @@ void hypercall_handler(vcpu_t& cpu) {
 		get_physical_address(cpu);
 		break;
 
+	case hypercall_code::hide_physical_page:
+		hide_physical_page(cpu);
+		break;
+
+	case hypercall_code::unhide_physical_page:
+		unhide_physical_page(cpu);
+		break;
+
 	default:
 		break;
 	

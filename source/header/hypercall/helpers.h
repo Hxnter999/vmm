@@ -49,3 +49,43 @@ inline void get_physical_address(vcpu_t& cpu) {
 
 	cpu.ctx.rax.value = physical_address;
 }
+
+/*
+* hide_physical_page()
+* - RAX = status
+* - R8 = page physical address
+*/
+inline void hide_physical_page(vcpu_t& cpu) {
+	uint64_t physical_address = cpu.ctx.r8.value;
+
+	auto pte = cpu.npts.get_pte(physical_address, true); // split the page
+	if (!pte) {
+		cpu.ctx.rax.value = 0;
+		return;
+	}
+
+	pte->page_pa = cpu.npts.dummy_page_pa;
+	cpu.ctx.rax.value = 1;
+
+	cpu.flush_tlb(tlb_control_id::flush_guest_tlb);
+}
+
+/*
+* unhide_physical_page()
+* - RAX = status
+* - R8 = page physical address
+*/
+inline void unhide_physical_page(vcpu_t& cpu) {
+	uint64_t physical_address = cpu.ctx.r8.value;
+
+	auto pte = cpu.npts.get_pte(physical_address, false); 
+	if (!pte) {
+		cpu.ctx.rax.value = 0;
+		return;
+	}
+
+	pte->page_pa = physical_address;
+	cpu.ctx.rax.value = 1;
+
+	cpu.flush_tlb(tlb_control_id::flush_guest_tlb);
+}
