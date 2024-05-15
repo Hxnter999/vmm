@@ -64,11 +64,7 @@ bool vmexit_handler(vcpu_t& cpu) {
 		svm_handler(cpu);
 		break;
 
-	case vmexit_code::CR4_WRITE:
-		cr4_handler(cpu);
-		break;
-
-	default:
+	default: // shouldnt happen unless we forgot something
 		print("UNHANDLED EXIT CODE: %-4X || INFO1: %p | INFO2: %p\n", cpu.guest.control.exit_code, cpu.guest.control.exit_info_1.info, cpu.guest.control.exit_info_2.info);
 		break;
 	}

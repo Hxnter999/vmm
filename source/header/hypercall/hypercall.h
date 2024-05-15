@@ -13,13 +13,11 @@ enum class hypercall_code : uint64_t
 	unhide_physical_page
 };
 
-struct hypercall_t {
-	union {
-		uint64_t value;
-		struct {
-			hypercall_code code : 8;
-			uint64_t key : 56;
-		};
+union hypercall_t {
+	uint64_t value;
+	struct {
+		hypercall_code code : 8;
+		uint64_t key : 56;
 	};
 };
 

@@ -2,7 +2,7 @@
 
 enum class svm_status
 {
-	SVM_IS_CAPABLE_OF_BEING_ENABLE = 0,
+	SVM_IS_CAPABLE_OF_BEING_ENABLED = 0,
 	SVM_IS_NOT_SUPPORTED_BY_CPU,
 	SVM_NESTED_PAGING_NOT_SUPPORTED,
 	SVM_DISABLED_AT_BIOS_NOT_UNLOCKABLE,
@@ -13,5 +13,5 @@ enum class svm_status
 
 inline bool operator!(svm_status status)
 {
-	return status != svm_status::SVM_IS_CAPABLE_OF_BEING_ENABLE;
+	return status != svm_status::SVM_IS_CAPABLE_OF_BEING_ENABLED;
 }

@@ -210,10 +210,10 @@ enum class vmexit_code : uint64_t {
     VMMCALL = 0x81, // VMMCALL instruction.
     VMLOAD = 0x82, // VMLOAD instruction.
     VMSAVE = 0x83, // VMSAVE instruction.
-
     STGI = 0x84, // STGI instruction.
     CLGI = 0x85, // CLGI instruction.
     SKINIT = 0x86, // SKINIT instruction.
+
     RDTSCP = 0x87, // RDTSCP instruction.
     ICEBP = 0x88, // ICEBP instruction.
     WBINVD = 0x89, // WBINVD instruction.

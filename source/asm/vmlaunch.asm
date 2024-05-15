@@ -7,7 +7,7 @@ __vmlaunch proc
 
 vmrun_loop:
 	; rsp -> xmm0
-    add rsp, 100h ; have to do it after the conditional jump since it will modify eflags.zf
+	add rsp, 100h ; have to do it after the conditional jump since it will modify eflags.zf
 
 	; rsp -> guest_vmcb_pa
 	mov rax, [rsp]

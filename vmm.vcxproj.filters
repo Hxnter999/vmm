@@ -9,7 +9,6 @@
     <ClCompile Include="source\header\arch\vmexit\handlers\vmexit_handler.cpp" />
     <ClCompile Include="source\header\arch\vmexit\handlers\svm.cpp" />
     <ClCompile Include="source\vmm.cpp" />
-    <ClCompile Include="source\header\arch\vmexit\handlers\cr4.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\header\arch\msrs\cstar.h" />

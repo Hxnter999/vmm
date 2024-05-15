@@ -208,7 +208,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\header\arch\vmexit\handlers\cpuid.cpp" />
-    <ClCompile Include="source\header\arch\vmexit\handlers\cr4.cpp" />
     <ClCompile Include="source\header\arch\vmexit\handlers\msr.cpp" />
     <ClCompile Include="source\header\arch\vmexit\handlers\npf.cpp" />
     <ClCompile Include="source\header\arch\vmexit\handlers\svm.cpp" />

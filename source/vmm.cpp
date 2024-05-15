@@ -27,12 +27,11 @@ inline bool execute_on_all_cpus(per_cpu_callback_t callback)
 }
 
 void setup_msrpm(vcpu_t& cpu) {
-	memset(&cpu.msrpm, 0, sizeof(cpu.msrpm));
 	cpu.msrpm.set(MSR::EFER::MSR_EFER, MSR::access::read);
 	cpu.msrpm.set(MSR::EFER::MSR_EFER, MSR::access::write);
 	
-	//cpu.msrpm.set(MSR::HSAVE_PA::MSR_VM_HSAVE_PA, MSR::access::read);
-	//cpu.msrpm.set(MSR::HSAVE_PA::MSR_VM_HSAVE_PA, MSR::access::write);
+	cpu.msrpm.set(MSR::HSAVE_PA::MSR_VM_HSAVE_PA, MSR::access::read);
+	cpu.msrpm.set(MSR::HSAVE_PA::MSR_VM_HSAVE_PA, MSR::access::write);
 }
 
 void map_physical_memory();
@@ -121,27 +120,26 @@ bool virtualize() {
 void setup_guest(vcpu_t& cpu, CONTEXT& ctx)
 {
 	// ------------------- Setup control area -------------------
-	// Intercept all the AMD-SVM instructions and properly handle their exceptions cause the efer.svme is hidden from the guest
-	cpu.guest.control.vmmcall = true; // explicit vmexits back to host
-	cpu.guest.control.vmrun = true;
-	cpu.guest.control.vmload = true;
-	cpu.guest.control.vmsave = true;
-	cpu.guest.control.clgi = true;
-	cpu.guest.control.stgi = true;
-	cpu.guest.control.skinit = true;
-	//cpu.guest.control.cpuid = true;
+	// Intercept all the AMD-SVM instructions and properly handle their exceptions cause efer.svme is hidden from the guest
+	cpu.guest.control.vmmcall = 1; // explicit vmexits back to host
+	cpu.guest.control.vmrun = 1;
+	cpu.guest.control.vmload = 1;
+	cpu.guest.control.vmsave = 1;
+	cpu.guest.control.clgi = 1;
+	cpu.guest.control.stgi = 1;
+	cpu.guest.control.skinit = 1;
 
 	cpu.guest.control.guest_asid = 1; // Address space identifier, 0 is reserved for host.
-	cpu.guest.control.v_intr_masking = true; // 15.21.1; Virtualize TPR and eflags.if, host eflags.if controls physical interrupts and guest eflags.if controls virtual interrupts
+	//cpu.guest.control.v_intr_masking = 1; // 15.21.1; Virtualize TPR and eflags.if, host eflags.if controls physical interrupts and guest eflags.if controls virtual interrupts
 
 	/* if ur considering disabling this, change the code in the virtualize routine which uses msr intercepts to check 
 	if were currently running in guest mode and exits the function to avoid virtualization loop */
-	cpu.guest.control.msr_prot = true;
+	cpu.guest.control.msr_prot = 1;
 	cpu.guest.control.msrpm_base_pa = MmGetPhysicalAddress(&cpu.msrpm).QuadPart;
 	setup_msrpm(cpu);
 
-	// nested paging should not be disabled as it controls virtualization of critical guest state including control registers
-	cpu.guest.control.np_enable = true; 
+	// nested paging should not be disabled as it controls virtualization of critical guest state including control registers which handle paging related settings
+	cpu.guest.control.np_enable = 1; 
 	cpu.guest.control.n_cr3 = MmGetPhysicalAddress(&cpu.npts).QuadPart;
 	setup_npt(cpu);
 
@@ -324,6 +322,7 @@ void devirtualize() {
 		util::free_pool(global::vcpus);
 		global::vcpus = nullptr;
 	}
+
 	if (global::shared_host_pt) {
 		util::free_pool(global::shared_host_pt);
 		global::shared_host_pt = nullptr;
@@ -340,8 +339,6 @@ svm_status check_svm_support()
 		print("Vendor check failed...\n");
 		return svm_status::SVM_WRONG_VENDOR;
 	}
-
-	print("Vendor check passed\n");
 
 	CPUID::fn_identifiers id{};
 	id.load();
@@ -363,7 +360,7 @@ svm_status check_svm_support()
 
 	if (!svm_rev.svm_feature_identification.n_rip) // necessary otherwise we have to emulate it which is a pain
 	{
-		print("Uh oh! Next RIP not supported\n");
+		print("Next RIP not supported\n");
 		return svm_status::SVM_NEXT_RIP_NOT_SUPPORTED;
 	}
 
@@ -372,16 +369,16 @@ svm_status check_svm_support()
 
 	if (!vm_cr.svmdis)
 	{
-		print("SVM not enabled but can be enabled\n");
-		return svm_status::SVM_IS_CAPABLE_OF_BEING_ENABLE;
+		print("SVM can be enabled\n");
+		return svm_status::SVM_IS_CAPABLE_OF_BEING_ENABLED;
 	}
 
 	if (!svm_rev.svm_feature_identification.svm_lock)
 	{
-		print("SVM lock bit not set, disabled by BIOS...\n");
+		print("SVM lock bit not set, disabled from BIOS...\n");
 		return svm_status::SVM_DISABLED_AT_BIOS_NOT_UNLOCKABLE;
 	}
 
-	print("SVM lock bit set, disabled\n");
+	print("SVM lock bit set, disabled by software\n");
 	return svm_status::SVM_DISABLED_WITH_KEY;
 }
