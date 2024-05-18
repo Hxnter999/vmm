@@ -98,5 +98,6 @@
   <ItemGroup>
     <MASM Include="source\asm\vmlaunch.asm" />
     <MASM Include="source\asm\vmmcall.asm" />
+    <MASM Include="source\asm\segment.asm" />
   </ItemGroup>
 </Project>

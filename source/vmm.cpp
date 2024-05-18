@@ -36,13 +36,14 @@ void setup_msrpm(vcpu_t& cpu) {
 
 void map_physical_memory();
 void setup_npt(vcpu_t& cpu);
-void setup_guest(vcpu_t& cpu, CONTEXT& ctx);
+void setup_guest(vcpu_t& cpu, bool& is_virtualized);
 void setup_host(vcpu_t& cpu);
 svm_status check_svm_support();
 
 bool setup_vcpu(uint32_t index)
 {
 	vcpu_t& cpu = global::vcpus[index];
+	bool is_virtualized{};
 
 	MSR::EFER efer{};
 	efer.load();
@@ -53,20 +54,10 @@ bool setup_vcpu(uint32_t index)
 	hsave_pa.bits = MmGetPhysicalAddress(&cpu.host).QuadPart;
 	hsave_pa.store();
  
-	CONTEXT& ctx = *reinterpret_cast<CONTEXT*>(cpu.host_stack); // use the currently unused space we have already allocated
-	RtlCaptureContext(&ctx);
-
-	print("Checking efer\n");
-	// efer.svme will be 0 when we read it in a virtualized state, this is because the host hides svme from the guest
-	// this can be cleaned up and optimized by doing it thru assembling and passing the address of a label to RIP that returns true, but this is fine for now
-	MSR::EFER guest_efer{}; guest_efer.load();
-	if (!guest_efer.svme) {
-		//__debugbreak();
-		return true;
-	}
-
 	print("Setting up guest\n");
-	setup_guest(cpu, ctx);
+	setup_guest(cpu, is_virtualized); // this is pretty pointless to pass in the boolean but compiler keeps optimizing it out otherwise..
+
+	if (is_virtualized) return true;
 
 	print("Setting up host\n");
 	setup_host(cpu);
@@ -117,7 +108,7 @@ bool virtualize() {
 	return true;
 }
 
-void setup_guest(vcpu_t& cpu, CONTEXT& ctx)
+void setup_guest(vcpu_t& cpu, bool& is_virtualized)
 {
 	// ------------------- Setup control area -------------------
 	// Intercept all the AMD-SVM instructions and properly handle their exceptions cause efer.svme is hidden from the guest
@@ -132,8 +123,6 @@ void setup_guest(vcpu_t& cpu, CONTEXT& ctx)
 	cpu.guest.control.guest_asid = 1; // Address space identifier, 0 is reserved for host.
 	//cpu.guest.control.v_intr_masking = 1; // 15.21.1; Virtualize TPR and eflags.if, host eflags.if controls physical interrupts and guest eflags.if controls virtual interrupts
 
-	/* if ur considering disabling this, change the code in the virtualize routine which uses msr intercepts to check 
-	if were currently running in guest mode and exits the function to avoid virtualization loop */
 	cpu.guest.control.msr_prot = 1;
 	cpu.guest.control.msrpm_base_pa = MmGetPhysicalAddress(&cpu.msrpm).QuadPart;
 	setup_msrpm(cpu);
@@ -160,20 +149,25 @@ void setup_guest(vcpu_t& cpu, CONTEXT& ctx)
 	cpu.guest.state.gdtr.limit = gdtr.limit;
 
 	// This is where the guest will start executing
-	cpu.guest.state.rsp = ctx.Rsp;
-	cpu.guest.state.rip = ctx.Rip;
-	cpu.guest.state.rflags.value = ctx.EFlags;
+	cpu.guest.state.rsp = reinterpret_cast<uint64_t>(_AddressOfReturnAddress()) + 8; // 8 bytes for the return address
+	cpu.guest.state.rip = reinterpret_cast<uint64_t>(_ReturnAddress());
+	cpu.guest.state.rflags.value = __getcallerseflags();
 
 	// Setup all the segment registers
-	cpu.guest.state.cs.limit = __segmentlimit(ctx.SegCs);
-	cpu.guest.state.ds.limit = __segmentlimit(ctx.SegDs);
-	cpu.guest.state.es.limit = __segmentlimit(ctx.SegEs);
-	cpu.guest.state.ss.limit = __segmentlimit(ctx.SegSs);
+	auto& cs = cpu.guest.state.cs;
+	auto& ds = cpu.guest.state.ds;
+	auto& es = cpu.guest.state.es;
+	auto& ss = cpu.guest.state.ss;
 
-	cpu.guest.state.cs.selector.value = ctx.SegCs;
-	cpu.guest.state.ds.selector.value = ctx.SegDs;
-	cpu.guest.state.es.selector.value = ctx.SegEs;
-	cpu.guest.state.ss.selector.value = ctx.SegSs;
+	cpu.guest.state.cs.selector.value = __read_cs();
+	cpu.guest.state.ds.selector.value = __read_ds();
+	cpu.guest.state.es.selector.value = __read_es();
+	cpu.guest.state.ss.selector.value = __read_ss();
+
+	cs.limit = __segmentlimit(cs.selector.value);
+	ds.limit = __segmentlimit(ds.selector.value);
+	es.limit = __segmentlimit(es.selector.value);
+	ss.limit = __segmentlimit(ss.selector.value);
 
 	cpu.guest.state.cs.get_attributes(gdtr.base);
 	cpu.guest.state.ds.get_attributes(gdtr.base);
@@ -184,6 +178,7 @@ void setup_guest(vcpu_t& cpu, CONTEXT& ctx)
 	cpu.host_vmcb_pa = MmGetPhysicalAddress(&cpu.host).QuadPart;
 	cpu.self = &cpu;
 
+	is_virtualized = true;
 	__svm_vmsave(cpu.host_vmcb_pa);
 	__svm_vmsave(cpu.guest_vmcb_pa); // needed here cause the vmrun loop loads guest state before everything, if there isnt a guest saved already it wont work properly
 }
@@ -292,7 +287,7 @@ void map_physical_memory() {
 }
 
 // The unload routines are temporary, the code is gonna change in the future.
-void unload_single_vcpu(vcpu_t& cpu) 
+void unload_single_cpu(vcpu_t& cpu) 
 {
 	print("Exiting...\n");
 
@@ -300,13 +295,20 @@ void unload_single_vcpu(vcpu_t& cpu)
 	cpu.guest_rip = cpu.guest.control.nrip;
 	cpu.guest_rsp = cpu.guest.state.rsp;
 
-	__svm_vmload(cpu.guest_vmcb_pa);
-
 	_disable();
 	__svm_stgi(); // re-enable GIF since its implicitly disabled for the host on vmexit
+	
+	auto& efer = cpu.guest.state.efer;
+	efer.svme = 0;
+	efer.store();
 
-	MSR::EFER efer{}; efer.load(); efer.svme = 0; efer.store();
 	__writeeflags(cpu.guest.state.rflags.value);
+
+
+
+
+	
+
 }
 
 void devirtualize() {

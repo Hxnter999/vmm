@@ -223,6 +223,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Hunter|x64'">..\Header\commons.h</PrecompiledHeaderFile>
     </ClCompile>
     <ClCompile Include="source\vmm.cpp" />
+    <MASM Include="source\asm\segment.asm" />
     <MASM Include="source\asm\vmlaunch.asm">
       <FileType>Document</FileType>
     </MASM>

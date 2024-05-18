@@ -3,6 +3,24 @@
 
 extern "C" void _sgdt(void* gdtr);
 
+
+extern "C" uint16_t __read_cs();
+extern "C" uint16_t __read_ss();
+extern "C" uint16_t __read_ds();
+extern "C" uint16_t __read_es();
+extern "C" uint16_t __read_fs();
+extern "C" uint16_t __read_gs();
+extern "C" uint16_t __read_tr();
+extern "C" uint16_t __read_ldtr();
+
+extern "C" void __write_ds(uint16_t selector);
+extern "C" void __write_es(uint16_t selector);
+extern "C" void __write_fs(uint16_t selector);
+extern "C" void __write_gs(uint16_t selector);
+extern "C" void __write_tr(uint16_t selector);
+extern "C" void __write_ldtr(uint16_t selector);
+
+
 #pragma pack(push, 1)
 
 struct segment_selector {

@@ -15,6 +15,7 @@ void hypercall_handler(vcpu_t& cpu) {
 	case hypercall_code::unload:
 		cpu.should_exit = true;
 		break;
+
 	case hypercall_code::ping:
 		cpu.ctx.rax.value = hypercall_key;
 		break;

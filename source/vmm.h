@@ -19,5 +19,5 @@ svm_status check_svm_support();
 
 bool virtualize();
 
-void unload_single_vcpu(vcpu_t& cpu); // for the vmexit handler... temporary
+void unload_single_cpu(vcpu_t& cpu); // for the vmexit handler... temporary
 void devirtualize();

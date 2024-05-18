@@ -73,8 +73,8 @@ bool vmexit_handler(vcpu_t& cpu) {
 	cpu.guest.state.rax = cpu.ctx.rax.value;
 	cpu.guest.state.rsp = cpu.ctx.rsp.value;
 
-	if (cpu.should_exit) { // TODO: devirtualize by firing IPIs and handling them and remove this dogshit
-		unload_single_vcpu(cpu); // devirtualize current vcpu and alert all others
+	if (cpu.should_exit) { 
+		unload_single_cpu(cpu); // devirtualize current vcpu
 		return false;
 	};
 

@@ -35,8 +35,6 @@ namespace CPUID {
 
 		bool is_amd_vendor() const
 		{
-			if (cpuid.cpu_info == 0) return false;
-
 			return (vendor1 == 'htuA') && (vendor2 == 'DMAc') && (vendor3 == 'itne');
 		}
 

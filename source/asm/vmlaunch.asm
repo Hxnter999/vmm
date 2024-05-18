@@ -105,10 +105,10 @@ vmrun_loop:
 	add rsp, 118h ; 100h for xmms + sizeof(uint64_t) * 3
 
 	; rsp -> guest_rip
-	mov rax, [rsp]
+	pop rax
 
-	; rsp + 8 -> guest_rsp
-	mov rsp, [rsp+8]
+	; rsp -> guest_rsp
+	pop rsp ; no, it wont increment the new rsp
 	
 	jmp rax
 __vmlaunch endp
