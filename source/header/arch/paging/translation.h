@@ -2,9 +2,9 @@
 #include <paging/pages.h>
 #include <vcpu/vcpu.h>
 
-// we pass guest cr3 as an arguement so we can translate from other contexts outside the current guest
+// we pass guest cr3 as an arguement so we can translate from other address spaces outside the current guest
 inline uint64_t gva_to_gpa(cr3_t guest_cr3, uint64_t address, uint64_t& offset_to_next_page) {
-	static constexpr uint64_t plm4_address_range = 0x1000000000; //256GB
+	static constexpr uint64_t plm4_address_range = 0x1000000000; //512GB
 	static constexpr uint64_t pdpt_address_range = 0x40000000; //1GB
 	static constexpr uint64_t pd_address_range = 0x200000; //2MB
 	static constexpr uint64_t pt_address_range = 0x1000; //4KB

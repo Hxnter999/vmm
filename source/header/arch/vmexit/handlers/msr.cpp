@@ -19,7 +19,6 @@ void msr_handler(vcpu_t& cpu) {
 		//return;
 	}
 	
-	cpu.skip_instruction();
 
 	bool read = cpu.guest.control.exit_info_1.msr.is_read();
 	if (read) {
@@ -34,6 +33,8 @@ void msr_handler(vcpu_t& cpu) {
 			.high = cpu.ctx.rdx.low 
 		});
 	}
+
+	cpu.skip_instruction();
 }
 
 static register_t rdmsr_handler(vcpu_t& cpu, uint32_t msr) {

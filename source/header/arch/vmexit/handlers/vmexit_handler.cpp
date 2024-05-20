@@ -12,7 +12,6 @@ bool vmexit_handler(vcpu_t& cpu) {
 	switch (cpu.guest.control.exit_code) {
 
 	case vmexit_code::VMMCALL:
-		print("VMMCALL\n");
 		hypercall_handler(cpu);
 		break;
 
@@ -40,26 +39,12 @@ bool vmexit_handler(vcpu_t& cpu) {
 		cpu.guest.control.event_injection.bits = 0; // reset to avoid infinite loop incase cpu doesnt clear it
 		break;
 
+	// Fallthrough for SVM instructions
 	case vmexit_code::VMLOAD:
-		svm_handler(cpu);
-		break;
-
 	case vmexit_code::VMSAVE:
-		svm_handler(cpu);
-		break;
-
 	case vmexit_code::VMRUN:
-		svm_handler(cpu);
-		break;
-
 	case vmexit_code::CLGI:
-		svm_handler(cpu);
-		break;
-
 	case vmexit_code::STGI:
-		svm_handler(cpu);
-		break;
-
 	case vmexit_code::SKINIT:
 		svm_handler(cpu);
 		break;

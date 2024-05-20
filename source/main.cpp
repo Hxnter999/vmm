@@ -9,7 +9,7 @@ extern "C" NTSTATUS DriverEntry(PDRIVER_OBJECT pDriverObject, PUNICODE_STRING)
 
 	if (!check_svm_support())
 	{
-		print("SVM is not supported\n");
+		print("SVM is not supported\n", __ImageBase);
 		return STATUS_UNSUCCESSFUL;
 	}
 

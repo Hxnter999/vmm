@@ -6,7 +6,7 @@ namespace MSR {
 	{
 		static constexpr uint32_t MSR_PAT = 0x00000277;
 
-		enum class page_attribute_type : uint64_t
+		enum class attribute_type : uint64_t
 		{
 			uncacheable = 0,
 			write_combining = 1,
@@ -18,21 +18,21 @@ namespace MSR {
 
 		union {
 			struct {
-				page_attribute_type pa0 : 3;
+				attribute_type pa0 : 3;
 				uint64_t reserved3 : 5;
-				page_attribute_type pa1 : 3;
+				attribute_type pa1 : 3;
 				uint64_t reserved11 : 5;
-				page_attribute_type pa2 : 3;
+				attribute_type pa2 : 3;
 				uint64_t reserved19 : 5;
-				page_attribute_type pa3 : 3;
+				attribute_type pa3 : 3;
 				uint64_t reserved27 : 5;
-				page_attribute_type pa4 : 3;
+				attribute_type pa4 : 3;
 				uint64_t reserved35 : 5;
-				page_attribute_type pa5 : 3;
+				attribute_type pa5 : 3;
 				uint64_t reserved43 : 5;
-				page_attribute_type pa6 : 3;
+				attribute_type pa6 : 3;
 				uint64_t reserved51 : 5;
-				page_attribute_type pa7 : 3;
+				attribute_type pa7 : 3;
 				uint64_t reserved59 : 5;
 			};
 			uint64_t bits;

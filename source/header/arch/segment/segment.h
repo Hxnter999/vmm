@@ -1,24 +1,26 @@
 #pragma once
 #include <commons.h>
 
-extern "C" void _sgdt(void* gdtr);
+extern "C" {
+	void _sgdt(struct descriptor_table_register* gdtr);
+	void _lgdt(struct descriptor_table_register* gdtr);
 
+	uint16_t __read_cs();
+	uint16_t __read_ss();
+	uint16_t __read_ds();
+	uint16_t __read_es();
+	uint16_t __read_fs();
+	uint16_t __read_gs();
+	uint16_t __read_tr();
+	uint16_t __read_ldtr();
 
-extern "C" uint16_t __read_cs();
-extern "C" uint16_t __read_ss();
-extern "C" uint16_t __read_ds();
-extern "C" uint16_t __read_es();
-extern "C" uint16_t __read_fs();
-extern "C" uint16_t __read_gs();
-extern "C" uint16_t __read_tr();
-extern "C" uint16_t __read_ldtr();
-
-extern "C" void __write_ds(uint16_t selector);
-extern "C" void __write_es(uint16_t selector);
-extern "C" void __write_fs(uint16_t selector);
-extern "C" void __write_gs(uint16_t selector);
-extern "C" void __write_tr(uint16_t selector);
-extern "C" void __write_ldtr(uint16_t selector);
+	void __write_ds(uint16_t selector);
+	void __write_es(uint16_t selector);
+	void __write_fs(uint16_t selector);
+	void __write_gs(uint16_t selector);
+	void __write_tr(uint16_t selector);
+	void __write_ldtr(uint16_t selector);
+}
 
 
 #pragma pack(push, 1)
@@ -88,7 +90,7 @@ struct segment_register_t
 
 	void get_attributes(uint64_t descriptor)
 	{
-		segment_descriptor* desc = reinterpret_cast<segment_descriptor*>(descriptor + selector.index * 8);
+		auto desc = reinterpret_cast<segment_descriptor*>(descriptor + selector.index * 8);
 
 		attributes.type = desc->type;
 		attributes.system = desc->system;

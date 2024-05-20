@@ -6,11 +6,13 @@
 #include <hypercall/hypercall.h>
 
 extern "C" uint64_t __vmmcall(hypercall_t request);
+extern "C" uint8_t __ImageBase;
+
 
 namespace global {
 	inline host_pt_t* shared_host_pt;
 	inline _EPROCESS* system_process;
-	inline cr3_t system_cr3; // pointless but cleaner
+	inline cr3_t system_cr3; 
 	inline vcpu_t* vcpus;
 	inline uint32_t vcpu_count;
 }

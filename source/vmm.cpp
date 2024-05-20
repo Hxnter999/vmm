@@ -36,14 +36,14 @@ void setup_msrpm(vcpu_t& cpu) {
 
 void map_physical_memory();
 void setup_npt(vcpu_t& cpu);
-void setup_guest(vcpu_t& cpu, bool& is_virtualized);
-void setup_host(vcpu_t& cpu);
+void setup_guest(vcpu_t& cpu);
+void setup_host(vcpu_t& cpu, volatile bool& is_virtualized);
 svm_status check_svm_support();
 
-bool setup_vcpu(uint32_t index)
+bool setup_cpu(uint32_t index)
 {
 	vcpu_t& cpu = global::vcpus[index];
-	bool is_virtualized{};
+	volatile bool is_virtualized{};
 
 	MSR::EFER efer{};
 	efer.load();
@@ -55,12 +55,14 @@ bool setup_vcpu(uint32_t index)
 	hsave_pa.store();
  
 	print("Setting up guest\n");
-	setup_guest(cpu, is_virtualized); // this is pretty pointless to pass in the boolean but compiler keeps optimizing it out otherwise..
 
-	if (is_virtualized) return true;
+	setup_guest(cpu); 
+	if (is_virtualized) {
+		return true;
+	}
 
 	print("Setting up host\n");
-	setup_host(cpu);
+	setup_host(cpu, is_virtualized); // this is pretty pointless to pass in the boolean but compiler keeps optimizing it out otherwise..
 
 	memset(&cpu.host_stack, 0, sizeof(CONTEXT));
 	print("Entering vm\n");
@@ -92,7 +94,7 @@ bool virtualize() {
 	// Setup each processor specific structure and virtualize the processor
 	if (!execute_on_all_cpus([](uint32_t index) -> bool {
 		print("Virtualizing [%d]...\n", index);
-		if (!setup_vcpu(index))
+		if (!setup_cpu(index))
 		{
 			print("Failed to virtualize\n");
 			return false;
@@ -108,7 +110,7 @@ bool virtualize() {
 	return true;
 }
 
-void setup_guest(vcpu_t& cpu, bool& is_virtualized)
+void setup_guest(vcpu_t& cpu)
 {
 	// ------------------- Setup control area -------------------
 	// Intercept all the AMD-SVM instructions and properly handle their exceptions cause efer.svme is hidden from the guest
@@ -178,12 +180,11 @@ void setup_guest(vcpu_t& cpu, bool& is_virtualized)
 	cpu.host_vmcb_pa = MmGetPhysicalAddress(&cpu.host).QuadPart;
 	cpu.self = &cpu;
 
-	is_virtualized = true;
 	__svm_vmsave(cpu.host_vmcb_pa);
 	__svm_vmsave(cpu.guest_vmcb_pa); // needed here cause the vmrun loop loads guest state before everything, if there isnt a guest saved already it wont work properly
 }
 
-void setup_host(vcpu_t& cpu) {
+void setup_host(vcpu_t& cpu, volatile bool& is_virtualized) {
 
 	// ------------------- Isolate the host ---------------------
 	// We make changes directly to the host and the cpu is gonna implicitly store them in the host vmcb whenever we vmrun and reload them when we vmexit
@@ -202,19 +203,20 @@ void setup_host(vcpu_t& cpu) {
 	MSR::PAT host_pat{};
 	host_pat.load();
 
-	host_pat.pa0 = MSR::PAT::page_attribute_type::write_back;
-	host_pat.pa1 = MSR::PAT::page_attribute_type::write_through;
-	host_pat.pa2 = MSR::PAT::page_attribute_type::uncacheable_no_write_combinining;
-	host_pat.pa3 = MSR::PAT::page_attribute_type::uncacheable;
+	host_pat.pa0 = MSR::PAT::attribute_type::write_back;
+	host_pat.pa1 = MSR::PAT::attribute_type::write_through;
+	host_pat.pa2 = MSR::PAT::attribute_type::uncacheable_no_write_combinining;
+	host_pat.pa3 = MSR::PAT::attribute_type::uncacheable;
 
-	host_pat.pa4 = MSR::PAT::page_attribute_type::write_back;
-	host_pat.pa5 = MSR::PAT::page_attribute_type::write_through;
-	host_pat.pa6 = MSR::PAT::page_attribute_type::uncacheable_no_write_combinining;
-	host_pat.pa7 = MSR::PAT::page_attribute_type::uncacheable;
+	host_pat.pa4 = MSR::PAT::attribute_type::write_back;
+	host_pat.pa5 = MSR::PAT::attribute_type::write_through;
+	host_pat.pa6 = MSR::PAT::attribute_type::uncacheable_no_write_combinining;
+	host_pat.pa7 = MSR::PAT::attribute_type::uncacheable;
 
 	host_pat.store();
 
 	// -------
+	is_virtualized = true;
 };
 
 void setup_npt(vcpu_t& cpu)
@@ -277,7 +279,7 @@ void map_physical_memory() {
 	}
 
 	global::system_process = reinterpret_cast<_EPROCESS*>(PsInitialSystemProcess);
-	global::system_cr3 = { global::system_process->Pcb.DirectoryTableBase};
+	global::system_cr3 = { global::system_process->Pcb.DirectoryTableBase };
 
 	auto system_pml4 = reinterpret_cast<pml4e_t*>(MmGetVirtualForPhysical({ .QuadPart = static_cast<int64_t>(global::system_cr3.pml4 << 12) }));
 
@@ -287,38 +289,71 @@ void map_physical_memory() {
 }
 
 // The unload routines are temporary, the code is gonna change in the future.
-void unload_single_cpu(vcpu_t& cpu) 
+void unload_single_cpu(vcpu_t& cpu)
 {
-	print("Exiting...\n");
-
-	// devirtualize current cpu, later in the vmrun loop we restore rsp and jump to guest_rip.
-	cpu.guest_rip = cpu.guest.control.nrip;
-	cpu.guest_rsp = cpu.guest.state.rsp;
+	auto& state = cpu.guest.state;
 
 	_disable();
-	__svm_stgi(); // re-enable GIF since its implicitly disabled for the host on vmexit
-	
-	auto& efer = cpu.guest.state.efer;
+	__svm_stgi(); // re-enable GIF since its implicitly disabled for the host on vmexit 
+
+	// pass some context to the asm devirtualization handler
+	cpu.guest_rip = cpu.guest.control.nrip;
+	cpu.cs_selector = state.cs.selector.value;
+	cpu.rflags = state.rflags.value;
+	cpu.guest_rsp = cpu.guest.state.rsp;
+	cpu.ss_selector = state.ss.selector.value;
+
+	MSR::PAT pat{};
+	pat.bits = state.g_pat;
+	pat.store();
+
+	__writecr3(state.cr3.value);
+
+	MSR::HSAVE_PA hsave_pa{};
+	hsave_pa.store();
+
+	auto& efer = state.efer;
 	efer.svme = 0;
 	efer.store();
 
-	__writeeflags(cpu.guest.state.rflags.value);
+	/*
+	descriptor_table_register gdtr{};
+	gdtr.base = state.gdtr.base;
+	gdtr.limit = static_cast<uint16_t>(state.gdtr.limit);
+	_lgdt(&gdtr);
 
+	descriptor_table_register idtr{};
+	idtr.base = state.idtr.base;
+	idtr.limit = static_cast<uint16_t>(state.idtr.limit);
+	__lidt(&idtr);
 
+	segment_selector tr{};
+	tr.value = state.tr.selector.value;
+	(reinterpret_cast<segment_descriptor*>(gdtr.base)
+		+ tr.index)->type = 0x9;
+	__write_tr(tr.value);
 
+	__write_ds(state.ds.selector.value);
+	__write_es(state.es.selector.value);
+	__write_fs(state.fs.selector.value);
+	__write_gs(state.gs.selector.value);
+	__write_ldtr(state.ldtr.selector.value);
 
-	
-
+	_writefsbase_u64(state.fs.base);
+	_writegsbase_u64(state.gs.base);*/
 }
+
 
 void devirtualize() {
 	print("Unloading Hypervisor...\n");
 
 	execute_on_all_cpus([](uint32_t index) -> bool {
-		print("Devirtualizing [%d]...\n", index);
+		print("Unloading [%d]...\n", index);
+
 		__vmmcall({ .code = hypercall_code::unload, .key = hypercall_key });
+
 		return true;
-		});
+	});
 
 	if (global::vcpus) { 
 		util::free_pool(global::vcpus);

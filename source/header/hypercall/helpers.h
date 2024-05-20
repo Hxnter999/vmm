@@ -40,9 +40,9 @@ inline void get_physical_address(vcpu_t& cpu) {
 	cr3_t process_cr3{ cpu.ctx.r8.value };
 	uint64_t virtual_address = cpu.ctx.r9.value;
 
-	if (process_cr3.value == 0) {
+	if (!process_cr3.value)
 		process_cr3.value = global::system_cr3.value;
-	}
+	
 
 	uint64_t offset_to_next_page{};
 	uint64_t physical_address = gva_to_gpa(process_cr3, virtual_address, offset_to_next_page);

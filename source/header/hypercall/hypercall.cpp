@@ -2,13 +2,14 @@
 #include <hypercall/hypercall.h>
 #include <hypercall/helpers.h>
 
-// hypercall should pass the request structure into rcx and the rest of the required parameters for the request into r8-r15
+// hypercalls should pass the request structure into rcx and the rest of the required parameters for the request into r8-r15
 void hypercall_handler(vcpu_t& cpu) {
-	hypercall_t request {cpu.ctx.rcx.value};
-	/*if (request.key != hypercall_key) {
-		cpu.inject_event(exception_vector::UD, 0);
+	hypercall_t request {.value = cpu.ctx.rcx.value};
+
+	if (request.key != hypercall_key) {
+		cpu.inject_exception(exception_vector::UD, 0);
 		return;
-	}*/
+	}
 
 	switch (request.code) {
 
@@ -38,7 +39,6 @@ void hypercall_handler(vcpu_t& cpu) {
 
 	default:
 		break;
-	
 	}
 
 	cpu.skip_instruction();

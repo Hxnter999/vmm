@@ -1,11 +1,11 @@
 #pragma once
 #include <vcpu/vcpu.h>
 
-inline constexpr uint64_t hypercall_key = 'AMDV'; // AMD-V is the best :D
+constexpr uint64_t hypercall_key = 'AMDV'; // AMD-V is the best :D
 
 enum class hypercall_code : uint64_t
 {
-	unload = 0,
+	unload,
 	ping,
 	get_process_cr3,
 	get_physical_address,
@@ -13,11 +13,13 @@ enum class hypercall_code : uint64_t
 	unhide_physical_page
 };
 
-union hypercall_t {
-	uint64_t value;
-	struct {
-		hypercall_code code : 8;
-		uint64_t key : 56;
+struct hypercall_t {
+	union {
+		struct {
+			hypercall_code code : 8;
+			uint64_t key : 56;
+		};
+		uint64_t value;
 	};
 };
 
