@@ -64,7 +64,6 @@ bool setup_cpu(uint32_t index)
 	print("Setting up host\n");
 	setup_host(cpu, is_virtualized); // this is pretty pointless to pass in the boolean but compiler keeps optimizing it out otherwise..
 
-	memset(&cpu.host_stack, 0, sizeof(CONTEXT));
 	print("Entering vm\n");
 	__vmlaunch(&cpu.guest_vmcb_pa);
 
@@ -152,7 +151,7 @@ void setup_guest(vcpu_t& cpu)
 
 	// This is where the guest will start executing
 	cpu.guest.state.rsp = reinterpret_cast<uint64_t>(_AddressOfReturnAddress()) + 8; // 8 bytes for the return address
-	cpu.guest.state.rip = reinterpret_cast<uint64_t>(_ReturnAddress());
+	cpu.guest.state.rip = reinterpret_cast<uint64_t>(_ReturnAddress()); // Could also use _AddressOfNextInstruction in setup_cpu to insert a label and take the address of it
 	cpu.guest.state.rflags.value = __getcallerseflags();
 
 	// Setup all the segment registers
