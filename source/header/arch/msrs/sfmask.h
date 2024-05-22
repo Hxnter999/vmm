@@ -11,17 +11,17 @@ namespace MSR {
 				uint32_t syscall_flag_mask : 32;
 				uint32_t reserved : 32;
 			};
-			uint64_t bits;
+			uint64_t value;
 		};
 
 		void load()
 		{
-			bits = { __readmsr(SFMASK::MSR_SFMASK) };
+			value = { __readmsr(SFMASK::MSR_SFMASK) };
 		}
 
 		void store()
 		{
-			__writemsr(SFMASK::MSR_SFMASK, bits);
+			__writemsr(SFMASK::MSR_SFMASK, value);
 		}
 	};
 };

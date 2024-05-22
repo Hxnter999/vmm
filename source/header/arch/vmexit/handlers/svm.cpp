@@ -2,8 +2,12 @@
 
 void svm_handler(vcpu_t& cpu)
 {
-	// No need to handle cpl > 0 to inject a GP, cpu checks exceptions before the intercept for instructions that require svme so it will throw GP by itself
-	
-	// #UD(0) cause svme is "disabled" in the guest
-	cpu.inject_exception(exception_vector::UD, 0);
+	// #GP is handled by the cpu when cpl>0
+
+	if (!cpu.shadow.efer.svme) { // incase the guest has written to efer.svme before executing the instruction
+		cpu.inject_exception(exception_vector::UD, 0);
+		return;
+	}
+
+	// TODO: implement functionality if shadow svme is enabled (TOO MUCH :sob:)
 }

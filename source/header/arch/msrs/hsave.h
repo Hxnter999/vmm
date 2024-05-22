@@ -13,17 +13,17 @@ namespace MSR {
 				uint64_t must_be_zero : 12;
 				uint64_t host_save_area_pa : 52;
 			};
-			uint64_t bits;
+			uint64_t value;
 		};
 
 		void load()
 		{
-			bits = { __readmsr(HSAVE_PA::MSR_VM_HSAVE_PA) };
+			value = { __readmsr(HSAVE_PA::MSR_VM_HSAVE_PA) };
 		}
 
 		void store()
 		{
-			__writemsr(HSAVE_PA::MSR_VM_HSAVE_PA, bits);
+			__writemsr(HSAVE_PA::MSR_VM_HSAVE_PA, value);
 		}
 	};
 

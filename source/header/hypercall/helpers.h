@@ -6,7 +6,7 @@
 /*
 * get_process_cr3()
 * -	RAX = process cr3
-* -	R8 = process pid
+* -	R8 = process id
 */
 inline void get_process_cr3(vcpu_t& cpu) {
 	uint64_t target_pid = cpu.ctx.r8.value;
@@ -23,7 +23,7 @@ inline void get_process_cr3(vcpu_t& cpu) {
 
 		if (target_pid == reinterpret_cast<uint64_t>(current->UniqueProcessId)) {
 			cpu.ctx.rax.value = current->Pcb.DirectoryTableBase;
-			break;
+			return;
 		}
 	}
 
@@ -58,13 +58,13 @@ inline void get_physical_address(vcpu_t& cpu) {
 inline void hide_physical_page(vcpu_t& cpu) {
 	uint64_t physical_address = cpu.ctx.r8.value;
 
-	auto pte = cpu.npts.get_pte(physical_address, true); // split the page
+	auto pte = cpu.npt.get_pte(physical_address, true); // split the page
 	if (!pte) {
 		cpu.ctx.rax.value = 0;
 		return;
 	}
 
-	pte->page_pa = cpu.npts.dummy_page_pa;
+	pte->page_pa = cpu.npt.dummy_page_pa;
 	cpu.ctx.rax.value = 1;
 
 	cpu.flush_tlb(tlb_control_id::flush_guest_tlb);
@@ -78,7 +78,7 @@ inline void hide_physical_page(vcpu_t& cpu) {
 inline void unhide_physical_page(vcpu_t& cpu) {
 	uint64_t physical_address = cpu.ctx.r8.value;
 
-	auto pte = cpu.npts.get_pte(physical_address, false); 
+	auto pte = cpu.npt.get_pte(physical_address, false); 
 	if (!pte) {
 		cpu.ctx.rax.value = 0;
 		return;

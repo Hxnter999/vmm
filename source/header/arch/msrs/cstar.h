@@ -10,17 +10,17 @@ namespace MSR {
 			struct {
 				uint64_t syscall_entry_point : 64; // The address of the SYSCALL/SYSRET handler
 			};
-			uint64_t bits;
+			uint64_t value;
 		};
 
 		void load()
 		{
-			bits = { __readmsr(CSTAR::MSR_CSTAR) };
+			value = { __readmsr(CSTAR::MSR_CSTAR) };
 		}
 
 		void store()
 		{
-			__writemsr(CSTAR::MSR_CSTAR, bits);
+			__writemsr(CSTAR::MSR_CSTAR, value);
 		}
 	};
 };

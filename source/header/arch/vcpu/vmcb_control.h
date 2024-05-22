@@ -432,6 +432,6 @@ struct vmcb_control_t {
 	// 120h
 	uint16_t bus_lock_threshold_counter;
 
-	// 122h - 400h reserved
+	// 122h - 400h reserved (has other useless stuff we dont need + 32 bytes for host usage)
 	uint8_t reserved122[0x2de];
 };

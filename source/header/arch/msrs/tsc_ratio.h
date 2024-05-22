@@ -12,17 +12,17 @@ namespace MSR {
 				uint8_t integer_part : 8;
 				uint64_t reserved40 : 24;
 			};
-			uint64_t bits;
+			uint64_t value;
 		};
 
 		void load()
 		{
-			bits = { __readmsr(TSC_RATIO::MSR_TSC_RATIO) };
+			value = { __readmsr(TSC_RATIO::MSR_TSC_RATIO) };
 		}
 
 		void store()
 		{
-			__writemsr(TSC_RATIO::MSR_TSC_RATIO, bits);
+			__writemsr(TSC_RATIO::MSR_TSC_RATIO, value);
 		}
 	};
 };

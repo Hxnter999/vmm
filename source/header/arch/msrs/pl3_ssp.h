@@ -10,17 +10,17 @@ namespace MSR {
 			struct {
 				uint64_t ssp : 64;
 			};
-			uint64_t bits;
+			uint64_t value;
 		};
 
 		void load()
 		{
-			bits = { __readmsr(PL3_SSP::MSR_PL3_SSP) };
+			value = { __readmsr(PL3_SSP::MSR_PL3_SSP) };
 		}
 
 		void store()
 		{
-			__writemsr(PL3_SSP::MSR_PL3_SSP, bits);
+			__writemsr(PL3_SSP::MSR_PL3_SSP, value);
 		}
 	};
 }

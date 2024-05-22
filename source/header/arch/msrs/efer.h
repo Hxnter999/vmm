@@ -26,17 +26,17 @@ namespace MSR {
 				uint64_t aibrse : 1; // Automatic IBRS Enable
 				uint64_t reserved22 : 42;
 			};
-			uint64_t bits;
+			uint64_t value;
 		};
 
 		void load()
 		{
-			bits = { __readmsr(EFER::MSR_EFER) };
+			value = { __readmsr(EFER::MSR_EFER) };
 		}
 
 		void store()
 		{
-			__writemsr(EFER::MSR_EFER, bits);
+			__writemsr(EFER::MSR_EFER, value);
 		}
 	};
 };

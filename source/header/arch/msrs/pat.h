@@ -35,17 +35,17 @@ namespace MSR {
 				attribute_type pa7 : 3;
 				uint64_t reserved59 : 5;
 			};
-			uint64_t bits;
+			uint64_t value;
 		};
 
 		void load()
 		{
-			bits = { __readmsr(PAT::MSR_PAT) };
+			value = { __readmsr(PAT::MSR_PAT) };
 		}
 
 		void store()
 		{
-			__writemsr(PAT::MSR_PAT, bits);
+			__writemsr(PAT::MSR_PAT, value);
 		}
 	};
 };

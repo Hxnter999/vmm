@@ -4,8 +4,7 @@
 bool vmexit_handler(vcpu_t& cpu) {
 	__svm_vmload(cpu.host_vmcb_pa);
 
-	// we copy rax and rsp into guest context so we can easily index gpr array and only modify guest ctx when register modificatios are required
-	// this makes cleaner code if u modify from cpu.ctx rather than cpu.guest.state
+	// we copy rax and rsp into guest context so we can easily index gpr array and only modify cpu.ctx when modificatios are required cleaner than cpu.guest.state
 	cpu.ctx.rax.value = cpu.guest.state.rax;
 	cpu.ctx.rsp.value = cpu.guest.state.rsp;
 
@@ -25,7 +24,7 @@ bool vmexit_handler(vcpu_t& cpu) {
 
 	case vmexit_code::INVALID:
 		print("INVALID GUEST STATE, EXITING...\n");
-		cpu.should_exit = true;
+		cpu.shadow.should_exit = true;
 		break;
 
 	case vmexit_code::NPF:
@@ -36,7 +35,7 @@ bool vmexit_handler(vcpu_t& cpu) {
 
 	case vmexit_code::HV: // event injection exception
 		print("Failed to inject event\n");
-		cpu.guest.control.event_injection.bits = 0; // reset to avoid infinite loop incase cpu doesnt clear it
+		cpu.guest.control.event_injection.value = 0; // reset to avoid infinite loop incase cpu doesnt clear it
 		break;
 
 	// Fallthrough for SVM instructions
@@ -50,7 +49,7 @@ bool vmexit_handler(vcpu_t& cpu) {
 		break;
 
 	default: // shouldnt happen unless we forgot something
-		print("UNHANDLED EXIT CODE: %-4X || INFO1: %p | INFO2: %p\n", cpu.guest.control.exit_code, cpu.guest.control.exit_info_1.info, cpu.guest.control.exit_info_2.info);
+		print("UNHANDLED EXIT CODE: %X || INFO1: %zX | INFO2: %zX\n", cpu.guest.control.exit_code, cpu.guest.control.exit_info_1.info, cpu.guest.control.exit_info_2.info);
 		break;
 	}
 
@@ -58,7 +57,7 @@ bool vmexit_handler(vcpu_t& cpu) {
 	cpu.guest.state.rax = cpu.ctx.rax.value;
 	cpu.guest.state.rsp = cpu.ctx.rsp.value;
 
-	if (cpu.should_exit) { 
+	if (cpu.shadow.should_exit) { 
 		unload_single_cpu(cpu); // devirtualize current vcpu
 		return false;
 	};

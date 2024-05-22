@@ -234,7 +234,7 @@ struct alignas(0x1000) npt_data_t {
 		if (free_pages_used == free_page_count) 
 			return;
 
-		uint64_t& free_pt_pa = free_page_pa[free_pages_used];
+		auto& free_pt_pa = free_page_pa[free_pages_used];
 		auto free_pt = reinterpret_cast<pte_t*>(&free_pages[free_pages_used++]);
 
 		for (size_t i = 0; i < 512; ++i) {

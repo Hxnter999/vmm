@@ -12,17 +12,17 @@ namespace MSR {
 				uint16_t syscall_cs_ss : 16; // 32 : 47
 				uint16_t sysret_cc_ss : 16; // 48 : 63
 			};
-			uint64_t bits;
+			uint64_t value;
 		};
 
 		void load()
 		{
-			bits = { __readmsr(STAR::MSR_STAR) };
+			value = { __readmsr(STAR::MSR_STAR) };
 		}
 
 		void store()
 		{
-			__writemsr(STAR::MSR_STAR, bits);
+			__writemsr(STAR::MSR_STAR, value);
 		}
 	};
 };

@@ -58,5 +58,5 @@ union exit_int_info_t
 		uint64_t valid : 1;
 		uint64_t error_code : 32;
 	};
-	uint64_t bits;
+	uint64_t value;
 };

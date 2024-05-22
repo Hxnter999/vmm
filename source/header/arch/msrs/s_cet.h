@@ -12,17 +12,17 @@ namespace MSR {
 				uint64_t wr_shstk_en : 1; // WRSS instruction enable in supervisor mode
 				uint64_t reserved1 : 62;
 			};
-			uint64_t bits;
+			uint64_t value;
 		};
 
 		void load()
 		{
-			bits = { __readmsr(S_CET::MSR_S_CET) };
+			value = { __readmsr(S_CET::MSR_S_CET) };
 		}
 
 		void store()
 		{
-			__writemsr(S_CET::MSR_S_CET, bits);
+			__writemsr(S_CET::MSR_S_CET, value);
 		}
 	};
 };
