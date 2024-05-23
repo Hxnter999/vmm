@@ -33,7 +33,7 @@ struct alignas(0x1000) vcpu_t {
 			uint64_t guest_rsp;
 			uint64_t ss_selector;
 			
-			// a place to store volatile information including shadowing values used in exit handlers without having to allocate memory since we already have plenty
+			// a place to store volatile information including shadowing values used in exit handlers without having to allocate more memory since we already have plenty
 			_shadow shadow;
 		};
 	};

@@ -42,20 +42,16 @@ void setup_msrpm(vcpu_t& cpu) {
 
 bool setup_cpu(uint32_t index)
 {
-	vcpu_t& cpu = global::vcpus[index];
+	auto& cpu = global::vcpus[index];
 	volatile bool is_virtualized{};
 
+	// enable svm instructions
 	MSR::EFER efer{};
 	efer.load();
 	efer.svme = 1;
 	efer.store();
 
-	MSR::HSAVE_PA hsave_pa{};
-	hsave_pa.value = MmGetPhysicalAddress(&cpu.host).QuadPart;
-	hsave_pa.store();
-
 	print("Setting up guest\n");
-
 	setup_guest(cpu); 
 	if (is_virtualized) {
 		return true;
@@ -92,9 +88,8 @@ bool virtualize() {
 			print("Failed to virtualize\n");
 			return false;
 		}
-		print("Virtualized [%d]\n", index);
 		return true;
-		}))
+	}))
 	{
 		print("Failed to virtualize all vcpus\n");
 		return false;
@@ -130,7 +125,6 @@ void setup_guest(vcpu_t& cpu)
 	control.n_cr3 = MmGetPhysicalAddress(&cpu.npt).QuadPart;
 	setup_npt(cpu);
 
-
 	// ------------------- Setup state area -------------------
 	state.cr0.value = __readcr0();
 	state.cr2.value = __readcr2();
@@ -139,17 +133,17 @@ void setup_guest(vcpu_t& cpu)
 	state.efer.value = __readmsr(MSR::EFER::MSR_EFER);
 	state.g_pat = __readmsr(MSR::PAT::MSR_PAT); // only for nested paging
 
+	// This is where the guest will start executing
+	state.rsp = reinterpret_cast<uint64_t>(_AddressOfReturnAddress()) + 8; // 8 bytes for the return address
+	state.rip = reinterpret_cast<uint64_t>(_ReturnAddress()); // Could also use _AddressOfNextInstruction in setup_cpu to insert a label and take the address of it
+	state.rflags.value = __getcallerseflags();
+
 	descriptor_table_register idtr{}, gdtr{}; __sidt(&idtr); _sgdt(&gdtr);
 	state.idtr.base = idtr.base;
 	state.idtr.limit = idtr.limit;
 
 	state.gdtr.base = gdtr.base;
 	state.gdtr.limit = gdtr.limit;
-
-	// This is where the guest will start executing
-	state.rsp = reinterpret_cast<uint64_t>(_AddressOfReturnAddress()) + 8; // 8 bytes for the return address
-	state.rip = reinterpret_cast<uint64_t>(_ReturnAddress()); // Could also use _AddressOfNextInstruction in setup_cpu to insert a label and take the address of it
-	state.rflags.value = __getcallerseflags();
 
 	// Setup all the segment registers
 	auto& cs = state.cs;
@@ -174,10 +168,17 @@ void setup_guest(vcpu_t& cpu)
 
 	// pass initial values to store as shadow copies
 	cpu.shadow.efer.value = state.efer.value;
+	cpu.shadow.efer.svme = 0; // treated as disabled until the guest enables it
+	cpu.shadow.hsave_pa.value = 0;
 	
+	// stack setup for vmlaunch
 	cpu.guest_vmcb_pa = MmGetPhysicalAddress(&cpu.guest).QuadPart;
 	cpu.host_vmcb_pa = MmGetPhysicalAddress(&cpu.host).QuadPart;
 	cpu.self = &cpu;
+
+	MSR::HSAVE_PA hsave_pa{};
+	hsave_pa.value = cpu.host_vmcb_pa;
+	hsave_pa.store();
 
 	__svm_vmsave(cpu.host_vmcb_pa);
 	__svm_vmsave(cpu.guest_vmcb_pa); // needed here cause the vmrun loop loads guest state before everything, if there isnt a guest saved already it wont work properly
@@ -214,6 +215,7 @@ void setup_host(vcpu_t& cpu, volatile bool& is_virtualized) {
 	host_pat.store();
 
 	// -------
+
 	is_virtualized = true;
 };
 
@@ -292,15 +294,16 @@ void map_physical_memory() {
 void unload_single_cpu(vcpu_t& cpu)
 {
 	auto& state = cpu.guest.state;
+	auto& control = cpu.guest.control;
 
 	_disable();
 	__svm_stgi(); // re-enable GIF since its implicitly disabled for the host on vmexit 
 
-	// pass some context to the asm devirtualization handler
-	cpu.guest_rip = cpu.guest.control.nrip;
+	// pass some context to the asm devirtualization handler, this order specifically for iret instruction which pops all 5 values from the stack
+	cpu.guest_rip = control.nrip;
 	cpu.cs_selector = state.cs.selector.value;
 	cpu.rflags = state.rflags.value;
-	cpu.guest_rsp = cpu.guest.state.rsp;
+	cpu.guest_rsp = state.rsp;
 	cpu.ss_selector = state.ss.selector.value;
 
 	MSR::PAT pat{};
@@ -359,11 +362,6 @@ void devirtualize() {
 		util::free_pool(global::vcpus);
 		global::vcpus = nullptr;
 	}
-
-	/*if (global::shared_host_pt) {
-		util::free_pool(global::shared_host_pt);
-		global::shared_host_pt = nullptr;
-	}*/
 }
 
 svm_status check_svm_support()

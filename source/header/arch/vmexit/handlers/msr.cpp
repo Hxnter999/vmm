@@ -69,21 +69,21 @@ static void wrmsr_handler(vcpu_t& cpu, uint32_t msr, register_t result) {
 		old_efer.svme = 1; // always enforce svme but still respect guest's value
 		
 		shadow_efer.value = new_efer.value;
-
 		break;
 	}
 	case MSR::HSAVE_PA::MSR_VM_HSAVE_PA:
 	{
-		MSR::HSAVE_PA hsave_pa {.value = result.value};
+		MSR::HSAVE_PA new_hsave {.value = result.value};
+		auto& shadow_hsave = cpu.shadow.hsave_pa;
 
-		if (hsave_pa.must_be_zero) { // address must be page aligned
+		if (new_hsave.must_be_zero) { // address must be page aligned
 			cpu.inject_exception(exception_vector::GP, 0);
 			return;
 		}
 
 		// TODO: if outside the maximum supported physical address range, #GP
 
-		cpu.shadow.hsave_pa.value = result.value;
+		shadow_hsave.value = new_hsave.value;
 		break;
 	}
 	default:

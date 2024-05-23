@@ -8,7 +8,6 @@
 extern "C" uint64_t __vmmcall(hypercall_t request);
 extern "C" uint8_t __ImageBase;
 
-
 namespace global {
 	inline host_pt_t shared_host_pt;
 	inline _EPROCESS* system_process;
@@ -18,8 +17,7 @@ namespace global {
 }
 
 svm_status check_svm_support();
-
 bool virtualize();
+void devirtualize();
 
 void unload_single_cpu(vcpu_t& cpu); // for the vmexit handler... temporary
-void devirtualize();

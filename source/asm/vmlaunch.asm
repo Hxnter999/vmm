@@ -13,7 +13,6 @@ vmrun_loop:
 	mov rax, [rsp]
 	vmload rax
 	vmrun rax
-	;int 3
 	vmsave rax
 	
 	; rsp -> guest_vmcb_pa
@@ -105,7 +104,6 @@ vmrun_loop:
 	add rsp, 118h ; 100h for xmms + sizeof(uint64_t) * 3
 
 	; rsp -> guest_rip
-
 	iretq 
 __vmlaunch endp
 
