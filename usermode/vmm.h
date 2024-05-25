@@ -1,5 +1,5 @@
 #pragma once
-#include <iostream>
+#include "helpers.h"
 #include <exception>
 
 constexpr uint64_t hypercall_key = 'AMDV'; // AMD-V is the best :D
@@ -8,8 +8,9 @@ enum class hypercall_code : uint64_t
 {
 	unload,
 	ping,
-	get_base_address,
+	get_vmm_base,
 	get_process_cr3,
+	get_process_base,
 	get_physical_address,
 	hide_physical_page,
 	unhide_physical_page,
@@ -34,37 +35,58 @@ struct hypercall_t {
 	inline void clear() { memset(this, 0, sizeof(hypercall_t)); key = hypercall_key; }
 };
 
-extern "C" uint64_t __vmmcall(hypercall_t& call);
+extern "C" uint64_t __vmmcall(hypercall_t& request);
 
 class vmm {
-private:
-	uint64_t process_cr3{};
-
 public:
+	uint64_t process_cr3{};
+	uint64_t process_base{};
+
 	vmm(uint64_t process_id) {
-		hypercall_t request{ hypercall_code::ping };
-		auto result = __vmmcall(request);
-		if (result != hypercall_key) {
-			throw std::exception("Failed to ping VMM");
+		hypercall_t request{ hypercall_code::get_process_cr3 };
+		request.r8 = process_id;
+		if (!(process_cr3 = __vmmcall(request))) {
+			std::println("Failed to get process cr3");
+			return;
 		}
 
 		request.clear();
-		request.code = hypercall_code::get_process_cr3;
+		request.code = hypercall_code::get_process_base;
 		request.r8 = process_id;
-		process_cr3 = __vmmcall(request);
-		if (!process_cr3) {
-			throw std::exception("Failed to get process cr3");
+		if (!(process_base = __vmmcall(request))) {
+			std::println("Failed to get process base");
+			return;
 		}
 	}
 	~vmm() {
-		// unload not fixed, also execte_per_cpu
-		//hypercall_t request{ hypercall_code::unload };
-		//__vmmcall(call);
+		// unload not fixed yet
+		/*execute_on_each_cpu([](uint32_t index) -> bool {
+			hypercall_t request{ hypercall_code::unload };
+			__vmmcall(request);
+			return true;
+		});
+		*/
+	}
+
+	static bool ping() {
+		// ping every core to ensure vmm is running properly
+		return execute_on_each_cpu([](uint32_t index) -> bool {
+			hypercall_t request{ hypercall_code::ping };
+			bool result = false;
+			__try {
+				result = __vmmcall(request) == hypercall_key;
+			}
+			__except (1) { // incase of improper virtualization, catch #UD
+				result = false;
+				std::println("[{}] Improper virtualization", index);
+			}
+			return result;
+		});
 	}
 
 
 	template <typename T>
-	T read_physical(uint64_t physical_address) {
+	static T read_physical(uint64_t physical_address) {
 		/*
 		* read_physical_memory()
 		* - RAX = bytes read
@@ -73,10 +95,12 @@ public:
 		* - R10 = bytes to read
 		*/
 		T buffer{};
+
 		hypercall_t request{ hypercall_code::read_physical_memory };
 		request.r8 = reinterpret_cast<uint64_t>(&buffer);
 		request.r9 = physical_address;
 		request.r10 = sizeof(T);
+
 		if (__vmmcall(request) != sizeof(T)) {
 			throw std::exception("Failed to read physical memory");
 		}
@@ -84,7 +108,25 @@ public:
 	}
 
 	template <typename T>
-	bool write_physical(uint64_t physical_address, T buffer) {
+	static bool read_physical(uint64_t physical_address, T& buffer) {
+		/*
+		* read_physical_memory()
+		* - RAX = bytes read
+		* - R8 = destination virtual address
+		* - R9 = source physical address
+		* - R10 = bytes to read
+		*/
+
+		hypercall_t request{ hypercall_code::read_physical_memory };
+		request.r8 = reinterpret_cast<uint64_t>(&buffer);
+		request.r9 = physical_address;
+		request.r10 = sizeof(T);
+
+		return __vmmcall(request) == sizeof(T);
+	}
+
+	template <typename T>
+	static bool write_physical(uint64_t physical_address, T buffer) {
 		/*
 		* write_physical_memory()
 		* - RAX = bytes written
@@ -92,11 +134,30 @@ public:
 		* - R9 = source virtual address
 		* - R10 = bytes to write
 		*/
+
 		hypercall_t request{ hypercall_code::write_physical_memory };
 		request.r8 = physical_address;
 		request.r9 = reinterpret_cast<uint64_t>(&buffer);
 		request.r10 = sizeof(T);
+
 		return __vmmcall(request) == sizeof(T);
+	}
+
+	static bool write_physical_raw(uint64_t physical_address, void* buffer, size_t size) {
+		/*
+		* write_physical_memory()
+		* - RAX = bytes written
+		* - R8 = destination physical address
+		* - R9 = source virtual address
+		* - R10 = bytes to write
+		*/
+
+		hypercall_t request{ hypercall_code::write_physical_memory };
+		request.r8 = physical_address;
+		request.r9 = reinterpret_cast<uint64_t>(buffer);
+		request.r10 = size;
+
+		return __vmmcall(request) == size;
 	}
 
 	template <typename T>
@@ -110,16 +171,39 @@ public:
 		* - R11 = process cr3
 		*/
 		T buffer{};
+
 		hypercall_t request{ hypercall_code::read_virtual_memory };
 		request.r8 = reinterpret_cast<uint64_t>(&buffer);
 		request.r9 = address;
 		request.r10 = sizeof(T);
 		request.r11 = process_cr3;
+
 		if (__vmmcall(request) != sizeof(T)) {
 			throw std::exception("Failed to read virtual memory");
 		}
 		return buffer;
 	}
+
+	template <typename T>
+	bool read_virtual(uint64_t address, T& buffer) {
+		/*
+		* read_virtual_memory()
+		* - RAX = bytes read
+		* - R8 = destination virtual address
+		* - R9 = source virtual address
+		* - R10 = bytes to read
+		* - R11 = process cr3
+		*/
+
+		hypercall_t request{ hypercall_code::read_virtual_memory };
+		request.r8 = reinterpret_cast<uint64_t>(&buffer);
+		request.r9 = address;
+		request.r10 = sizeof(T);
+		request.r11 = process_cr3;
+
+		return __vmmcall(request) == sizeof(T);
+	}
+
 
 	template <typename T>
 	bool write_virtual(uint64_t address, T buffer) {
@@ -131,11 +215,32 @@ public:
 		* - R10 = bytes to write
 		* - R11 = process cr3
 		*/
+
 		hypercall_t request{ hypercall_code::write_virtual_memory };
 		request.r8 = address;
 		request.r9 = reinterpret_cast<uint64_t>(&buffer);
 		request.r10 = sizeof(T);
 		request.r11 = process_cr3;
+
 		return __vmmcall(request) == sizeof(T);
+	}
+
+	bool write_virtual_raw(uint64_t address, void* buffer, size_t size) {
+		/*
+		* write_virtual_memory()
+		* - RAX = bytes written
+		* - R8 = destination virtual address
+		* - R9 = source virtual address
+		* - R10 = bytes to write
+		* - R11 = process cr3
+		*/
+
+		hypercall_t request{ hypercall_code::write_virtual_memory };
+		request.r8 = address;
+		request.r9 = reinterpret_cast<uint64_t>(buffer);
+		request.r10 = size;
+		request.r11 = process_cr3;
+
+		return __vmmcall(request) == size;
 	}
 };

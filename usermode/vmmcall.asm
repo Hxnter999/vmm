@@ -1,5 +1,6 @@
 .code
 
+; uint64_t __vmmcall(hypercall_t& request)
 __vmmcall proc
 	mov r8, [rcx+8]
 	mov r9, [rcx+10h]

@@ -40,6 +40,33 @@ inline void get_process_cr3(vcpu_t& cpu) {
 }
 
 /*
+* get_process_base()
+* -	RAX = process base address
+* -	R8 = process id
+*/
+inline void get_process_base(vcpu_t& cpu) {
+	uint64_t target_pid = cpu.ctx.r8.value;
+
+	if (target_pid == 4) {
+		cpu.ctx.rax.value = reinterpret_cast<uint64_t>(global::system_process->SectionBaseAddress);
+		return;
+	}
+
+	// Shouldnt have issues accessing kernel memory 
+	for (auto current = global::system_process;
+		current->ActiveProcessLinks.Flink != &global::system_process->ActiveProcessLinks;
+		current = CONTAINING_RECORD(current->ActiveProcessLinks.Flink, _EPROCESS, ActiveProcessLinks)) {
+
+		if (target_pid == reinterpret_cast<uint64_t>(current->UniqueProcessId)) {
+			cpu.ctx.rax.value = reinterpret_cast<uint64_t>(current->SectionBaseAddress);
+			return;
+		}
+	}
+
+	cpu.ctx.rax.value = 0; // process not found
+}
+
+/*
 * get_physical_address()
 * - RAX = physical address
 * - R8 = process cr3

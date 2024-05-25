@@ -15,8 +15,8 @@ void msr_handler(vcpu_t& cpu) {
 	uint32_t msr = cpu.ctx.rcx.low;
 
 	if (msr >= MSR::msrpm_t::reserved_start && msr <= MSR::msrpm_t::reserved_end) {
-		cpu.inject_exception(exception_vector::GP, 0);
-		return;
+		//cpu.inject_exception(exception_vector::GP, 0);
+		//return;
 	}
 
 	bool read = cpu.guest.control.exit_info_1.msr.is_read();
@@ -40,10 +40,12 @@ static register_t rdmsr_handler(vcpu_t& cpu, uint32_t msr) {
 	switch (msr) {
 	case MSR::EFER::MSR_EFER: 
 	{
+		print("[RDMSR] EFER\n");
 		return { cpu.shadow.efer.value };
 	}
 	case MSR::HSAVE_PA::MSR_VM_HSAVE_PA:
 	{
+		print("[RDMSR] HSAVE_PA\n");
 		return { cpu.shadow.hsave_pa.value };
 	}
 	default:
@@ -60,6 +62,7 @@ static void wrmsr_handler(vcpu_t& cpu, uint32_t msr, register_t result) {
 		MSR::EFER new_efer{ .value = result.value };
 		auto& old_efer = cpu.guest.state.efer;
 		auto& shadow_efer = cpu.shadow.efer;
+		print("[WRMSR] EFER: %zX\n", new_efer.value);
 
 		// TODO: handle reserved bits and system configuration bits and inject an exception respectively ...
 
@@ -74,6 +77,7 @@ static void wrmsr_handler(vcpu_t& cpu, uint32_t msr, register_t result) {
 	{
 		MSR::HSAVE_PA new_hsave {.value = result.value};
 		auto& shadow_hsave = cpu.shadow.hsave_pa;
+		print("[WRMSR] HSAVE_PA: %zX\n", new_hsave.value);
 
 		if (new_hsave.must_be_zero) { // address must be page aligned
 			cpu.inject_exception(exception_vector::GP, 0);

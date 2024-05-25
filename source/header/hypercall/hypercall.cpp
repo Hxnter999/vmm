@@ -2,7 +2,7 @@
 #include <hypercall/hypercall.h>
 #include <hypercall/helpers.h>
 
-// hypercalls should pass the request structure into rcx and the rest of the required parameters for the request into r8-r15
+// hypercalls should pass the request structure into rcx and the rest of the required parameters for the request into r8-r15 if necessary
 void hypercall_handler(vcpu_t& cpu) {
 	hypercall_t request {.value = cpu.ctx.rcx.value};
 
@@ -21,12 +21,16 @@ void hypercall_handler(vcpu_t& cpu) {
 		cpu.ctx.rax.value = hypercall_key;
 		break;
 
-	case hypercall_code::get_base_address:
+	case hypercall_code::get_vmm_base:
 		get_base_address(cpu);
 		break;
 	
 	case hypercall_code::get_process_cr3:
 		get_process_cr3(cpu);
+		break;
+
+	case hypercall_code::get_process_base:
+		get_process_base(cpu);
 		break;
 
 	case hypercall_code::get_physical_address:

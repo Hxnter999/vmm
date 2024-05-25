@@ -7,8 +7,9 @@ enum class hypercall_code : uint64_t
 {
 	unload,
 	ping,
-	get_base_address,
+	get_vmm_base,
 	get_process_cr3,
+	get_process_base,
 	get_physical_address,
 	hide_physical_page,
 	unhide_physical_page,
