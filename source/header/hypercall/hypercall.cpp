@@ -20,6 +20,10 @@ void hypercall_handler(vcpu_t& cpu) {
 	case hypercall_code::ping:
 		cpu.ctx.rax.value = hypercall_key;
 		break;
+
+	case hypercall_code::get_base_address:
+		get_base_address(cpu);
+		break;
 	
 	case hypercall_code::get_process_cr3:
 		get_process_cr3(cpu);
@@ -35,6 +39,22 @@ void hypercall_handler(vcpu_t& cpu) {
 
 	case hypercall_code::unhide_physical_page:
 		unhide_physical_page(cpu);
+		break;
+	
+	case hypercall_code::read_physical_memory:
+		read_physical_memory(cpu);
+		break;
+
+	case hypercall_code::write_physical_memory:
+		write_physical_memory(cpu);
+		break;
+
+	case hypercall_code::read_virtual_memory:
+		read_virtual_memory(cpu);
+		break;
+
+	case hypercall_code::write_virtual_memory:
+		write_virtual_memory(cpu);
 		break;
 
 	default:

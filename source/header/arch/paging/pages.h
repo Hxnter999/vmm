@@ -231,27 +231,31 @@ struct alignas(0x1000) npt_data_t {
 		if (!pde_2mb.large_page) // nothing to split 
 			return;
 
-		if (free_pages_used == free_page_count) 
+		if (free_pages_used >= free_page_count) 
 			return;
 
 		auto& free_pt_pa = free_page_pa[free_pages_used];
-		auto free_pt = reinterpret_cast<pte_t*>(&free_pages[free_pages_used++]);
+		auto free_pt = reinterpret_cast<pte_t*>(&free_pages[free_pages_used]);
+		free_pages_used++;
 
+		print("new page_pa: %p\n", (pde_2mb.large_page << 9) + 1);
 		for (size_t i = 0; i < 512; ++i) {
 			auto& pte = free_pt[i];
 
-			pte.accessed = pde_2mb.accessed;
-			pte.available = pde_2mb.available_to_software;
-			pte.dirty = pde_2mb.dirty;
-			pte.global = pde_2mb.global;
-			pte.no_execute = pde_2mb.no_execute;
-			pte.page_cache_disable = pde_2mb.page_cache_disable;
-			pte.page_pa = (pde_2mb.page_pa << 9) + i;
-			pte.page_write_thru = pde_2mb.page_write_thru;
-			pte.pat = pde_2mb.pat;
 			pte.present = pde_2mb.present;
-			pte.usermode = pde_2mb.usermode;
 			pte.write = pde_2mb.write;
+			pte.usermode = pde_2mb.usermode;
+			pte.page_write_thru = pde_2mb.page_write_thru;
+			pte.page_cache_disable = pde_2mb.page_cache_disable;
+			pte.accessed = pde_2mb.accessed;
+			pte.dirty = pde_2mb.dirty;
+			pte.pat = pde_2mb.pat;
+			pte.global = pde_2mb.global;
+			pte.available_to_software = pde_2mb.available_to_software;
+			pte.page_pa = (pde_2mb.page_pa << 9) + i;
+			pte.available = pde_2mb.available;
+			pte.mpk = pde_2mb.mpk;
+			pte.no_execute = pde_2mb.no_execute;
 		}
 
 		pde_2mb.page_pa = free_pt_pa;

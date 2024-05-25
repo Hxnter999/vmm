@@ -15,9 +15,8 @@ void msr_handler(vcpu_t& cpu) {
 	uint32_t msr = cpu.ctx.rcx.low;
 
 	if (msr >= MSR::msrpm_t::reserved_start && msr <= MSR::msrpm_t::reserved_end) {
-		//cpu.inject_exception(exception_vector::GP, 0);
-		print("synthetic rdmsr: %x\n", msr);
-		//return;
+		cpu.inject_exception(exception_vector::GP, 0);
+		return;
 	}
 
 	bool read = cpu.guest.control.exit_info_1.msr.is_read();

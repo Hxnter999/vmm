@@ -80,6 +80,8 @@ bool virtualize() {
 		return false;
 	}
 
+	map_physical_memory();
+
 	// Setup each processor specific structure and virtualize the processor
 	if (!execute_on_all_cpus([](uint32_t index) -> bool {
 		print("Virtualizing [%d]...\n", index);
@@ -191,7 +193,6 @@ void setup_host(vcpu_t& cpu, volatile bool& is_virtualized) {
 
 	// -------
 
-	map_physical_memory();
 	auto& host_cr3 = cpu.host.state.cr3;
 	host_cr3.value = 0;
 	host_cr3.pml4 = MmGetPhysicalAddress(&global::shared_host_pt.pml4).QuadPart >> 12;
