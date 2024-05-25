@@ -3,7 +3,7 @@
 #include <vcpu/vmcb_state_save.h>
 #include <context.h>
 #include <msrs/msrs.h>
-#include <paging/pages.h>
+#include <paging/page_tables.h>
 
 struct vmcb_t {
 	// table b-1 (control area)

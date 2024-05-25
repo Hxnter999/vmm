@@ -35,7 +35,7 @@ struct hypercall_t {
 	inline void clear() { memset(this, 0, sizeof(hypercall_t)); key = hypercall_key; }
 };
 
-extern "C" uint64_t __vmmcall(hypercall_t& request);
+uint64_t __vmmcall(hypercall_t& request);
 
 class vmm {
 public:
@@ -58,14 +58,15 @@ public:
 			return;
 		}
 	}
-	~vmm() {
-		// unload not fixed yet
-		/*execute_on_each_cpu([](uint32_t index) -> bool {
+
+	// we dont want to call unload/ping on construction and destruction since we intend to support multiple usermode clients
+	static void unload() {
+		// currently broken anyway, will fix later
+		execute_on_each_cpu([](uint32_t index) -> bool {
 			hypercall_t request{ hypercall_code::unload };
 			__vmmcall(request);
 			return true;
 		});
-		*/
 	}
 
 	static bool ping() {

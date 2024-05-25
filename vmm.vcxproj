@@ -61,7 +61,7 @@
     <EnableMicrosoftCodeAnalysis>false</EnableMicrosoftCodeAnalysis>
     <ApiValidator_Enable>false</ApiValidator_Enable>
     <ExternalIncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath)</ExternalIncludePath>
-    <IncludePath>$(ProtectDir)source\;$(ProjectDir)source\header\arch\;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProtectDir)source\;$(ProjectDir)source\header\arch\;$(IncludePath);$(ProjectDir)source\header\;</IncludePath>
     <OutDir>$(SolutionDir)$(Platform)\$(ConfigurationName)\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -134,10 +134,11 @@
     <ClInclude Include="source\header\arch\msrs\s_cet.h" />
     <ClInclude Include="source\header\arch\msrs\tsc_ratio.h" />
     <ClInclude Include="source\header\arch\msrs\u_cet.h" />
-    <ClInclude Include="source\header\arch\paging\pages.h" />
+    <ClInclude Include="source\header\arch\paging\page_tables.h" />
     <ClInclude Include="source\header\arch\paging\translation.h" />
     <ClInclude Include="source\header\arch\rflags.h" />
     <ClInclude Include="source\header\arch\context.h" />
+    <ClInclude Include="source\header\arch\segmentation\idt.cpp" />
     <ClInclude Include="source\header\arch\vcpu\vcpu.h" />
     <ClInclude Include="source\header\arch\vmexit\handlers.h" />
     <ClInclude Include="source\header\arch\vmexit\vmexit_code.h" />
@@ -160,7 +161,7 @@
     <ClInclude Include="source\header\arch\vmexit\exitinfo1.h" />
     <ClInclude Include="source\header\arch\msrs\msrs.h" />
     <ClInclude Include="source\header\arch\msrs\pat.h" />
-    <ClInclude Include="source\header\arch\segment\segment.h" />
+    <ClInclude Include="source\header\arch\segmentation\segments.h" />
     <ClInclude Include="source\header\svm_status.h" />
     <ClInclude Include="source\header\arch\vcpu\vmcb.h" />
     <ClInclude Include="source\header\arch\vcpu\vmcb_control.h" />

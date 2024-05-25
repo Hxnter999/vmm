@@ -5,7 +5,11 @@
 struct alignas(16) _shadow {
 	struct {
 		bool should_exit : 1;
-		bool hide_overhead : 1;
+
+		// not required for the current state of the project, only uncodintional vmexits are svm instructions (yet to see an anticheat use them)
+		// and synthetic msrs which arent reliable to time 
+		// efer is also accessed but not common, mostly for syscall hook checks and hsave is somehow not accessed at all
+		bool hide_overhead : 1; 
 		//...
 	};
 
@@ -42,6 +46,7 @@ struct alignas(0x1000) vcpu_t {
 	vmcb_t guest;
 	npt_data_t npt;
 	MSR::msrpm_t msrpm;
+	alignas(0x1000) task_state_segment_t tss;
 
 	// Its cleaner to put these methods in the vmcb struct but i just want them to be in the same place due to some of them being guest specific
 	void inject_exception(exception_vector e, uint32_t error_code)
@@ -61,7 +66,7 @@ struct alignas(0x1000) vcpu_t {
 	The cpu will implicitly advance RIP in the following cases:
 	- PAUSE instruction
 	- HLT instruction
-	- Write trap instructions (EFER & CR0-15)
+	- Write trap intercepts (EFER & CR0-15)
 	- IDLE_HLT
 	- VMGEXIT
 	*/
@@ -69,4 +74,4 @@ struct alignas(0x1000) vcpu_t {
 		guest.state.rip = guest.control.nrip;
 	}
 };
-static_assert(sizeof(vcpu_t) == (sizeof(vmcb_t) * 2) + sizeof(npt_data_t) + sizeof(MSR::msrpm_t) + 0x6000, "vcpu_t size mismatch");
+static_assert(sizeof(vcpu_t) == (sizeof(vmcb_t) * 2) + sizeof(npt_data_t) + sizeof(MSR::msrpm_t) + 0x6000 + 0x1000, "vcpu_t size mismatch");

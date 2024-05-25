@@ -7,7 +7,7 @@ static register_t rdmsr_handler(vcpu_t& cpu, uint32_t msr);
 static void wrmsr_handler(vcpu_t& cpu, uint32_t msr, register_t result);
 
 /* 
-* Any changes the guest makes will not actually be reflected onto the guest, instead they will be cached and returned whenever attempted to read. 
+* changes the guest makes will be reflected back but with limitations that we set (efer.svme bit for example), they will be cached and returned whenever attempted to read. 
 * This is the case for the currently intercepted MSRs which are the only one that are somewhat required to be intercepted to keep the hypervisor hidden.
 */
 
@@ -16,7 +16,8 @@ void msr_handler(vcpu_t& cpu) {
 
 	if (msr >= MSR::msrpm_t::reserved_start && msr <= MSR::msrpm_t::reserved_end) {
 		//cpu.inject_exception(exception_vector::GP, 0);
-		//return;
+		cpu.skip_instruction();
+		return;
 	}
 
 	bool read = cpu.guest.control.exit_info_1.msr.is_read();

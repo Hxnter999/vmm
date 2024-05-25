@@ -18,7 +18,7 @@ typedef unsigned long long uint64_t;
 // TODO: port my logger class to make use of cpp20 style formatting (fmtlib) and remove this dbgprint
 inline void print(const char* fmt, ...)
 {
-    va_list args;
-    __va_start(&args, fmt);
-    vDbgPrintExWithPrefix("[VMM] ", 0, 0, fmt, args);
+   va_list args;
+   __va_start(&args, fmt);
+   vDbgPrintExWithPrefix("[VMM] ", 0, 0, fmt, args);
 }

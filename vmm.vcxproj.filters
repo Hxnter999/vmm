@@ -36,7 +36,7 @@
     <ClInclude Include="source\header\arch\vmexit\exitinfo1.h" />
     <ClInclude Include="source\header\arch\msrs\msrs.h" />
     <ClInclude Include="source\header\arch\msrs\pat.h" />
-    <ClInclude Include="source\header\arch\segment\segment.h" />
+    <ClInclude Include="source\header\arch\segmentation\segments.h" />
     <ClInclude Include="source\header\svm_status.h" />
     <ClInclude Include="source\header\arch\vcpu\vmcb.h" />
     <ClInclude Include="source\header\arch\vcpu\vmcb_control.h" />
@@ -50,7 +50,7 @@
     <ClInclude Include="source\header\arch\vcpu\vcpu.h" />
     <ClInclude Include="source\header\util\memory.h" />
     <ClInclude Include="source\vmm.h" />
-    <ClInclude Include="source\header\arch\paging\pages.h" />
+    <ClInclude Include="source\header\arch\paging\page_tables.h" />
     <ClInclude Include="source\header\arch\vmexit\vmexit_code.h" />
     <ClInclude Include="source\header\hypercall\helpers.h" />
     <ClInclude Include="source\ntdef\def.h" />
@@ -95,6 +95,7 @@
     <ClInclude Include="source\ntdef\_KTHREAD_COUNTERS.h" />
     <ClInclude Include="source\ntdef\_KTHREAD.h" />
     <ClInclude Include="source\header\util\math.h" />
+    <ClInclude Include="source\header\arch\segmentation\idt.cpp" />
   </ItemGroup>
   <ItemGroup>
     <MASM Include="source\asm\vmlaunch.asm" />

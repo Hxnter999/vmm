@@ -118,9 +118,9 @@ void setup_guest(vcpu_t& cpu)
 	control.guest_asid = 1; // Address space identifier, 0 is reserved for host.
 	//cpu.guest.control.v_intr_masking = 1; // 15.21.1; Virtualize TPR and eflags.if, host eflags.if controls physical interrupts and guest eflags.if controls virtual interrupts
 
-	control.msr_prot = 1;
+	/*control.msr_prot = 1;
 	control.msrpm_base_pa = MmGetPhysicalAddress(&cpu.msrpm).QuadPart;
-	setup_msrpm(cpu);
+	setup_msrpm(cpu);*/
 
 	// nested paging should not be disabled as it controls virtualization of critical guest state including control registers that handle paging related settings
 	control.np_enable = 1; 
@@ -140,7 +140,7 @@ void setup_guest(vcpu_t& cpu)
 	state.rip = reinterpret_cast<uint64_t>(_ReturnAddress()); // Could also use _AddressOfNextInstruction in setup_cpu to insert a label and take the address of it
 	state.rflags.value = __getcallerseflags();
 
-	descriptor_table_register idtr{}, gdtr{}; __sidt(&idtr); _sgdt(&gdtr);
+	descriptor_table_register_t idtr{}, gdtr{}; __sidt(&idtr); _sgdt(&gdtr);
 	state.idtr.base = idtr.base;
 	state.idtr.limit = idtr.limit;
 

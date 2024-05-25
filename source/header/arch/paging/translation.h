@@ -1,5 +1,5 @@
 #pragma once
-#include <paging/pages.h>
+#include <paging/page_tables.h>
 #include <vcpu/vcpu.h>
 
 // we pass guest cr3 as an arguement so we can translate from other address spaces outside the current guest
