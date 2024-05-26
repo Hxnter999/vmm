@@ -2,7 +2,10 @@
 #include <iostream>
 #include <vector>
 #include <print>
+#include <chrono>
+#include <array>
 
+#define NOMINMAX
 #include <windows.h>
 #include <winternl.h>
 #pragma comment(lib, "ntdll.lib")
