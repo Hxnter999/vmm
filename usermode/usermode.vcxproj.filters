@@ -20,15 +20,15 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="vmm.h">
+    <ClInclude Include="source\vmm\vmm.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="helpers.h">
+    <ClInclude Include="source\helpers.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <MASM Include="vmmcall.asm">
+    <MASM Include="source\vmm\vmmcall.asm">
       <Filter>Source Files</Filter>
     </MASM>
   </ItemGroup>

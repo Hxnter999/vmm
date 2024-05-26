@@ -1,16 +1,19 @@
-#include "vmm.h"
-#include <winternl.h>
+#include <vmm/vmm.h>
 
-int main() {
+auto main() -> void {
 	if (!vmm::ping()) {
 		std::println("Failed to ping vmm");
-		return 0;
+		return;
 	}
 
 	auto process_id = get_process_id(L"explorer.exe");
-	if (!process_id) 
-		return 0;
+	if (!process_id) {
+		std::println("Failed to get process id");
+		return;
+	}
 
-	vmm vmm{ process_id };
-    std::println("CR3: {:X}, Base: {:X}", vmm.process_cr3, vmm.process_base);
+	vmm mem{ process_id };
+
+	std::println("CR3: {:X}, Base: {:X}",
+		mem.process_cr3, mem.process_base);
 }
