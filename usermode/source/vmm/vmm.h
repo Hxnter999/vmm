@@ -1,9 +1,6 @@
 #pragma once
 #include <helpers.h>
 
-using per_cpu_callback_t = bool(*)(std::uint32_t);
-inline bool execute_on_each_cpu(per_cpu_callback_t callback);
-
 constexpr std::uint64_t hypercall_key = 'AMDV'; // AMD-V is the best :D
 
 enum class hypercall_code : std::uint64_t
