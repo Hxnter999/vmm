@@ -58,18 +58,19 @@ public:
 		}
 	}
 
-	// we dont want to call unload/ping on construction and destruction since we intend to support multiple usermode clients
-	//static void unload() {
-	//	// currently broken anyway, will fix later
-	//  // vmmcall(unload) has to be called while in cpl0
-	//	execute_on_each_cpu([](std::uint32_t index) -> bool {
-	//		hypercall_t request{ hypercall_code::unload };
-	//		__vmmcall(request);
-	//		return true;
-	//	});
-	//}
+	static void unload() {
+		/* this is mainly to support manual mapping since we cant use sc stop but it wont work for usermode
+		* vmmcall(unload) has to be called while in cpl0
+		* a suboptimal solution would be a dataptr swap to execute the unload routine then unhook and also free vmm from memory all within the same code
+		*/
+		execute_on_each_cpu([](std::uint32_t index) -> bool {
+			hypercall_t request{ hypercall_code::unload };
+			__vmmcall(request);
+			return true;
+		});
+	}
 
-	static bool ping() {
+	static bool ping() { 
 		// ping every core to ensure vmm is running properly
 		return execute_on_each_cpu([](std::uint32_t index) -> bool {
 			hypercall_t request{ hypercall_code::ping };

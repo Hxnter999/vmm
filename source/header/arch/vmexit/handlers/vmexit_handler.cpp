@@ -2,14 +2,9 @@
 #include <vmm.h>
 
 bool vmexit_handler(vcpu_t& cpu) {
-	__svm_vmload(cpu.host_vmcb_pa);
 	// we copy rax and rsp into guest context so we can easily index gpr array and only modify cpu.ctx when modificatios are required cleaner than cpu.guest.state
 	cpu.ctx.rax.value = cpu.guest.state.rax;
 	cpu.ctx.rsp.value = cpu.guest.state.rsp;
-
-	if (cpu.guest.control.exit_code != vmexit_code::VMMCALL) {
-		print("VMEXIT: %X\n", cpu.guest.control.exit_code);
-	}
 
 	switch (cpu.guest.control.exit_code) {
 

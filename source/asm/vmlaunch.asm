@@ -14,6 +14,10 @@ vmrun_loop:
 	vmload rax
 	vmrun rax
 	vmsave rax
+
+	; rsp -> host_vmcb_pa
+	mov rax, [rsp+8];
+	vmload rax
 	
 	; rsp -> guest_vmcb_pa
 	; every push gets it closer to stack_contents, implicitly modifying rsp data and decrementing it
