@@ -381,7 +381,7 @@ svm_status check_svm_support()
 
 	if (!id.feature_identifiers.svm)
 	{
-		print("SVM not supported\n");
+		print("SVM not supported...\n");
 		return svm_status::SVM_IS_NOT_SUPPORTED_BY_CPU;
 	}
 
@@ -390,13 +390,13 @@ svm_status check_svm_support()
 
 	if (!svm_rev.svm_feature_identification.nested_paging)
 	{
-		print("Nested paging not supported\n");
+		print("Nested paging not supported...\n");
 		return svm_status::SVM_NESTED_PAGING_NOT_SUPPORTED;
 	}
 
 	if (!svm_rev.svm_feature_identification.n_rip) // necessary otherwise we have to emulate it which is a pain
 	{
-		print("Next RIP not supported\n");
+		print("Next RIP not supported...\n");
 		return svm_status::SVM_NEXT_RIP_NOT_SUPPORTED;
 	}
 
@@ -405,16 +405,21 @@ svm_status check_svm_support()
 
 	if (!vm_cr.svmdis)
 	{
-		print("SVM can be enabled\n");
+		print("SVM can be enabled.\n");
 		return svm_status::SVM_IS_CAPABLE_OF_BEING_ENABLED;
 	}
 
-	if (!svm_rev.svm_feature_identification.svm_lock)
+	if (!svm_rev.svm_feature_identification.svm_lock) // && vm_cr.svmdis
 	{
-		print("SVM lock bit not set, disabled from BIOS...\n");
+		// When the SVM-Lock feature is not available, hypervisors can use the read - only VM_CR.SVMDIS bit to detect SVM(see Section 15.4)
+		// the user must change a platform firmware setting to enable SVM
+		print("SVM lock bit not supported, disabled from BIOS...\n");
 		return svm_status::SVM_DISABLED_AT_BIOS_NOT_UNLOCKABLE;
 	}
-
-	print("SVM lock bit set, disabled by software\n");
-	return svm_status::SVM_DISABLED_WITH_KEY;
+	else // if (vm_cr.svmdis || vm_cr.lock)
+	{
+		// SVMLock may be unlockable; consult platform firmware or TPM to obtain the key
+		print("SVM is locked...\n");
+		return svm_status::SVM_DISABLED_WITH_KEY;
+	}
 }
