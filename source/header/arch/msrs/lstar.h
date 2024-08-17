@@ -1,10 +1,10 @@
 #pragma once
 #include <msrs/msrs.h>
 
-namespace MSR {
-	struct LSTAR : BASE_MSR 
+namespace msr {
+	struct lstar : BASE_MSR 
 	{
-		static constexpr uint32_t MSR_LSTAR = 0xC0000082;
+		static constexpr uint32_t number = 0xC000'0082;
 
 		union {
 			struct {
@@ -15,12 +15,12 @@ namespace MSR {
 
 		void load()
 		{
-			value = { __readmsr(LSTAR::MSR_LSTAR) };
+			value = { __readmsr(lstar::number) };
 		}
 
 		void store()
 		{
-			__writemsr(LSTAR::MSR_LSTAR, value);
+			__writemsr(lstar::number, value);
 		}
 	};
 };

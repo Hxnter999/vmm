@@ -14,8 +14,8 @@ struct alignas(16) _shadow {
 	};
 
 	// MSR shadowing for the msrs that we intercept
-	MSR::EFER efer;
-	MSR::HSAVE_PA hsave_pa;
+	msr::efer efer;
+	msr::hsave_pa hsave_pa;
 };
 
 struct alignas(0x1000) vcpu_t {
@@ -45,8 +45,7 @@ struct alignas(0x1000) vcpu_t {
 	vmcb_t host; // on vmrun and exits processor saves/restores host state to/from this field, we can also directly manipulate it as long as its considered legal
 	vmcb_t guest;
 	npt_data_t npt;
-	MSR::msrpm_t msrpm;
-	alignas(0x1000) task_state_segment_t tss;
+	msr::msrpm_t msrpm;
 
 	// Its cleaner to put these methods in the vmcb struct but i just want them to be in the same place due to some of them being guest specific
 	void inject_exception(exception_vector e, uint32_t error_code)
@@ -74,4 +73,3 @@ struct alignas(0x1000) vcpu_t {
 		guest.state.rip = guest.control.nrip;
 	}
 };
-static_assert(sizeof(vcpu_t) == (sizeof(vmcb_t) * 2) + sizeof(npt_data_t) + sizeof(MSR::msrpm_t) + 0x6000 + 0x1000, "vcpu_t size mismatch");

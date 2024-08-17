@@ -1,10 +1,10 @@
 #pragma once
 #include <msrs/msrs.h>
 
-namespace MSR {
-	struct PAT : BASE_MSR // Page-Attribute Table Mechanism (7.8)
+namespace msr {
+	struct pat : BASE_MSR // Page-Attribute Table Mechanism (7.8)
 	{
-		static constexpr uint32_t MSR_PAT = 0x00000277;
+		static constexpr uint32_t number = 0x0000'0277;
 
 		enum class attribute_type : uint64_t
 		{
@@ -40,12 +40,12 @@ namespace MSR {
 
 		void load()
 		{
-			value = { __readmsr(PAT::MSR_PAT) };
+			value = { __readmsr(pat::number) };
 		}
 
 		void store()
 		{
-			__writemsr(PAT::MSR_PAT, value);
+			__writemsr(pat::number, value);
 		}
 	};
 };

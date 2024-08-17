@@ -2,5 +2,5 @@
 
 void npf_handler(vcpu_t&) 
 {
-	
+	// lol
 }

@@ -107,7 +107,7 @@ struct segment_register_t
 
 struct interrupt_gate_descriptor_t {
 	union {
-		uint64_t value;
+		uint64_t value1[2];
 		struct {
 			uint64_t offset_low : 16;
 			uint64_t selector : 16;

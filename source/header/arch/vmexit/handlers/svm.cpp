@@ -9,6 +9,6 @@ void svm_handler(vcpu_t& cpu)
 		return;
 	}
 
-	// TODO: implement functionality if shadow svme is enabled (TOO MUCH :sob:)
+	// TODO: implement functionality if shadow svme is enabled (TOO MUCH WORK :sob:)
 	cpu.skip_instruction();
 }

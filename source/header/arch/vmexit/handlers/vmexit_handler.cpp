@@ -12,11 +12,11 @@ bool vmexit_handler(vcpu_t& cpu) {
 		hypercall_handler(cpu);
 		break;
 
-	case vmexit_code::MSR:
+	case vmexit_code::msr:
 		msr_handler(cpu);
 		break;
 
-	case vmexit_code::CPUID:
+	case vmexit_code::cpuid:
 		cpuid_handler(cpu);
 		break;
 
@@ -36,7 +36,7 @@ bool vmexit_handler(vcpu_t& cpu) {
 		cpu.guest.control.event_injection.value = 0; // reset to avoid infinite loop incase cpu doesnt clear it
 		break;
 
-	// Fallthrough for SVM instructions
+	// Fallthrough for SVM instructions, recommended approach would be to actually implement their functionality based on shadow.efer, if u intercept them.
 	case vmexit_code::VMLOAD:
 	case vmexit_code::VMSAVE:
 	case vmexit_code::VMRUN:
@@ -47,7 +47,8 @@ bool vmexit_handler(vcpu_t& cpu) {
 		break;
 
 	default: // shouldnt happen unless we forgot something
-		print("UNHANDLED EXIT CODE: %X || INFO1: %zX | INFO2: %zX\n", cpu.guest.control.exit_code, cpu.guest.control.exit_info_1.info, cpu.guest.control.exit_info_2.info);
+		print("UNHANDLED VMEXIT: %X || INFO1: %zX | INFO2: %zX\n", cpu.guest.control.exit_code, cpu.guest.control.exit_info_1.info, cpu.guest.control.exit_info_2.info);
+        __assume(0); // unreachable code
 		break;
 	}
 

@@ -1,7 +1,7 @@
 #pragma once
 #include <cpuid/cpuid_t.h>
 
-namespace CPUID {
+namespace cpuid {
 	// 8000_0008
 	struct fn_processor_capacity : BASE_CPUID {
 		static constexpr int32_t id = 0x80000008;

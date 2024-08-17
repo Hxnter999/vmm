@@ -1,10 +1,10 @@
 #pragma once
 #include <msrs/msrs.h>
 
-namespace MSR {
-	struct S_CET : BASE_MSR
+namespace msr {
+	struct s_cet : BASE_MSR
 	{
-		static constexpr uint32_t MSR_S_CET = 0x000006A2;
+		static constexpr uint32_t number = 0x0000'06A2;
 
 		union {
 			struct {
@@ -17,12 +17,12 @@ namespace MSR {
 
 		void load()
 		{
-			value = { __readmsr(S_CET::MSR_S_CET) };
+			value = { __readmsr(s_cet::number) };
 		}
 
 		void store()
 		{
-			__writemsr(S_CET::MSR_S_CET, value);
+			__writemsr(s_cet::number, value);
 		}
 	};
 };

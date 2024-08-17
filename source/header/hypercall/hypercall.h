@@ -19,14 +19,15 @@ enum class hypercall_code : uint64_t
 	write_virtual_memory,
 };
 
-struct hypercall_t {
-	union {
-		struct {
-			hypercall_code code : 8;
-			uint64_t key : 56;
-		};
-		uint64_t value;
+union hypercall_t {
+	struct {
+		hypercall_code code : 8;
+		uint64_t key : 56;
 	};
+	uint64_t value;
+
+	hypercall_t(hypercall_code code) : code(code), key(hypercall_key) { }
+	hypercall_t(uint64_t value) : value(value) { }
 };
 
 void hypercall_handler(vcpu_t& cpu);

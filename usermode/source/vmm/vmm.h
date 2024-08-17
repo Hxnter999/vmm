@@ -28,9 +28,9 @@ struct hypercall_t {
 		std::uint64_t value;
 	};
 
-	std::uint64_t r8, r9, r10, r11;
+	std::uint64_t r8{}, r9{}, r10{}, r11{};
 
-	hypercall_t(hypercall_code code) : code(code), key(hypercall_key), r8(0), r9(0), r10(0), r11(0) {};
+	hypercall_t(hypercall_code code) : code(code), key(hypercall_key) {}
 	inline void clear() { memset(this, 0, sizeof(hypercall_t)); key = hypercall_key; }
 };
 
@@ -40,8 +40,19 @@ class vmm {
 public:
 	std::uint64_t process_cr3{};
 	std::uint64_t process_base{};
+	
+	vmm() = default;
 
-	vmm(std::uint64_t process_id) {
+	// Copy
+	vmm(const vmm& other) = default;
+	vmm& operator=(const vmm& other) = default;
+
+	// Move
+	vmm(vmm&& other) noexcept = default;
+	vmm& operator=(vmm&& other) noexcept = default;
+
+
+	explicit vmm(std::uint64_t process_id) {
 		hypercall_t request{ hypercall_code::get_process_cr3 };
 		request.r8 = process_id;
 		if (!(process_cr3 = __vmmcall(request))) {
@@ -58,17 +69,17 @@ public:
 		}
 	}
 
-	static void unload() {
-		/* this is mainly to support manual mapping since we cant use sc stop but it wont work for usermode
-		* vmmcall(unload) has to be called while in cpl0
-		* a suboptimal solution would be a dataptr swap to execute the unload routine then unhook and also free vmm from memory all within the same code
-		*/
-		execute_on_each_cpu([](std::uint32_t index) -> bool {
-			hypercall_t request{ hypercall_code::unload };
-			__vmmcall(request);
-			return true;
-		});
-	}
+	//static void unload() {
+	//	/* this is mainly to support manual mapping since we cant use sc stop but it wont work for usermode
+	//	* vmmcall(unload) has to be called while in cpl0
+	//	* a suboptimal solution would be a dataptr swap to execute the unload routine then unhook and also free vmm from memory all within the same code
+	//	*/
+	//	execute_on_each_cpu([](std::uint32_t index) -> bool {
+	//		hypercall_t request{ hypercall_code::unload };
+	//		__vmmcall(request);
+	//		return true;
+	//	});
+	//}
 
 	static bool ping() { 
 		// ping every core to ensure vmm is running properly

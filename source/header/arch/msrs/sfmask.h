@@ -1,10 +1,10 @@
 #pragma once
 #include <msrs/msrs.h>
 
-namespace MSR {
-	struct SFMASK : BASE_MSR
+namespace msr {
+	struct sfmask : BASE_MSR
 	{
-		static constexpr uint32_t MSR_SFMASK = 0xC0000084;
+		static constexpr uint32_t number = 0xC000'0084;
 
 		union {
 			struct {
@@ -16,12 +16,12 @@ namespace MSR {
 
 		void load()
 		{
-			value = { __readmsr(SFMASK::MSR_SFMASK) };
+			value = { __readmsr(sfmask::number) };
 		}
 
 		void store()
 		{
-			__writemsr(SFMASK::MSR_SFMASK, value);
+			__writemsr(sfmask::number, value);
 		}
 	};
 };

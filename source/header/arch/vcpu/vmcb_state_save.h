@@ -51,7 +51,7 @@ struct vmcb_state_save_t {
 	uint32_t reservedcc;
 
 	// 0d0h
-	MSR::EFER efer;
+	msr::efer efer;
 
 	// 0d8h
 	uint8_t reservedd8[0x70];
@@ -84,7 +84,7 @@ struct vmcb_state_save_t {
 	uint64_t rsp;
 
 	// 1e0h
-	MSR::S_CET s_cet;
+	msr::s_cet s_cet;
 
 	// 1e8h
 	uint64_t ssp;
@@ -96,16 +96,16 @@ struct vmcb_state_save_t {
 	uint64_t rax;
 
 	// 200h
-	MSR::STAR star;
+	msr::star star;
 
 	// 208h
-	MSR::LSTAR lstar;
+	msr::lstar lstar;
 
 	// 210h
-	MSR::CSTAR cstar;
+	msr::cstar cstar;
 
 	// 218h
-	MSR::SFMASK sfmask;
+	msr::sfmask sfmask;
 
 	// 220h
 	uint64_t kernel_gs_base;

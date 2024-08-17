@@ -4,9 +4,9 @@
 
 // we pass guest cr3 as an arguement so we can translate from other address spaces outside the current guest
 inline uint64_t gva_to_gpa(cr3_t guest_cr3, uint64_t address, uint64_t& offset_to_next_page) {
-	static constexpr uint64_t plm4_address_range = 0x1000000000; //512GB
-	static constexpr uint64_t pdpt_address_range = 0x40000000; //1GB
-	static constexpr uint64_t pd_address_range = 0x200000; //2MB
+	static constexpr uint64_t plm4_address_range = 0x80'0000'0000; //512GB
+	static constexpr uint64_t pdpt_address_range = 0x4000'0000; //1GB
+	static constexpr uint64_t pd_address_range = 0x20'0000; //2MB
 	static constexpr uint64_t pt_address_range = 0x1000; //4KB
 
 	virtual_address_t va{ address };

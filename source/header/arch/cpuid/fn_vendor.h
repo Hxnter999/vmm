@@ -2,7 +2,7 @@
 #include <cpuid/cpuid_t.h>
 // 0x8000_0000
 
-namespace CPUID {
+namespace cpuid {
 
 	struct fn_vendor : BASE_CPUID {
 		static constexpr int32_t id = 0x80000000;

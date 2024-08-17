@@ -1,26 +1,26 @@
 #pragma once
 #include <msrs/msrs.h>
 
-namespace MSR {
-	struct CSTAR : BASE_MSR
+namespace msr {
+	struct cstar : BASE_MSR
 	{
-		static constexpr uint32_t MSR_CSTAR = 0xC0000083;
+		static constexpr uint32_t number = 0xC000'0083;
 
 		union {
 			struct {
-				uint64_t syscall_entry_point : 64; // The address of the SYSCALL/SYSRET handler
+				uint64_t syscall_entry_point : 64; 
 			};
 			uint64_t value;
 		};
 
 		void load()
 		{
-			value = { __readmsr(CSTAR::MSR_CSTAR) };
+			value = { __readmsr(cstar::number) };
 		}
 
 		void store()
 		{
-			__writemsr(CSTAR::MSR_CSTAR, value);
+			__writemsr(cstar::number, value);
 		}
 	};
 };

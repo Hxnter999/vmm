@@ -1,12 +1,12 @@
 #pragma once
 #include <msrs/msrs.h>
 
-namespace MSR {
+namespace msr {
 	// VM_HSAVE_PA holds page alligned physical address of the host save area
 	// (not guaranteed to be used, other parts of the chip could be used too) 
-	struct HSAVE_PA : BASE_MSR 
+	struct hsave_pa : BASE_MSR 
 	{
-		static constexpr uint32_t MSR_VM_HSAVE_PA = 0xC0010117;
+		static constexpr uint32_t number = 0xC001'0117;
 
 		union {
 			struct { // a page aligned physical address
@@ -18,12 +18,12 @@ namespace MSR {
 
 		void load()
 		{
-			value = { __readmsr(HSAVE_PA::MSR_VM_HSAVE_PA) };
+			value = { __readmsr(hsave_pa::number) };
 		}
 
 		void store()
 		{
-			__writemsr(HSAVE_PA::MSR_VM_HSAVE_PA, value);
+			__writemsr(hsave_pa::number, value);
 		}
 	};
 

@@ -8,8 +8,6 @@
 #include <msrs/hsave.h>
 #include <msrs/pat.h>
 #include <util/memory.h>
-#include <hypercall/hypercall.h>
-#include <ntdef/def.h>
 
 extern "C" void __vmlaunch(uint64_t* guest_vmcb_pa);
 
@@ -32,21 +30,13 @@ inline bool execute_on_all_cpus(per_cpu_callback_t callback)
 	return true;
 }
 
-void setup_msrpm(vcpu_t& cpu) {
-	cpu.msrpm.set(MSR::EFER::MSR_EFER, MSR::access::read);
-	cpu.msrpm.set(MSR::EFER::MSR_EFER, MSR::access::write);
-	
-	cpu.msrpm.set(MSR::HSAVE_PA::MSR_VM_HSAVE_PA, MSR::access::read);
-	cpu.msrpm.set(MSR::HSAVE_PA::MSR_VM_HSAVE_PA, MSR::access::write);
-}
-
 bool setup_cpu(uint32_t index)
 {
 	auto& cpu = global::vcpus[index];
 	volatile bool is_virtualized{};
 
 	// enable svm instructions
-	MSR::EFER efer{};
+	msr::efer efer{};
 	efer.load();
 	efer.svme = 1;
 	efer.store();
@@ -100,6 +90,14 @@ bool virtualize() {
 	return true;
 }
 
+void setup_msrpm(vcpu_t& cpu) {
+	cpu.msrpm.set(msr::efer::number, msr::access::read);
+	cpu.msrpm.set(msr::efer::number, msr::access::write);
+
+	cpu.msrpm.set(msr::hsave_pa::number, msr::access::read);
+	cpu.msrpm.set(msr::hsave_pa::number, msr::access::write);
+}
+
 void setup_guest(vcpu_t& cpu)
 {
 	auto& control = cpu.guest.control;
@@ -111,29 +109,29 @@ void setup_guest(vcpu_t& cpu)
 	control.vmrun = 1;
 	control.vmload = 1;
 	control.vmsave = 1;
-	control.clgi = 1;
-	control.stgi = 1;
-	control.skinit = 1;
+	//control.clgi = 1;
+	//control.stgi = 1;
+	//control.skinit = 1;
 
 	control.guest_asid = 1; // Address space identifier, 0 is reserved for host.
 	//cpu.guest.control.v_intr_masking = 1; // 15.21.1; Virtualize TPR and eflags.if, host eflags.if controls physical interrupts and guest eflags.if controls virtual interrupts
 
-	/*control.msr_prot = 1;
-	control.msrpm_base_pa = MmGetPhysicalAddress(&cpu.msrpm).QuadPart;
-	setup_msrpm(cpu);*/
+	// Msr bitmap based protection/interception
+	//control.msr_prot = 1;
+	//control.msrpm_base_pa = MmGetPhysicalAddress(&cpu.msrpm).QuadPart;
+	//setup_msrpm(cpu);
 
-	// nested paging should not be disabled as it controls virtualization of critical guest state including control registers that handle paging related settings
-	control.np_enable = 1; 
-	control.n_cr3 = MmGetPhysicalAddress(&cpu.npt).QuadPart;
-	setup_npt(cpu);
+	// nested paging controls alot of things, even implicitly isolating the guest from the host, refer to the manual.
+	//control.np_enable = 1; 
+	//control.n_cr3 = MmGetPhysicalAddress(&cpu.npt).QuadPart;
+	//setup_npt(cpu);
 
 	// ------------------- Setup state area -------------------
 	state.cr0.value = __readcr0();
 	state.cr2.value = __readcr2();
 	state.cr3.value = __readcr3();
 	state.cr4.value = __readcr4();
-	state.efer.value = __readmsr(MSR::EFER::MSR_EFER);
-	state.g_pat = __readmsr(MSR::PAT::MSR_PAT); // only for nested paging
+	state.efer.value = __readmsr(msr::efer::number);
 
 	// This is where the guest will start executing
 	state.rsp = reinterpret_cast<uint64_t>(_AddressOfReturnAddress()) + 8; // 8 bytes for the return address
@@ -178,12 +176,14 @@ void setup_guest(vcpu_t& cpu)
 	cpu.host_vmcb_pa = MmGetPhysicalAddress(&cpu.host).QuadPart;
 	cpu.self = &cpu;
 
-	MSR::HSAVE_PA hsave_pa{};
+	// host vmcb physical address for the cpu to implicitly load and store from/to
+	msr::hsave_pa hsave_pa{};
 	hsave_pa.value = cpu.host_vmcb_pa;
 	hsave_pa.store();
 
+	// initial vmsave so we can start vmlaunch directly with a vmrun
 	__svm_vmsave(cpu.host_vmcb_pa);
-	__svm_vmsave(cpu.guest_vmcb_pa); // needed here cause the vmrun loop loads guest state before everything, if there isnt a guest saved already it wont work properly
+	__svm_vmsave(cpu.guest_vmcb_pa);
 }
 
 void setup_host(vcpu_t& cpu, volatile bool& is_virtualized) {
@@ -200,8 +200,8 @@ void setup_host(vcpu_t& cpu, volatile bool& is_virtualized) {
 	__writecr3(host_cr3.value);
 
 	// -------
-
-	MSR::PAT host_pat{};
+	// the page attribute table works very differently on amd than on intel, on amd the host pat and the guest pat are cross referenced to create the final pat which is not what we want.
+	/*MSR::PAT host_pat{};
 
 	host_pat.pa0 = MSR::PAT::attribute_type::write_back;
 	host_pat.pa1 = MSR::PAT::attribute_type::write_through;
@@ -213,7 +213,7 @@ void setup_host(vcpu_t& cpu, volatile bool& is_virtualized) {
 	host_pat.pa6 = MSR::PAT::attribute_type::uncacheable_no_write_combinining;
 	host_pat.pa7 = MSR::PAT::attribute_type::uncacheable;
 
-	host_pat.store();
+	host_pat.store();*/
 
 	// -------
 
@@ -307,13 +307,13 @@ void unload_single_cpu(vcpu_t& cpu)
 	cpu.guest_rsp = state.rsp;
 	cpu.ss_selector = state.ss.selector.value;
 
-	MSR::PAT pat{};
+	msr::pat pat{};
 	pat.value = state.g_pat;
 	pat.store();
 
 	__writecr3(state.cr3.value);
 
-	MSR::HSAVE_PA hsave_pa{};
+	msr::hsave_pa hsave_pa{};
 	hsave_pa.store();
 
 	auto& efer = state.efer;
@@ -354,7 +354,7 @@ void devirtualize() {
 	execute_on_all_cpus([](uint32_t index) -> bool {
 		print("Unloading [%d]...\n", index);
 
-		__vmmcall({ .code = hypercall_code::unload, .key = hypercall_key });
+		__vmmcall({ hypercall_code::unload });
 
 		return true;
 	});
@@ -367,7 +367,7 @@ void devirtualize() {
 
 svm_status check_svm_support()
 {
-	CPUID::fn_vendor vendor_check{};
+	cpuid::fn_vendor vendor_check{};
 	vendor_check.load();
 
 	if (!vendor_check.is_amd_vendor())
@@ -376,7 +376,7 @@ svm_status check_svm_support()
 		return svm_status::SVM_WRONG_VENDOR;
 	}
 
-	CPUID::fn_identifiers id{};
+	cpuid::fn_identifiers id{};
 	id.load();
 
 	if (!id.feature_identifiers.svm)
@@ -385,7 +385,7 @@ svm_status check_svm_support()
 		return svm_status::SVM_IS_NOT_SUPPORTED_BY_CPU;
 	}
 
-	CPUID::fn_svm_features svm_rev{};
+	cpuid::fn_svm_features svm_rev{};
 	svm_rev.load();
 
 	if (!svm_rev.svm_feature_identification.nested_paging)
@@ -400,7 +400,7 @@ svm_status check_svm_support()
 		return svm_status::SVM_NEXT_RIP_NOT_SUPPORTED;
 	}
 
-	MSR::VM_CR vm_cr{};
+	msr::vmcr vm_cr{};
 	vm_cr.load();
 
 	if (!vm_cr.svmdis)

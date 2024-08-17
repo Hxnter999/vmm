@@ -348,7 +348,7 @@ struct vmcb_control_t {
 	// 0c0h
 	union {
 		uint64_t valuec0;
-		struct {
+		struct { // write 1 to the specific bit when there are no changes to the specific register
 			// clean bits 0:31 :
 			uint64_t i : 1;		// i: intercepts: all the intercept vectors, tsc offset, pause filter count
 			uint64_t iopm : 1;	// iomsrpm: iopm_base, msrpm_base
@@ -366,7 +366,7 @@ struct vmcb_control_t {
 			uint64_t reserved13 : 19; // reserved for future compatibility
 			// **************
 			uint64_t reserved32 : 32;
-		};
+		} clean_bits;
 	};
 
 	// 0c8h

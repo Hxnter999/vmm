@@ -14,7 +14,7 @@ static void wrmsr_handler(vcpu_t& cpu, uint32_t msr, register_t result);
 void msr_handler(vcpu_t& cpu) {
 	uint32_t msr = cpu.ctx.rcx.low;
 
-	if (msr >= MSR::msrpm_t::reserved_start && msr <= MSR::msrpm_t::reserved_end) {
+	if (msr >= msr::msrpm_t::reserved_start && msr <= msr::msrpm_t::reserved_end) {
 		//cpu.inject_exception(exception_vector::GP, 0);
 		cpu.skip_instruction();
 		return;
@@ -39,12 +39,12 @@ void msr_handler(vcpu_t& cpu) {
 
 static register_t rdmsr_handler(vcpu_t& cpu, uint32_t msr) {
 	switch (msr) {
-	case MSR::EFER::MSR_EFER: 
+	case msr::efer::number: 
 	{
 		print("[RDMSR] EFER\n");
 		return { cpu.shadow.efer.value };
 	}
-	case MSR::HSAVE_PA::MSR_VM_HSAVE_PA:
+	case msr::hsave_pa::number:
 	{
 		print("[RDMSR] HSAVE_PA\n");
 		return { cpu.shadow.hsave_pa.value };
@@ -58,9 +58,9 @@ static register_t rdmsr_handler(vcpu_t& cpu, uint32_t msr) {
 
 static void wrmsr_handler(vcpu_t& cpu, uint32_t msr, register_t result) {
 	switch (msr) {
-	case MSR::EFER::MSR_EFER: 
+	case msr::efer::number: 
 	{
-		MSR::EFER new_efer{ .value = result.value };
+		msr::efer new_efer{ .value = result.value };
 		auto& old_efer = cpu.guest.state.efer;
 		auto& shadow_efer = cpu.shadow.efer;
 		print("[WRMSR] EFER: %zX\n", new_efer.value);
@@ -74,9 +74,9 @@ static void wrmsr_handler(vcpu_t& cpu, uint32_t msr, register_t result) {
 		shadow_efer.value = new_efer.value;
 		break;
 	}
-	case MSR::HSAVE_PA::MSR_VM_HSAVE_PA:
+	case msr::hsave_pa::number:
 	{
-		MSR::HSAVE_PA new_hsave {.value = result.value};
+		msr::hsave_pa new_hsave {.value = result.value};
 		auto& shadow_hsave = cpu.shadow.hsave_pa;
 		print("[WRMSR] HSAVE_PA: %zX\n", new_hsave.value);
 

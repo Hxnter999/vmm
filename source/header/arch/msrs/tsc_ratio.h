@@ -1,10 +1,10 @@
 #pragma once
 #include <msrs/msrs.h>
 
-namespace MSR {
-	struct TSC_RATIO : BASE_MSR
+namespace msr {
+	struct tsc_ratio : BASE_MSR
 	{
-		static constexpr uint32_t MSR_TSC_RATIO = 0xC0000104;
+		static constexpr uint32_t number = 0xC000'0104;
 
 		union {
 			struct {
@@ -17,12 +17,12 @@ namespace MSR {
 
 		void load()
 		{
-			value = { __readmsr(TSC_RATIO::MSR_TSC_RATIO) };
+			value = { __readmsr(tsc_ratio::number) };
 		}
 
 		void store()
 		{
-			__writemsr(TSC_RATIO::MSR_TSC_RATIO, value);
+			__writemsr(tsc_ratio::number, value);
 		}
 	};
 };

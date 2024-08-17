@@ -3,13 +3,7 @@
 #include <util/bitset.h>
 #include <intrin.h>
 
-namespace MSR {
-
-	enum class access : int8_t {
-		read = 0,
-		write = 1
-	};
-
+namespace msr {
 	struct BASE_MSR // all MSRs *MUST* inherit from this (mostly to assure these functions are defined)
 	{
 		template<class Self>
@@ -23,6 +17,13 @@ namespace MSR {
 		{
 			tis.store();
 		}
+	};
+
+
+
+	enum class access : int8_t {
+		read = 0,
+		write = 1
 	};
 
 	// The MSRPM (MSR Permission Map) is a bitmap (2 bits per MSR [R,W], 1 == operation is intercepted) that determines the access permissions for each MSR.

@@ -1,10 +1,10 @@
 #pragma once
 #include <msrs/msrs.h>
 
-namespace MSR {
-	struct EFER : BASE_MSR //Extended Feature Enable Register
+namespace msr {
+	struct efer : BASE_MSR //Extended Feature Enable Register
 	{
-		static constexpr uint32_t MSR_EFER = 0xC0000080;
+		static constexpr uint32_t number = 0xC000'0080;
 
 		union {
 			struct {
@@ -31,12 +31,12 @@ namespace MSR {
 
 		void load()
 		{
-			value = { __readmsr(EFER::MSR_EFER) };
+			value = { __readmsr(efer::number) };
 		}
 
 		void store()
 		{
-			__writemsr(EFER::MSR_EFER, value);
+			__writemsr(efer::number, value);
 		}
 	};
 };
