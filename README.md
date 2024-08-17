@@ -1,6 +1,6 @@
 ## Work in progress
 - Brought to you by AMD-V :D
-Although the project can run and works fine, there are issues with certain mechanisms as mentioned in the following todo-list which need some changes to be fixed, currently these features are turned off to remain stable.
+- Although the project can run and works fine, there are issues with certain mechanisms as mentioned in the following todo-list which need some changes to be fixed, currently these features are turned off to remain stable.
 
 
 ## Todo list
