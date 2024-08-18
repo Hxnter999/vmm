@@ -15,5 +15,5 @@
     - Add a logger class, fmtlib formatting style
 	
 ## Customization
-Everything regarding the result of the guest and the host is within `src/vmm.cpp`, theres separate functions that setup the guest and the host. If you want to customize the guest, perhaps loop at [this function](https://github.com/Hxnter999/vmm/blob/main/source/vmm.cpp#L101).
+Everything regarding the setup of the guest and the host is within `src/vmm.cpp`, theres separate functions that setup the guest and the host. If you want to customize the guest, perhaps look at [this function](https://github.com/Hxnter999/vmm/blob/main/source/vmm.cpp#L101).
 
