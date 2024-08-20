@@ -213,7 +213,7 @@ public:
 		return __vmmcall(request) == sizeof(T);
 	}
 
-	bool read_virtual_raw(std::uint64_t address, void* buffer, size_t size) {
+	bool read_virtual(std::uint64_t address, void* buffer, size_t size) {
 		/*
 		* read_virtual_memory()
 		* - RAX = bytes read
@@ -252,7 +252,7 @@ public:
 		return __vmmcall(request) == sizeof(T);
 	}
 
-	bool write_virtual_raw(std::uint64_t address, void* buffer, size_t size) {
+	bool write_virtual(std::uint64_t address, void* buffer, size_t size) {
 		/*
 		* write_virtual_memory()
 		* - RAX = bytes written

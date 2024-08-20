@@ -23,7 +23,7 @@ auto main() -> void {
 	
 	for (int i = 0; i < 0x1000; i++) {
 		auto start = std::chrono::high_resolution_clock::now();
-		mem.read_virtual_raw(mem.process_base, buffer.data(), buffer.size());
+		mem.read_virtual(mem.process_base, buffer.data(), buffer.size());
 		auto end = std::chrono::high_resolution_clock::now();
 
 		total += end - start;
