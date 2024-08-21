@@ -136,6 +136,23 @@ public:
 		return __vmmcall(request) == sizeof(T);
 	}
 
+	static bool read_physical(std::uint64_t physical_address, void* buffer, size_t size) {
+		/*
+		* read_physical_memory()
+		* - RAX = bytes read
+		* - R8 = destination virtual address
+		* - R9 = source physical address
+		* - R10 = bytes to read
+		*/
+
+		hypercall_t request{ hypercall_code::read_physical_memory };
+		request.r8 = reinterpret_cast<std::uint64_t>(buffer);
+		request.r9 = physical_address;
+		request.r10 = size;
+
+		return __vmmcall(request) == size;
+	}
+
 	template <typename T>
 	static bool write_physical(std::uint64_t physical_address, T buffer) {
 		/*
@@ -154,7 +171,7 @@ public:
 		return __vmmcall(request) == sizeof(T);
 	}
 
-	static bool write_physical_raw(std::uint64_t physical_address, void* buffer, size_t size) {
+	static bool write_physical(std::uint64_t physical_address, void* buffer, size_t size) {
 		/*
 		* write_physical_memory()
 		* - RAX = bytes written
