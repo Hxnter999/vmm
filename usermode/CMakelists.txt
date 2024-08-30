@@ -1,0 +1,37 @@
+cmake_minimum_required(VERSION 3.21)
+project(usermode)
+
+file(GLOB_RECURSE USERMODE_CPP_SOURCES
+  "${CMAKE_CURRENT_SOURCE_DIR}/source/*.cpp" 
+  "${CMAKE_CURRENT_SOURCE_DIR}/source/*.h"
+)
+file(GLOB_RECURSE USERMODE_ASM_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/source/vmm/*.asm")
+
+add_executable(usermode main.cpp ${USERMODE_CPP_SOURCES} ${USERMODE_ASM_SOURCES})
+
+target_include_directories(usermode PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/source
+)
+
+set(CXX_OPTIONS
+    /W4 /WX /Zi /Od /Oi /Oy- /GR- /Gy /Zc:wchar_t- /Zc:forScope
+    /GS- /Gr /FC /MP /wd4201 /wd4996 /wd4200 /wd4505 /wd4326 /wd4706
+    /std:c++latest
+)
+
+set(ASM_OPTIONS
+    /W3 /Zp8 /Zi
+)
+
+target_compile_options(usermode PRIVATE
+    $<$<COMPILE_LANGUAGE:CXX>:${CXX_OPTIONS}>
+    $<$<COMPILE_LANGUAGE:ASM_MASM>:${ASM_OPTIONS}>
+)
+
+target_link_options(usermode PRIVATE
+    /MANIFEST:NO /OPT:REF /RELEASE
+)
+
+set_target_properties(usermode PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/usermode"
+)
