@@ -1,0 +1,45 @@
+cmake_minimum_required(VERSION 3.21)
+project(vmm)
+
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/../cmake")
+find_package(WDK REQUIRED)
+
+file(GLOB_RECURSE VMM_CPP_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
+file(GLOB_RECURSE VMM_ASM_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/*.asm")
+
+wdk_add_driver(vmm ${VMM_CPP_SOURCES} ${VMM_ASM_SOURCES})
+
+target_include_directories(vmm PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/header
+    ${CMAKE_CURRENT_SOURCE_DIR}/header/arch
+)
+
+target_compile_definitions(vmm PRIVATE
+    _AMD64_
+    POOL_NX_OPTIN=1
+)
+
+set(CXX_OPTIONS
+    /W4 /WX /Zi /Od /Oi /Oy- /GR- /Gy /Zc:wchar_t- /Zc:forScope
+    /GS- /Gr /FC /MP /wd4201 /wd4996 /wd4200 /wd4505 /wd4326 /wd4706
+    /std:c++latest
+)
+
+set(ASM_OPTIONS
+    /W3 /Zp8 /Zi
+)
+
+target_compile_options(vmm PRIVATE
+    $<$<COMPILE_LANGUAGE:CXX>:${CXX_OPTIONS}>
+    $<$<COMPILE_LANGUAGE:ASM_MASM>:${ASM_OPTIONS}>
+)
+
+target_link_options(vmm PRIVATE
+    /MANIFEST:NO /OPT:REF /RELEASE
+    /MERGE:_TEXT=.text /SECTION:.pdata,d
+)
+
+set_target_properties(vmm PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/vmm"
+)
