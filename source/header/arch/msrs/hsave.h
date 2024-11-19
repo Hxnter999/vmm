@@ -4,7 +4,7 @@
 namespace msr {
 	// VM_HSAVE_PA holds page alligned physical address of the host save area
 	// (not guaranteed to be used, other parts of the chip could be used too) 
-	struct hsave_pa : BASE_MSR 
+	struct hsave_pa
 	{
 		static constexpr uint32_t number = 0xC001'0117;
 
@@ -15,16 +15,5 @@ namespace msr {
 			};
 			uint64_t value;
 		};
-
-		void load()
-		{
-			value = { __readmsr(hsave_pa::number) };
-		}
-
-		void store()
-		{
-			__writemsr(hsave_pa::number, value);
-		}
 	};
-
 };

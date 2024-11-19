@@ -1,7 +1,7 @@
 #pragma once
 #include <vmm.h>
 #include <ntdef/def.h>
-#include <paging/translation.h>
+#include <memory/translation.h>
 #include <util/math.h>
 
 /*
@@ -135,7 +135,7 @@ inline void unhide_physical_page(vcpu_t& cpu) {
 */
 inline void read_physical_memory(vcpu_t& cpu) {
 	uint64_t destination_gva = cpu.ctx.r8.value;
-	uint64_t source = cpu.ctx.r9.value + host_pt_t::host_pa_base;
+	uint64_t source = cpu.ctx.r9.value + host_pt_t::mapping_base;
 	uint64_t size = cpu.ctx.r10.value;
 
 	uint64_t bytes_read = 0;
@@ -162,7 +162,7 @@ inline void read_physical_memory(vcpu_t& cpu) {
 * - R10 = bytes to write
 */
 inline void write_physical_memory(vcpu_t& cpu) {
-	uint64_t destination = cpu.ctx.r8.value + host_pt_t::host_pa_base;
+	uint64_t destination = cpu.ctx.r8.value + host_pt_t::mapping_base;
 	uint64_t source_gva = cpu.ctx.r9.value;
 	uint64_t size = cpu.ctx.r10.value;
 

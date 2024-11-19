@@ -9,7 +9,9 @@ union exitinfo1_t
 			uint64_t gpr_number : 4;
 			uint64_t must_be_zero : 59;
 			uint64_t mov_to_crx : 1; // undefined if cr0
-			// MOV-to-CR0 Special Case. If the instruction is MOV-to-CR, the GPR number is provided; if the instruction is LMSW (Load Machine Status Word; lower 16 bits of cr0) or CLTS (Clear Task Switch; 4th bit of cr0), no additional information is provided and bit 63 is not set.
+			// MOV-to-CR0 Special Case. If the instruction is MOV-to-CR, the GPR number is provided; 
+			// if the instruction is LMSW (Load Machine Status Word; lower 16 bits of cr0) or 
+			// CLTS (Clear Task Switch; 4th bit of cr0), no additional information is provided and bit 63 is not set.
 		} mov_cr;
 
 		struct {

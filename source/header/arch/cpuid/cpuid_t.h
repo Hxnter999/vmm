@@ -6,17 +6,11 @@
 // Extended Features: 0x8000_0000 - 0x8000_FFFF
 
 namespace cpuid {
+	template <typename T>
+	inline void load(T&& t) {
+		__cpuid(reinterpret_cast<int*>(&t.cpuid), t.id);
+	}
 
-	struct BASE_CPUID
-	{
-		//This will only throw if its intantated (and loadFn doesnt exist)
-		//Which is not the behavior we want (we want it to throw at compile time)
-		template<class Self> 
-		void load(this Self&& self)
-		{
-			self.load();
-		}
-	};
 
 	union cpuid_t
 	{

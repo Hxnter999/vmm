@@ -1,6 +1,7 @@
 #include <vmm.h>
 
-extern "C" NTSTATUS DriverEntry(PDRIVER_OBJECT driver_object, PUNICODE_STRING)
+extern "C" 
+NTSTATUS DriverEntry(PDRIVER_OBJECT driver_object, PUNICODE_STRING)
 {
 	if (driver_object)
 		driver_object->DriverUnload = [](PDRIVER_OBJECT) {

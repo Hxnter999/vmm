@@ -15,10 +15,13 @@ typedef unsigned short     uint16_t;
 typedef unsigned int       uint32_t;
 typedef unsigned long long uint64_t;
 
-// TODO: port my logger class to make use of cpp20 style formatting (fmtlib) and remove this dbgprint
-inline void print(const char* fmt, ...)
+// TODO: support cpp20 style formatting (fmtlib), logging to memory and/or serial port printing
+inline void print([[maybe_unused]] const char* fmt, ...)
 {
+#ifdef _DEBUG
+	// beware dbgprintex might cause problems when in host mode and generally not recommended.
    va_list args;
    __va_start(&args, fmt);
    vDbgPrintExWithPrefix("[VMM] ", 0, 0, fmt, args);
+#endif // _DEBUG
 }

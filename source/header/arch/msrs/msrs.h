@@ -4,22 +4,15 @@
 #include <intrin.h>
 
 namespace msr {
-	struct BASE_MSR // all MSRs *MUST* inherit from this (mostly to assure these functions are defined)
-	{
-		template<class Self>
-		void load(this Self&& tis)
-		{
-			tis.load();
-		}
+	template <typename T>
+	inline void load(T&& t) {
+		t.value = __readmsr(t.number);
+	}
 
-		template<class Self>
-		void store(this Self&& tis)
-		{
-			tis.store();
-		}
-	};
-
-
+	template <typename T>
+	inline void store(T&& t) {
+		__writemsr(t.number, t.value);
+	}
 
 	enum class access : int8_t {
 		read = 0,
@@ -49,7 +42,7 @@ namespace msr {
 		[[maybe_unused]] static constexpr uint32_t vector1_start = 0x0000'0000, vector1_end = 0x0000'1FFF;
 		[[maybe_unused]] static constexpr uint32_t vector2_start = 0xC000'0000, vector2_end = 0xC000'1FFF;
 		[[maybe_unused]] static constexpr uint32_t vector3_start = 0xC001'0000, vector3_end = 0xC001'1FFF;
-		[[maybe_unused]] static constexpr uint32_t reserved_start = 0x4000'0000, reserved_end = 0x5000'0000; // unsure about the end value 
+		[[maybe_unused]] static constexpr uint32_t reserved_start = 0x4000'0000, reserved_end = 0xC000'0000; // unsure about the end value 
 
 		void set(uint32_t msr, access access_bit, bool value = true) {
 			util::bitset<0x800>* target = nullptr;

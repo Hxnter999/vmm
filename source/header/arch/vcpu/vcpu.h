@@ -48,13 +48,14 @@ struct alignas(0x1000) vcpu_t {
 	msr::msrpm_t msrpm;
 
 	// Its cleaner to put these methods in the vmcb struct but i just want them to be in the same place due to some of them being guest specific
-	void inject_exception(exception_vector e, uint32_t error_code)
+	void inject_exception(exception_vector e, uint32_t error_code = 0, bool push_error_code = false)
 	{
 		auto& ei = guest.control.event_injection;
-		ei.valid = true;
 		ei.type = interrupt_type::HARDWARE_EXCEPTION;
 		ei.vector = e;
 		ei.error_code = error_code;
+		ei.valid = true;
+		ei.error_code_valid = push_error_code;
 	}
 
 	inline void flush_tlb(tlb_control_id type) {
@@ -69,7 +70,8 @@ struct alignas(0x1000) vcpu_t {
 	- IDLE_HLT
 	- VMGEXIT
 	*/
-	inline void skip_instruction() { // Handle x86 later if needed
+	inline void skip_instruction() { 
+		// NOTE: Handle other non-64bit modes if needed
 		guest.state.rip = guest.control.nrip;
 	}
 };

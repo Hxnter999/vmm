@@ -4,7 +4,7 @@
 
 namespace cpuid {
 
-	struct fn_vendor : BASE_CPUID {
+	struct fn_vendor {
 		static constexpr int32_t id = 0x80000000;
 		union
 		{
@@ -36,11 +36,6 @@ namespace cpuid {
 		bool is_amd_vendor() const
 		{
 			return (vendor1 == 'htuA') && (vendor2 == 'DMAc') && (vendor3 == 'itne');
-		}
-
-		void load()
-		{
-			__cpuid(reinterpret_cast<int*>(&this->cpuid), fn_vendor::id);
 		}
 	};
 };

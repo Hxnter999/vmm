@@ -191,7 +191,7 @@ enum class vmexit_code : uint64_t {
     RDPMC = 0x6F, // RDPMC instruction.
     PUSHF = 0x70, // PUSHF instruction.
     POPF = 0x71, // POPF instruction.
-    cpuid = 0x72, // CPUID instruction.
+    CPUID = 0x72, // CPUID instruction.
     RSM = 0x73, // RSM instruction.
     IRET = 0x74, // IRET instruction.
     SWINT = 0x75, // Software interrupt (INTn instructions).
@@ -201,7 +201,7 @@ enum class vmexit_code : uint64_t {
     INVLPG = 0x79, // INVLPG instruction.
     INVLPGA = 0x7A, // INVLPGA instruction.
     IOIO = 0x7B, // IN or OUT accessing protected port.
-    msr = 0x7C, // RDMSR or WRMSR access to protected MSR.
+    MSR = 0x7C, // RDMSR or WRMSR access to protected MSR.
     TASK_SWITCH = 0x7D, // Task switch.
     FERR_FREEZE = 0x7E, // FP legacy handling enabled, and processor is frozen in an x87/mmx instruction waiting for an interrupt.
     SHUTDOWN = 0x7F, // Shutdown

@@ -2,8 +2,7 @@
 #include <msrs/msrs.h>
 
 namespace msr {
-	struct pl3_ssp : BASE_MSR {
-
+	struct pl3_ssp {
 		static constexpr uint32_t number = 0x0000'06A7;
 
 		union {
@@ -12,15 +11,5 @@ namespace msr {
 			};
 			uint64_t value;
 		};
-
-		void load()
-		{
-			value = { __readmsr(pl3_ssp::number) };
-		}
-
-		void store()
-		{
-			__writemsr(pl3_ssp::number, value);
-		}
 	};
 }

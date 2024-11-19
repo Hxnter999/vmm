@@ -37,9 +37,9 @@ bool setup_cpu(uint32_t index)
 
 	// enable svm instructions
 	msr::efer efer{};
-	efer.load();
+	msr::load(efer);
 	efer.svme = 1;
-	efer.store();
+	msr::store(efer);
 
 	print("Setting up guest\n");
 	setup_guest(cpu); 
@@ -117,15 +117,15 @@ void setup_guest(vcpu_t& cpu)
 	//cpu.guest.control.v_intr_masking = 1; // 15.21.1; Virtualize TPR and eflags.if, host eflags.if controls physical interrupts and guest eflags.if controls virtual interrupts
 
 	// Msr bitmap based protection/interception
-	//control.msr_prot = 1;
-	//control.msrpm_base_pa = MmGetPhysicalAddress(&cpu.msrpm).QuadPart;
-	//setup_msrpm(cpu);
+	control.msr_prot = 1;
+	control.msrpm_base_pa = MmGetPhysicalAddress(&cpu.msrpm).QuadPart;
+	setup_msrpm(cpu);
 
 	// nested paging controls alot of things, even implicitly isolating the guest from the host, refer to the manual.
 	//control.np_enable = 1; 
 	//control.n_cr3 = MmGetPhysicalAddress(&cpu.npt).QuadPart;
 	//setup_npt(cpu);
-
+	
 	// ------------------- Setup state area -------------------
 	state.cr0.value = __readcr0();
 	state.cr2.value = __readcr2();
@@ -179,7 +179,7 @@ void setup_guest(vcpu_t& cpu)
 	// host vmcb physical address for the cpu to implicitly load and store from/to
 	msr::hsave_pa hsave_pa{};
 	hsave_pa.value = cpu.host_vmcb_pa;
-	hsave_pa.store();
+	msr::store(hsave_pa);
 
 	// initial vmsave so we can start vmlaunch directly with a vmrun
 	__svm_vmsave(cpu.host_vmcb_pa);
@@ -234,21 +234,21 @@ void setup_npt(vcpu_t& cpu)
 	auto& pml4e = npt.pml4[0];
 	pml4e.present = 1;
 	pml4e.write = 1;
-	pml4e.usermode = 1;
+	pml4e.supervisor = 1;
 	pml4e.page_pa = MmGetPhysicalAddress(&npt.pdpt).QuadPart >> 12;
 
-	for (int i = 0; i < 64; i++) {
+	for (int i = 0; i < 512; i++) {
 		auto& pdpte = npt.pdpt[i];
 		pdpte.present = 1;
 		pdpte.write = 1;
-		pdpte.usermode = 1;
+		pdpte.supervisor = 1;
 		pdpte.page_pa = MmGetPhysicalAddress(&npt.pd[i]).QuadPart >> 12;
 
 		for (int j = 0; j < 512; j++) {
 			auto& pde = npt.pd[i][j];
 			pde.present = 1;
 			pde.write = 1;
-			pde.usermode = 1;
+			pde.supervisor = 1;
 			pde.large_page = 1;
 			pde.page_pa = (i << 9) + j;
 		}
@@ -259,6 +259,7 @@ void map_physical_memory() {
 	print("Setting up host page tables\n");
 
 	// map all the physical memory and share it between the hosts to be able to access physical memory directly.
+	// specifically, upto 512gb of physical memory can be accessed directly by the host.
 	auto& host_pt = global::shared_host_pt;
 
 	auto& pml4e = host_pt.pml4[host_pt.host_pml4e];
@@ -266,7 +267,7 @@ void map_physical_memory() {
 	pml4e.write = 1;
 	pml4e.page_pa = MmGetPhysicalAddress(&host_pt.pdpt).QuadPart >> 12;
 
-	for (int i = 0; i < 64; i++) {
+	for (int i = 0; i < 512; i++) {
 		auto& pdpte = host_pt.pdpt[i];
 		pdpte.present = 1;
 		pdpte.write = 1;
@@ -286,8 +287,8 @@ void map_physical_memory() {
 
 	auto system_pml4 = reinterpret_cast<pml4e_t*>(MmGetVirtualForPhysical({ .QuadPart = static_cast<int64_t>(global::system_cr3.pml4 << 12) }));
 
-	// NOTE: this is a shallow copy, a deep copy would be required if an aggressive anticheat trashed the deeper levels of the page tables before a VMEXIT
-	// its resource intensive both for us and the anticheat to setup a deep copy. Since they also have to do it, we can just assume were gonna be fine for now.
+	// NOTE: this is a shallow copy, a deep copy would be required if a piece of software trashed the deeper levels of the page tables before a VMEXIT
+	// its resource intensive both for us and them to setup a deep copy. Since they also have to do it, we can just assume were gonna be fine for now.
 	memcpy(&host_pt.pml4[256], &system_pml4[256], sizeof(pml4e_t) * 256);
 }
 
@@ -297,7 +298,8 @@ void unload_single_cpu(vcpu_t& cpu)
 	auto& state = cpu.guest.state;
 	auto& control = cpu.guest.control;
 
-	_disable();
+	//_disable();
+	_enable();
 	__svm_stgi(); // re-enable GIF since its implicitly disabled for the host on vmexit 
 
 	// pass some context to the asm devirtualization handler, this order specifically for iret instruction which pops all 5 values from the stack
@@ -309,32 +311,30 @@ void unload_single_cpu(vcpu_t& cpu)
 
 	msr::pat pat{};
 	pat.value = state.g_pat;
-	pat.store();
+	msr::store(pat);
 
 	__writecr3(state.cr3.value);
 
 	msr::hsave_pa hsave_pa{};
-	hsave_pa.store();
+	msr::store(hsave_pa);
 
 	auto& efer = state.efer;
 	efer.svme = 0;
-	efer.store();
+	msr::store(efer);
 
-	/*
-	descriptor_table_register gdtr{};
+	descriptor_table_register_t gdtr{};
 	gdtr.base = state.gdtr.base;
 	gdtr.limit = static_cast<uint16_t>(state.gdtr.limit);
 	_lgdt(&gdtr);
 
-	descriptor_table_register idtr{};
+	descriptor_table_register_t idtr{};
 	idtr.base = state.idtr.base;
 	idtr.limit = static_cast<uint16_t>(state.idtr.limit);
 	__lidt(&idtr);
 
-	segment_selector tr{};
+	segment_selector_t tr{};
 	tr.value = state.tr.selector.value;
-	(reinterpret_cast<segment_descriptor*>(gdtr.base)
-		+ tr.index)->type = 0x9;
+	reinterpret_cast<segment_descriptor_t*>(gdtr.base)[tr.index].type = 0x9;
 	__write_tr(tr.value);
 
 	__write_ds(state.ds.selector.value);
@@ -344,9 +344,8 @@ void unload_single_cpu(vcpu_t& cpu)
 	__write_ldtr(state.ldtr.selector.value);
 
 	_writefsbase_u64(state.fs.base);
-	_writegsbase_u64(state.gs.base);*/
+	_writegsbase_u64(state.gs.base);
 }
-
 
 void devirtualize() {
 	print("Unloading Hypervisor...\n");
@@ -368,7 +367,7 @@ void devirtualize() {
 svm_status check_svm_support()
 {
 	cpuid::fn_vendor vendor_check{};
-	vendor_check.load();
+	cpuid::load(vendor_check);
 
 	if (!vendor_check.is_amd_vendor())
 	{
@@ -377,7 +376,7 @@ svm_status check_svm_support()
 	}
 
 	cpuid::fn_identifiers id{};
-	id.load();
+	cpuid::load(id);
 
 	if (!id.feature_identifiers.svm)
 	{
@@ -386,7 +385,7 @@ svm_status check_svm_support()
 	}
 
 	cpuid::fn_svm_features svm_rev{};
-	svm_rev.load();
+	cpuid::load(svm_rev);
 
 	if (!svm_rev.svm_feature_identification.nested_paging)
 	{
@@ -394,14 +393,14 @@ svm_status check_svm_support()
 		return svm_status::SVM_NESTED_PAGING_NOT_SUPPORTED;
 	}
 
-	if (!svm_rev.svm_feature_identification.n_rip) // necessary otherwise we have to emulate it which is a pain
+	if (!svm_rev.svm_feature_identification.n_rip) // necessary otherwise we have to emulate it which is not implemented
 	{
 		print("Next RIP not supported...\n");
 		return svm_status::SVM_NEXT_RIP_NOT_SUPPORTED;
 	}
 
 	msr::vmcr vm_cr{};
-	vm_cr.load();
+	msr::load(vm_cr);
 
 	if (!vm_cr.svmdis)
 	{

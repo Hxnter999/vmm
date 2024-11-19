@@ -7,7 +7,7 @@ void hypercall_handler(vcpu_t& cpu) {
 	hypercall_t request {cpu.ctx.rcx.value};
 
 	if (request.key != hypercall_key) {
-		cpu.inject_exception(exception_vector::UD, 0);
+		cpu.inject_exception(exception_vector::UD);
 		return;
 	}
 
@@ -38,7 +38,7 @@ void hypercall_handler(vcpu_t& cpu) {
 		break;
 
 	case hypercall_code::hide_physical_page:
-		//hide_physical_page(cpu);
+		hide_physical_page(cpu);
 		break;
 
 	case hypercall_code::unhide_physical_page:

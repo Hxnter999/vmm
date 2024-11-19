@@ -90,17 +90,17 @@ struct segment_register_t
 
 	void get_attributes(uint64_t descriptor)
 	{
-		auto desc = reinterpret_cast<segment_descriptor_t*>(descriptor + selector.index * 8);
+		auto& desc = reinterpret_cast<segment_descriptor_t*>(descriptor)[selector.index];
 
-		attributes.type = desc->type;
-		attributes.system = desc->system;
-		attributes.dpl = desc->dpl;
-		attributes.present = desc->present;
-		attributes.avl = desc->avl;
-		attributes.longmode = desc->long_mode;
-		attributes.default_bit = desc->default_bit;
-		attributes.granularity = desc->granularity;
-		attributes.present = desc->present;
+		attributes.type = desc.type;
+		attributes.system = desc.system;
+		attributes.dpl = desc.dpl;
+		attributes.present = desc.present;
+		attributes.avl = desc.avl;
+		attributes.longmode = desc.long_mode;
+		attributes.default_bit = desc.default_bit;
+		attributes.granularity = desc.granularity;
+		attributes.present = desc.present;
 		attributes.reserved = 0;
 	}
 };

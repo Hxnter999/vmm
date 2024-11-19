@@ -5,7 +5,6 @@
 void cpuid_handler(vcpu_t& cpu) {
 	cpuid::cpuid_t result{};
 	__cpuidex(reinterpret_cast<int*>(&result.cpu_info), cpu.ctx.rax.low, cpu.ctx.rcx.low);
-
 	
 	cpu.ctx.rax.value = result.registers.eax;
 	cpu.ctx.rbx.value = result.registers.ebx;

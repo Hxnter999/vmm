@@ -2,7 +2,7 @@
 #include <msrs/msrs.h>
 
 namespace msr {
-	struct sfmask : BASE_MSR
+	struct sfmask
 	{
 		static constexpr uint32_t number = 0xC000'0084;
 
@@ -13,15 +13,5 @@ namespace msr {
 			};
 			uint64_t value;
 		};
-
-		void load()
-		{
-			value = { __readmsr(sfmask::number) };
-		}
-
-		void store()
-		{
-			__writemsr(sfmask::number, value);
-		}
 	};
 };

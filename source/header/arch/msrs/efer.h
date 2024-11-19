@@ -2,7 +2,7 @@
 #include <msrs/msrs.h>
 
 namespace msr {
-	struct efer : BASE_MSR //Extended Feature Enable Register
+	struct efer //Extended Feature Enable Register
 	{
 		static constexpr uint32_t number = 0xC000'0080;
 
@@ -28,15 +28,5 @@ namespace msr {
 			};
 			uint64_t value;
 		};
-
-		void load()
-		{
-			value = { __readmsr(efer::number) };
-		}
-
-		void store()
-		{
-			__writemsr(efer::number, value);
-		}
 	};
 };

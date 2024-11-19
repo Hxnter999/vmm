@@ -11,12 +11,19 @@ static void wrmsr_handler(vcpu_t& cpu, uint32_t msr, register_t result);
 * This is the case for the currently intercepted MSRs which are the only one that are somewhat required to be intercepted to keep the hypervisor hidden.
 */
 
+/*
+* Msrs to look out for, on amd would be:
+*  - Efer
+*  - Host vmcb msr which has the physical address of the host vmcb, referred to as hsave_pa
+*  - Performance counters which track guest and host events independently
+*  - Some other virtualization-related msrs which should not be used by a normal system like the doorbell msr, page flush msr etc.
+*/
+
 void msr_handler(vcpu_t& cpu) {
 	uint32_t msr = cpu.ctx.rcx.low;
 
-	if (msr >= msr::msrpm_t::reserved_start && msr <= msr::msrpm_t::reserved_end) {
-		//cpu.inject_exception(exception_vector::GP, 0);
-		cpu.skip_instruction();
+	if (msr >= msr::msrpm_t::reserved_start && msr < msr::msrpm_t::reserved_end) {
+		cpu.inject_exception(exception_vector::GP, 0, true);
 		return;
 	}
 
@@ -41,17 +48,17 @@ static register_t rdmsr_handler(vcpu_t& cpu, uint32_t msr) {
 	switch (msr) {
 	case msr::efer::number: 
 	{
-		print("[RDMSR] EFER\n");
+		//print("[RDMSR] EFER\n");
 		return { cpu.shadow.efer.value };
 	}
 	case msr::hsave_pa::number:
 	{
-		print("[RDMSR] HSAVE_PA\n");
+		//print("[RDMSR] HSAVE_PA\n");
 		return { cpu.shadow.hsave_pa.value };
 	}
 	default:
 	{
-		return { __readmsr(msr) };
+		return { .value = __readmsr(msr) };
 	}
 	}
 }
@@ -63,7 +70,7 @@ static void wrmsr_handler(vcpu_t& cpu, uint32_t msr, register_t result) {
 		msr::efer new_efer{ .value = result.value };
 		auto& old_efer = cpu.guest.state.efer;
 		auto& shadow_efer = cpu.shadow.efer;
-		print("[WRMSR] EFER: %zX\n", new_efer.value);
+		//print("[WRMSR] EFER: %zX\n", new_efer.value);
 
 		// TODO: handle reserved bits and system configuration bits and inject an exception respectively ...
 
@@ -71,17 +78,17 @@ static void wrmsr_handler(vcpu_t& cpu, uint32_t msr, register_t result) {
 		old_efer.value = new_efer.value;
 		old_efer.svme = 1; // always enforce svme but still respect guest's value
 		
-		shadow_efer.value = new_efer.value;
+		shadow_efer.value = new_efer.value; // cache the value and return it upon read, this ensures our changes are not directly visible but still vulnerable to introspection
 		break;
 	}
 	case msr::hsave_pa::number:
 	{
 		msr::hsave_pa new_hsave {.value = result.value};
 		auto& shadow_hsave = cpu.shadow.hsave_pa;
-		print("[WRMSR] HSAVE_PA: %zX\n", new_hsave.value);
+		//print("[WRMSR] HSAVE_PA: %zX\n", new_hsave.value);
 
 		if (new_hsave.must_be_zero) { // address must be page aligned
-			cpu.inject_exception(exception_vector::GP, 0);
+			cpu.inject_exception(exception_vector::GP, 0, true);
 			return;
 		}
 

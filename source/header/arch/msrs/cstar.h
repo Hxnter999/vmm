@@ -2,7 +2,7 @@
 #include <msrs/msrs.h>
 
 namespace msr {
-	struct cstar : BASE_MSR
+	struct cstar
 	{
 		static constexpr uint32_t number = 0xC000'0083;
 
@@ -12,15 +12,5 @@ namespace msr {
 			};
 			uint64_t value;
 		};
-
-		void load()
-		{
-			value = { __readmsr(cstar::number) };
-		}
-
-		void store()
-		{
-			__writemsr(cstar::number, value);
-		}
 	};
 };

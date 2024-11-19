@@ -3,7 +3,7 @@
 
 namespace cpuid {
 	// 8000_000A
-	struct fn_svm_features : BASE_CPUID {
+	struct fn_svm_features {
 		static constexpr int32_t id = 0x8000000A;
 		union
 		{
@@ -40,10 +40,5 @@ namespace cpuid {
 
 			cpuid_t cpuid;
 		};
-		
-		void load()
-		{
-			__cpuid(reinterpret_cast<int*>(&this->cpuid), fn_svm_features::id);
-		}
 	};
 };

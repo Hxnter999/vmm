@@ -1,6 +1,6 @@
 #pragma once
 #include <commons.h>
-#include <segmentation/segments.h>
+#include <memory/segments.h>
 #include <cr/control_registers.h>
 #include <rflags.h>
 #include <msrs/s_cet.h>
