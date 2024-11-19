@@ -27,6 +27,11 @@
    cmake ..
    cmake --build .
    ```
+   To specify the build configuration (e.g., Debug or Release), you can use the --config flag:
+   ```
+    cmake --build . --config Debug
+    cmake --build . --config Release
+   ```
 
 ### Building Specific Targets
 

@@ -21,9 +21,14 @@ target_compile_definitions(vmm PRIVATE
 )
 
 set(CXX_OPTIONS
-    /W4 /WX /Zi /Od /Oi /Oy- /GR- /Gy /Zc:wchar_t- /Zc:forScope
+    /W4 /WX /Zi /Oi /Oy- /GR- /Gy /Zc:wchar_t- /Zc:forScope
     /GS- /Gr /FC /MP /wd4201 /wd4996 /wd4200 /wd4505 /wd4326 /wd4706
     /std:c++latest
+)
+
+target_compile_options(vmm PRIVATE 
+    $<$<CONFIG:Debug>:/Od>
+    $<$<CONFIG:Release>:/O3>
 )
 
 set(ASM_OPTIONS
