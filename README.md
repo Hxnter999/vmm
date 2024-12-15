@@ -52,4 +52,4 @@
 ## Customization
 Everything regarding the setup of the guest and the host is within `source/vmm.cpp`. There are separate functions that set up the guest and the host. If you want to customize the guest, then you should start with the `setup_guest` function.
 
-For the vmexit handlers, they're all located in the directory `source/header/vmexit/handlers/`. You can modify or add new handlers there to customize the vmexit handler's behavior according to your needs.
+For the vmexit handlers, they're all located in the directory `source/header/arch/vmexit/handlers/`. You can modify or add new handlers there to customize the vmexit handler's behavior according to your needs.
