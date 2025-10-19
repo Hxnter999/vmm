@@ -47,6 +47,28 @@ struct alignas(0x1000) vcpu_t {
 	npt_data_t npt;
 	msr::msrpm_t msrpm;
 
+	struct _e {
+	uint64_t interrupt_number;
+	uint64_t error_code;
+	//set handle to true to not BSOD w exception
+	//handle will be setback to false if exception occurs
+	bool handle = false;
+	} interrupt_data;
+
+	void try_() {
+		interrupt_data.handle = true;
+	}
+
+	bool except_() {
+		if (interrupt_data.handle) {
+			//exception did not happen
+			interrupt_data.handle = false;
+			return false;
+		}
+
+		return true;
+	}
+
 	// Its cleaner to put these methods in the vmcb struct but i just want them to be in the same place due to some of them being guest specific
 	void inject_exception(exception_vector e, uint32_t error_code = 0, bool push_error_code = false)
 	{

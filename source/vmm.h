@@ -10,6 +10,7 @@ extern "C" uint8_t __ImageBase;
 
 namespace global {
 	inline host_pt_t shared_host_pt;
+	alignas(0x1000) inline interrupt_gate_descriptor_t idt[256]{};
 	inline _EPROCESS* system_process;
 	inline cr3_t system_cr3; 
 	inline vcpu_t* vcpus;

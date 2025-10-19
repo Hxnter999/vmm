@@ -71,6 +71,7 @@ bool virtualize() {
 	}
 
 	map_physical_memory();
+	setup_host_idt();
 
 	// Setup each processor specific structure and virtualize the processor
 	if (!execute_on_all_cpus([](uint32_t index) -> bool {
@@ -328,8 +329,8 @@ void unload_single_cpu(vcpu_t& cpu)
 	_lgdt(&gdtr);
 
 	descriptor_table_register_t idtr{};
-	idtr.base = state.idtr.base;
-	idtr.limit = static_cast<uint16_t>(state.idtr.limit);
+	idtr.base = reinterpret_cast<uint64_t>(&global::shared_host_idt[0]);
+	idtr.limit = sizeof(global::shared_host_idt) - 1,
 	__lidt(&idtr);
 
 	segment_selector_t tr{};
@@ -362,6 +363,69 @@ void devirtualize() {
 		util::free_pool(global::vcpus);
 		global::vcpus = nullptr;
 	}
+}
+
+extern "C" {
+	extern void interrupt_handler_0();
+	extern void interrupt_handler_1();
+	extern void interrupt_handler_2();
+	extern void interrupt_handler_3();
+	extern void interrupt_handler_4();
+	extern void interrupt_handler_5();
+	extern void interrupt_handler_6();
+	extern void interrupt_handler_7();
+	extern void interrupt_handler_8();
+	extern void interrupt_handler_10();
+	extern void interrupt_handler_11();
+	extern void interrupt_handler_12();
+	extern void interrupt_handler_13();
+	extern void interrupt_handler_14();
+	extern void interrupt_handler_16();
+	extern void interrupt_handler_17();
+	extern void interrupt_handler_18();
+	extern void interrupt_handler_19();
+	extern void interrupt_handler_20();
+	extern void interrupt_handler_30();
+}
+
+void setup_host_idt() {
+	print("Setting up host page idt\n");
+
+	static auto make_int = [](void(*exception)(void)) -> interrupt_gate_descriptor_t
+		{
+			interrupt_gate_descriptor_t entry{};
+			entry.set_address(reinterpret_cast<uint64_t>(exception));
+			entry.selector = __read_cs();
+			entry.present = 1;
+			entry.descriptor_privilege_level = 0b00;
+			entry.type = 0b1110;
+			entry.interrupt_stack_table = 0; // dont use int stack (defined in tss)
+
+			return entry;
+		};
+
+	auto& shared_host_idt = global::shared_host_idt;
+
+	shared_host_idt[0] = make_int(interrupt_handler_0);
+	shared_host_idt[1] = make_int(interrupt_handler_1);
+	shared_host_idt[2] = make_int(interrupt_handler_2);
+	shared_host_idt[3] = make_int(interrupt_handler_3);
+	shared_host_idt[4] = make_int(interrupt_handler_4);
+	shared_host_idt[5] = make_int(interrupt_handler_5);
+	shared_host_idt[6] = make_int(interrupt_handler_6);
+	shared_host_idt[7] = make_int(interrupt_handler_7);
+	shared_host_idt[8] = make_int(interrupt_handler_8);
+	shared_host_idt[10] = make_int(interrupt_handler_10);
+	shared_host_idt[11] = make_int(interrupt_handler_11);
+	shared_host_idt[12] = make_int(interrupt_handler_12);
+	shared_host_idt[13] = make_int(interrupt_handler_13);
+	shared_host_idt[14] = make_int(interrupt_handler_14);
+	shared_host_idt[16] = make_int(interrupt_handler_16);
+	shared_host_idt[17] = make_int(interrupt_handler_17);
+	shared_host_idt[18] = make_int(interrupt_handler_18);
+	shared_host_idt[19] = make_int(interrupt_handler_19);
+	shared_host_idt[20] = make_int(interrupt_handler_20);
+	shared_host_idt[30] = make_int(interrupt_handler_30);
 }
 
 svm_status check_svm_support()

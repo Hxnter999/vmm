@@ -124,6 +124,11 @@ struct interrupt_gate_descriptor_t {
 			uint64_t reserved : 32;
 		};
 	};
+	void set_address(uint64_t address) {
+		offset_low = static_cast<uint16_t>(address);
+		offset_middle = static_cast<uint16_t>(address >> 16);
+		offset_high = static_cast<uint32_t>(address >> 32);
+	}
 };
 
 struct task_state_segment_t {
