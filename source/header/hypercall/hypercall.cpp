@@ -22,43 +22,43 @@ void hypercall_handler(vcpu_t& cpu) {
 		break;
 
 	case hypercall_code::get_vmm_base:
-		get_base_address(cpu);
+		get_base_address(cpu.ctx.rax);
 		break;
 	
 	case hypercall_code::get_process_cr3:
-		get_process_cr3(cpu);
+		get_process_cr3(cpu.ctx.rax, cpu.ctx.r8);
 		break;
 
 	case hypercall_code::get_process_base:
-		get_process_base(cpu);
+		get_process_base(cpu.ctx.rax, cpu.ctx.r8);
 		break;
 
 	case hypercall_code::get_physical_address:
-		get_physical_address(cpu);
+		get_physical_address(cpu.ctx.rax, cpu.ctx.r8, cpu.ctx.r9);
 		break;
 
 	case hypercall_code::hide_physical_page:
-		//hide_physical_page(cpu);
+		hide_physical_page(cpu);
 		break;
 
 	case hypercall_code::unhide_physical_page:
-		//unhide_physical_page(cpu);
+		unhide_physical_page(cpu);
 		break;
 	
 	case hypercall_code::read_physical_memory:
-		read_physical_memory(cpu);
+		read_physical_memory(cpu.guest.state.cr3, cpu.ctx.rax, cpu.ctx.r8, cpu.ctx.r9, cpu.ctx.r10);
 		break;
 
 	case hypercall_code::write_physical_memory:
-		write_physical_memory(cpu);
+		write_physical_memory(cpu.guest.state.cr3, cpu.ctx.rax, cpu.ctx.r8, cpu.ctx.r9, cpu.ctx.r10);
 		break;
 
 	case hypercall_code::read_virtual_memory:
-		read_virtual_memory(cpu);
+		read_virtual_memory(cpu.guest.state.cr3, cpu.ctx.rax, cpu.ctx.r8, cpu.ctx.r9, cpu.ctx.r10, cpu.ctx.r11);
 		break;
 
 	case hypercall_code::write_virtual_memory:
-		write_virtual_memory(cpu);
+		write_virtual_memory(cpu.guest.state.cr3, cpu.ctx.rax, cpu.ctx.r8, cpu.ctx.r9, cpu.ctx.r10, cpu.ctx.r11);
 		break;
 
 	default:
