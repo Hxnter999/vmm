@@ -55,14 +55,15 @@ struct alignas(0x1000) vcpu_t {
 	bool handle = false;
 	} interrupt_data;
 
-	void try_() {
-		interrupt_data.handle = true;
+	static void try_() {
+		reinterpret_cast<vcpu_t*>(__read_fs())->interrupt_data.handle = true;
 	}
 
-	bool except_() {
-		if (interrupt_data.handle) {
+	static bool except_() {
+		if (auto& handle = reinterpret_cast<vcpu_t*>(__read_fs())->interrupt_data.handle;
+			handle) {
 			//exception did not happen
-			interrupt_data.handle = false;
+			handle = false;
 			return false;
 		}
 

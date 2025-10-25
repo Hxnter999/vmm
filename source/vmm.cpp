@@ -344,7 +344,7 @@ void unload_single_cpu(vcpu_t& cpu)
 	__write_gs(state.gs.selector.value);
 	__write_ldtr(state.ldtr.selector.value);
 
-	_writefsbase_u64(state.fs.base);
+	_writefsbase_u64(reinterpret_cast<uint64_t>(cpu.self));
 	_writegsbase_u64(state.gs.base);
 }
 
